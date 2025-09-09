@@ -110,6 +110,11 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
     advantages: parseListProperty(getRichTextProperty(props.Advantages) || ''),
     disadvantages: parseListProperty(getRichTextProperty(props.Disadvantages) || ''),
     imageUrl: getFileProperty(props.Image) || page.cover?.external?.url || page.cover?.file?.url || '',
+    finalImageUrl:
+      getFileProperty(props.FinalImage) ||
+      getFileProperty(props.Poster) ||
+      getFileProperty(props.ShareImage) ||
+      '',
     createdAt: getDateProperty(props.CreatedAt) || new Date().toISOString(),
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
   };

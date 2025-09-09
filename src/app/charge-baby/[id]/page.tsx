@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { Battery } from 'lucide-react';
+import Link from 'next/link';
+import { Battery, ArrowLeft } from 'lucide-react';
+import SaveScreenshotButton from '@/components/save-screenshot-button';
 import { getChargeBabyById } from '@/lib/notion';
 import { formatPrice, formatRating, getRatingProgress, formatDate } from '@/lib/utils';
 
@@ -37,6 +39,7 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
     advantages,
     disadvantages,
     imageUrl,
+    finalImageUrl,
   } = chargeBaby;
 
   const gradeLabels = ['入门级', '进阶级', '高端级', '旗舰级', '超旗舰级'];
@@ -56,7 +59,58 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-white">
       <div className="container py-6 sm:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-start">
+        {/* 顶部操作栏：返回 / 保存图片 */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6" data-ignore-capture="true">
+          <Link href="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <ArrowLeft className="w-5 h-5" />
+            <span className="hidden lg:inline">返回</span>
+          </Link>
+          {finalImageUrl ? (
+            <>
+              <a
+                href={finalImageUrl}
+                download={(title || 'chargebaby') + '.jpg'}
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 lg:hidden"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="inline-block w-5 h-5" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </span>
+                <span className="sr-only">保存图片</span>
+              </a>
+              <a
+                href={finalImageUrl}
+                download={(title || 'chargebaby') + '.jpg'}
+                className="hidden lg:inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="inline-block w-5 h-5 relative">
+                  {/* simple svg download icon to avoid importing again here */}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </span>
+                <span>保存图片</span>
+              </a>
+            </>
+          ) : (
+            <>
+              <SaveScreenshotButton
+                targetSelector="#capture-root"
+                filename={(title || 'chargebaby') + '.jpg'}
+                showText={false}
+                className="lg:hidden"
+              />
+              <SaveScreenshotButton
+                targetSelector="#capture-root"
+                filename={(title || 'chargebaby') + '.jpg'}
+                showText
+                className="hidden lg:inline-flex"
+              />
+            </>
+          )}
+        </div>
+        <div id="capture-root" className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-start bg-white">
           {/* 左侧：大图 + 优劣势 */}
           <div>
             <div className="relative aspect-square overflow-hidden pl-0 pr-0 sm:pl-2 sm:pr-6 pt-2 pb-2 sm:pt-6 sm:pb-6 max-w-[320px] sm:max-w-none mx-auto sm:mx-0">

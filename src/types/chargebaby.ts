@@ -19,6 +19,7 @@ export interface ChargeBaby {
   advantages: string[]; // 优势
   disadvantages: string[]; // 不足
   imageUrl: string; // 产品图片
+  finalImageUrl?: string; // 成品图片（用于下载/分享）
   createdAt: string;
   updatedAt: string;
 }
