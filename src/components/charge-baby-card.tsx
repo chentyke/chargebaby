@@ -13,6 +13,7 @@ export function ChargeBabyCard({ chargeBaby, className }: ChargeBabyCardProps) {
   const {
     id,
     title,
+    displayName,
     imageUrl,
   } = chargeBaby;
 
@@ -40,7 +41,7 @@ export function ChargeBabyCard({ chargeBaby, className }: ChargeBabyCardProps) {
         </div>
         {/* 标题 */}
         <h3 className="font-medium text-gray-900 text-sm truncate">
-          {title}
+          {displayName || title}
         </h3>
       </div>
     </Link>

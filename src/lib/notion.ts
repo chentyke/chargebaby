@@ -94,6 +94,7 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
     id: page.id,
     model: getTextProperty(props.Model) || getTextProperty(props.Name) || 'Unknown',
     title: getTextProperty(props.Title) || getTextProperty(props.Name) || 'Unknown',
+    displayName: getTextProperty(props.DisplayName) || getTextProperty(props.ExternalName) || '',
     subtitle: getTextProperty(props.Subtitle) || '',
     tags: getMultiSelectProperty(props.Tags) || [],
     price: getNumberProperty(props.Price) || 0,

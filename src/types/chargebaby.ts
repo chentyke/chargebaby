@@ -4,6 +4,7 @@ export interface ChargeBaby {
   model: string; // 型号
   title: string; // 标题
   subtitle: string; // 副标题
+  displayName?: string; // 外部展示名称（列表/分享）
   tags: string[]; // 标签
   price: number; // 定价
   releaseDate: string; // 发售时间

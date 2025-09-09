@@ -149,7 +149,7 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
                 ))}
               </div>
               {(priceText || releaseMonthText) && (
-                <div className="mt-2 text-xs sm:text-sm text-gray-700">
+                <div className="mt-3 text-sm sm:text-base text-gray-700">
                   <span>官方定价 </span>
                   {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
                   {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
@@ -159,7 +159,7 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
 
             {/* 优势 / 不足 */}
             {(advantages?.length || disadvantages?.length) && (
-              <div className="mt-10 space-y-6">
+              <div className="mt-6 sm:mt-8 lg:mt-10 space-y-6">
                 {advantages?.length ? (
                   <div>
                     <h3 className="text-gray-900 font-semibold mb-2">优势</h3>
