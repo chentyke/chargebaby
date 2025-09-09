@@ -55,11 +55,11 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+      <div className="container py-6 sm:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-start">
           {/* 左侧：大图 + 优劣势 */}
           <div>
-            <div className="relative aspect-square overflow-hidden pl-2 pr-6 pt-2 pb-2 sm:pt-6 sm:pb-6">
+            <div className="relative aspect-square overflow-hidden pl-0 pr-0 sm:pl-2 sm:pr-6 pt-2 pb-2 sm:pt-6 sm:pb-6 max-w-[320px] sm:max-w-none mx-auto sm:mx-0">
               {imageUrl ? (
                 <Image
                   src={imageUrl}
@@ -72,6 +72,33 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Battery className="w-24 h-24 text-gray-300" />
+                </div>
+              )}
+            </div>
+
+            {/* 移动端：标题与标签（放在图片后，整屏显示） */}
+            <div className="mt-4 lg:hidden">
+              {model && (
+                <div className="text-sm sm:text-base text-gray-600 mb-1">{model}</div>
+              )}
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight">
+                {title}
+              </h1>
+              {subtitle && (
+                <div className="text-base sm:text-lg text-gray-600 mt-1">{subtitle}</div>
+              )}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {Array.isArray(tags) && tags.slice(0, 3).map((tag: string) => (
+                  <span key={tag} className="px-3 py-1 rounded-md text-xs sm:text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              {(priceText || releaseMonthText) && (
+                <div className="mt-2 text-xs sm:text-sm text-gray-700">
+                  <span>官方定价 </span>
+                  {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
+                  {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
                 </div>
               )}
             </div>
@@ -109,34 +136,31 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* 免责声明区域 */}
-            <div className="mt-8 text-[11px] leading-5 text-gray-400">
-              本页评分与内容基于实验室环境的客观测试与主观体验，仅供参考。不同使用场景及批次会存在差异，请以实际体验为准。
-            </div>
+            {/* 免责声明区域（移动端放在页面底部，此处移除） */}
           </div>
 
           {/* 右侧：标题 + 评分卡片 */}
           <div className="space-y-8">
-            {/* 标题与标签 */}
-            <div>
+            {/* 桌面端：标题与标签（移动端隐藏） */}
+            <div className="hidden lg:block">
               {model && (
-                <div className="text-base text-gray-600 mb-1">{model}</div>
+                <div className="text-sm sm:text-base text-gray-600 mb-1">{model}</div>
               )}
-              <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
                 {title}
               </h1>
               {subtitle && (
-                <div className="text-lg text-gray-600 mt-1">{subtitle}</div>
+                <div className="text-base sm:text-lg text-gray-600 mt-1">{subtitle}</div>
               )}
               <div className="flex flex-wrap gap-2 mt-3">
                 {Array.isArray(tags) && tags.slice(0, 3).map((tag: string) => (
-                  <span key={tag} className="px-3 py-1 rounded-md text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                  <span key={tag} className="px-3 py-1 rounded-md text-xs sm:text-sm bg-gray-100 text-gray-700 border border-gray-200">
                     {tag}
                   </span>
                 ))}
               </div>
               {(priceText || releaseMonthText) && (
-                <div className="mt-2 text-sm text-gray-700">
+                <div className="mt-2 text-xs sm:text-sm text-gray-700">
                   <span>官方定价 </span>
                   {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
                   {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
@@ -148,7 +172,7 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
             <div>
               <div className="text-gray-900 font-semibold">综合评分</div>
               <div className="mt-2 flex items-baseline gap-2">
-                <div className="text-5xl font-extrabold tracking-tight text-gray-900">
+                <div className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
                   {Math.round(overallRating ?? 0)}
                 </div>
                 <div className="text-2xl text-gray-400">/100</div>
@@ -160,10 +184,10 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
 
             {/* 性能评分卡片 */}
             <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg text-gray-900 font-semibold mb-2">性能评分</div>
+              <div className="text-lg sm:text-xl text-gray-900 font-semibold mb-2">性能评分</div>
               <div className="flex items-start gap-6">
                 <div className="shrink-0">
-                  <div className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-none">
+                  <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-none">
                     {Math.round(performanceRating ?? 0)}
                     <span className="text-2xl text-gray-400">/100</span>
                   </div>
@@ -191,10 +215,10 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
 
             {/* 体验评分卡片 */}
             <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg text-gray-900 font-semibold mb-2">体验评分</div>
+              <div className="text-lg sm:text-xl text-gray-900 font-semibold mb-2">体验评分</div>
               <div className="flex items-start gap-6">
                 <div className="shrink-0">
-                  <div className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-none">
+                  <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-none">
                     {Math.round(experienceRating ?? 0)}
                     <span className="text-2xl text-gray-400">/100</span>
                   </div>
@@ -222,8 +246,13 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* 免责声明（最后显示） */}
+        <div className="mt-10 text-[11px] leading-5 text-gray-400">
+          本页评分与内容基于实验室环境的客观测试与主观体验，仅供参考。不同使用场景及批次会存在差异，请以实际体验为准。
+        </div>
+
         {/* 页脚版本信息 */}
-        <div className="mt-10 text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
+        <div className="mt-4 text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
       </div>
     </div>
   );
@@ -257,7 +286,7 @@ function ProgressSegmentBar({ value = 0, labels, className = '', labelsOnTop = f
   return (
     <div className={className}>
       {labelsOnTop && (
-        <div className="mb-1.5 flex justify-between text-[11px] text-gray-400">
+        <div className="mb-1.5 flex justify-between text-[10px] sm:text-[11px] text-gray-400">
           {labels.map((l, i) => (
             <span key={l} className={i === active ? 'text-gray-700 font-semibold' : undefined}>
               {l}
