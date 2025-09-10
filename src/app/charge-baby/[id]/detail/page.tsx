@@ -38,30 +38,31 @@ export default async function DetailDataPage({ params }: PageProps) {
             <DataItem label="尺寸" value={`${detailData.length} × ${detailData.width} × ${detailData.thickness} cm`} />
             <DataItem label="重量" value={`${detailData.weight}g`} />
             <DataItem label="体积" value={`${detailData.volume}cm³`} />
-            <DataItem label="容量重量比" value={`${detailData.capacityWeightRatio} Wh/g`} />
-            <DataItem label="容量体积比" value={`${detailData.capacityVolumeRatio} Wh/cm³`} />
+            <DataItem label="能量重量比" value={`${detailData.energyWeightRatio || detailData.capacityWeightRatio} Wh/g`} />
+            <DataItem label="能量体积比" value={`${detailData.energyVolumeRatio || detailData.capacityVolumeRatio} Wh/cm³`} />
           </DataSection>
 
           {/* 电池容量 */}
           <DataSection title="电池容量" data={detailData}>
             <DataItem label="容量级别" value={`${detailData.capacityLevel}mAh`} />
-            <DataItem label="最大放电容量" value={`${detailData.maxDischargeCapacity}Wh`} />
+            <DataItem label="最大放电能量" value={`${detailData.maxDischargeCapacity}Wh`} />
             <DataItem label="自充能量" value={`${detailData.selfChargingEnergy}Wh`} />
-            <DataItem label="放电容量达成率" value={`${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%`} />
+            <DataItem label="放电能量达成率" value={`${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%`} />
+            <DataItem label="最大能量转换率" value={`${(detailData.maxEnergyConversionRate * 100).toFixed(1)}%`} />
           </DataSection>
 
-          {/* 充电性能 */}
-          <DataSection title="充电性能" data={detailData}>
-            <DataItem label="自充时间" value={`${detailData.selfChargingTime}分钟`} />
-            <DataItem label="平均自充功率" value={`${detailData.avgSelfChargingPower}W`} />
+          {/* 自充电性能 */}
+          <DataSection title="自充电性能" data={detailData}>
+            <DataItem label="最大自充电功率" value={`${detailData.maxSelfChargingPower}W`} />
+            <DataItem label="自充电时间" value={`${detailData.selfChargingTime}分钟`} />
+            <DataItem label="平均自充电功率" value={`${detailData.avgSelfChargingPower}W`} />
             <DataItem label="20分钟充入能量" value={`${detailData.energy20min}Wh`} />
           </DataSection>
 
           {/* 输出性能 */}
           <DataSection title="输出性能" data={detailData}>
+            <DataItem label="最大输出功率" value={`${detailData.maxOutputPower}W`} />
             <DataItem label="最大持续输出功率" value={`${detailData.maxContinuousOutputPower}W`} />
-            <DataItem label="最大放电能力" value={`${detailData.maxDischargeCapability}`} />
-            <DataItem label="最大能量转换率" value={`${(detailData.maxEnergyConversionRate * 100).toFixed(1)}%`} />
           </DataSection>
 
 
@@ -76,7 +77,7 @@ export default async function DetailDataPage({ params }: PageProps) {
 
         {/* 免责声明 */}
         <div className="mt-10 text-xs leading-5 text-gray-400 border-t border-gray-200 pt-6">
-          本页面所有测试数据均基于实验室环境下的客观测试，仅供技术参考。实际使用效果可能因环境、设备、使用方式等因素产生差异，请以实际体验为准。
+          产品评分与内容基于测试人所在环境的客观测试与主观体验，仅供参考。实际使用效果可能因环境、设备、使用方式等因素产生差异，请以实际体验为准。测试人：{detailData.dataSource || 'xxx'}
         </div>
       </div>
     </div>

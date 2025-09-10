@@ -21,10 +21,12 @@ export interface DetailData {
   // 充电性能
   selfChargingTime: number; // 自充时间（min）
   avgSelfChargingPower: number; // 平均自充功率（W）
+  maxSelfChargingPower: number; // 最大自充电功率（W）
   energy20min: number; // 20分钟充入能量（Wh）
   
   // 输出性能
   maxContinuousOutputPower: number; // 最大持续输出平均功率（W）
+  maxOutputPower: number; // 最大输出功率（W）
   maxDischargeCapability: number; // 最大放电能力
   maxEnergyConversionRate: number; // 最大能量转换率
   conversionRate: number; // 转换率
@@ -70,11 +72,16 @@ export interface DetailData {
   
   // 数据来源
   dataSource: string; // 数据来源
+  
+  // 筛选相关字段
+  maxOutputPower?: number; // 最大输出功率（用于筛选）
+  maxSelfChargingPower?: number; // 最大自充电功率（用于筛选）
 }
 
 // 充电宝基础类型定义
 export interface ChargeBaby {
   id: string;
+  brand: string; // 品牌
   model: string; // 型号
   title: string; // 标题
   subtitle: string; // 副标题
@@ -139,3 +146,27 @@ export interface NotionDatabase {
   next_cursor?: string;
   has_more: boolean;
 }
+
+// 筛选选项类型
+export interface FilterOptions {
+  capacityRange: {
+    min: number;
+    max: number;
+  };
+  powerRange: {
+    min: number;
+    max: number;
+  };
+  brands: string[];
+  features: string[];
+}
+
+// 产品特性类型
+export const PRODUCT_FEATURES = [
+  '小米协议',
+  'OPPO协议', 
+  '自带线',
+  '伸缩线'
+] as const;
+
+export type ProductFeature = typeof PRODUCT_FEATURES[number];

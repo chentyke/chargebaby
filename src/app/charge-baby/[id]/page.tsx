@@ -28,6 +28,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
   }
 
   const {
+    brand,
     model,
     title,
     subtitle,
@@ -130,8 +131,8 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
             {/* 标题与标签 */}
             <div className="text-center">
-              {model && (
-                <div className="text-sm text-gray-600 mb-1">{model}</div>
+              {(brand || model) && (
+                <div className="text-sm text-gray-600 mb-1">{brand ? `${brand} ${model}` : model}</div>
               )}
               <h1 className="text-3xl font-extrabold text-gray-900 leading-tight">
                 {title}
@@ -259,7 +260,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
           {/* 免责声明 */}
           <div className="mt-10 text-[11px] leading-5 text-gray-400">
-            本页评分与内容基于实验室环境的客观测试与主观体验，仅供参考。不同使用场景及批次会存在差异，请以实际体验为准。
+            产品评分与内容基于测试人所在环境的客观测试与主观体验，仅供参考。实际使用效果可能因环境、设备、使用方式等因素产生差异，请以实际体验为准。测试人：{chargeBaby.detailData?.dataSource || 'xxx'}
           </div>
 
           {/* 页脚版本信息 */}
@@ -364,8 +365,8 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               <div className="space-y-8 pr-4">
                 {/* 标题与标签 */}
                 <div>
-                  {model && (
-                    <div className="text-base text-gray-600 mb-1">{model}</div>
+                  {(brand || model) && (
+                    <div className="text-base text-gray-600 mb-1">{brand ? `${brand} ${model}` : model}</div>
                   )}
                   <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
                     {title}
@@ -481,7 +482,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
                 {/* 免责声明 */}
                 <div className="text-[11px] leading-5 text-gray-400 border-t border-gray-200 pt-6">
-                  本页评分与内容基于实验室环境的客观测试与主观体验，仅供参考。不同使用场景及批次会存在差异，请以实际体验为准。
+                  产品评分与内容基于测试人所在环境的客观测试与主观体验，仅供参考。实际使用效果可能因环境、设备、使用方式等因素产生差异，请以实际体验为准。测试人：{chargeBaby.detailData?.dataSource || 'xxx'}
                 </div>
 
                 {/* 页脚版本信息 */}

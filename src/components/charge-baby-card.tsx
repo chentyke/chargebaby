@@ -13,6 +13,8 @@ interface ChargeBabyCardProps {
 export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyCardProps) {
   const {
     id,
+    brand,
+    model,
     title,
     displayName,
     imageUrl,
@@ -47,6 +49,17 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyC
                  backgroundSize: '20px 20px'
                }}>
           </div>
+          
+          {/* 产品型号标签 - 左上角 */}
+          {model && (
+            <div className="absolute top-3 left-3 z-10">
+              <div className="bg-white/90 backdrop-blur-md rounded-lg px-2.5 py-1.5 shadow-sm border border-white/20 transition-all duration-300 group-hover:bg-white/95 group-hover:shadow-md">
+                <span className="text-xs font-medium text-gray-700">
+                  {model}
+                </span>
+              </div>
+            </div>
+          )}
           
           {/* 产品图片 */}
           {imageUrl ? (

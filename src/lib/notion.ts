@@ -335,6 +335,7 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
 
   return {
     id: page.id,
+    brand: getTextProperty(props.Brand) || getTextProperty(props.品牌) || '',
     model: getTextProperty(props.Model) || getTextProperty(props.Name) || 'Unknown',
     title: getTextProperty(props.Title) || getTextProperty(props.Name) || 'Unknown',
     displayName: getTextProperty(props.DisplayName) || getTextProperty(props.ExternalName) || '',
@@ -394,10 +395,12 @@ function parseDetailData(props: any): DetailData {
     // 充电性能
     selfChargingTime: getNumberProperty(props['自充时间（min）']) || 0,
     avgSelfChargingPower: getNumberProperty(props['平均自充功率（W）']) || getNumberProperty(props['平均自充功率']) || 0,
+    maxSelfChargingPower: getNumberProperty(props['最大自充电功率']) || getNumberProperty(props['最大自充电功率（W）']) || 0,
     energy20min: getNumberProperty(props['20分钟充入能量']) || getNumberProperty(props['20分钟充入能量（Wh）']) || 0,
     
     // 输出性能
     maxContinuousOutputPower: getNumberProperty(props['最大持续输出平均功率（W）']) || 0,
+    maxOutputPower: getNumberProperty(props['最大输出功率']) || getNumberProperty(props['最大输出功率（W）']) || 0,
     maxDischargeCapability: getNumberProperty(props['最大放电能力']) || 0,
     maxEnergyConversionRate: getNumberProperty(props['最大能量转换率']) || 0,
     conversionRate: getNumberProperty(props['转换率']) || 0,
@@ -443,6 +446,10 @@ function parseDetailData(props: any): DetailData {
     
     // 数据来源
     dataSource: getRichTextProperty(props['数据来源']) || '',
+    
+    // 筛选相关字段
+    maxOutputPower: getNumberProperty(props['最大输出功率']) || getNumberProperty(props['最大输出功率（W）']) || 0,
+    maxSelfChargingPower: getNumberProperty(props['最大自充电功率']) || getNumberProperty(props['最大自充电功率（W）']) || 0,
   };
 }
 

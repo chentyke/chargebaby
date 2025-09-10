@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
 import { ChargeBaby } from '@/types/chargebaby';
 import { ChargeBabyCard } from '@/components/charge-baby-card';
@@ -12,17 +12,21 @@ interface SearchableProductsGridProps {
 
 export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [filteredByFilter, setFilteredByFilter] = useState<ChargeBaby[]>(chargeBabies);
 
   const filteredProducts = useMemo(() => {
+    const baseProducts = filteredByFilter;
+    
     if (!searchQuery.trim()) {
-      return chargeBabies;
+      return baseProducts;
     }
 
     const query = searchQuery.toLowerCase().trim();
-    return chargeBabies.filter((chargeBaby) => {
+    return baseProducts.filter((chargeBaby) => {
       const searchFields = [
         chargeBaby.title,
         chargeBaby.displayName,
+        chargeBaby.brand,
         chargeBaby.model,
         chargeBaby.subtitle,
         ...(Array.isArray(chargeBaby.tags) ? chargeBaby.tags : [])
@@ -32,17 +36,28 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
         field?.toString().toLowerCase().includes(query)
       );
     });
-  }, [chargeBabies, searchQuery]);
+  }, [filteredByFilter, searchQuery]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
+
+  const handleFilterChange = useCallback((filteredBabies: ChargeBaby[]) => {
+    setFilteredByFilter(filteredBabies);
+  }, []);
+
+  // 当chargeBabies变化时更新筛选状态
+  useEffect(() => {
+    setFilteredByFilter(chargeBabies);
+  }, [chargeBabies]);
 
   return (
     <div className="space-y-8">
       {/* 搜索对比工具栏 - 与标题融合 */}
       <SearchCompareToolbar
         onSearch={handleSearch}
+        chargeBabies={chargeBabies}
+        onFilterChange={handleFilterChange}
         className="mb-8 animate-slide-up"
       />
 

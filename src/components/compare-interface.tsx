@@ -177,9 +177,9 @@ function ProductSelector({
                     <div className="font-medium text-gray-900 truncate text-sm">
                       {product.displayName || product.title}
                     </div>
-                    {product.model && (
+                    {(product.brand || product.model) && (
                       <div className="text-xs text-gray-500 truncate">
-                        {product.model}
+                        {product.brand && product.model ? `${product.brand} ${product.model}` : (product.model || product.brand)}
                       </div>
                     )}
                   </div>
@@ -229,8 +229,10 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
         <h3 className={`font-bold text-gray-900 ${isMobile ? 'text-sm line-clamp-2' : 'text-lg sm:text-xl'}`}>
           {product.displayName || product.title}
         </h3>
-        {product.model && (
-          <p className={`text-gray-600 ${isMobile ? 'text-xs truncate' : 'text-sm sm:text-base'}`}>{product.model}</p>
+        {(product.brand || product.model) && (
+          <p className={`text-gray-600 ${isMobile ? 'text-xs truncate' : 'text-sm sm:text-base'}`}>
+            {product.brand && product.model ? `${product.brand} ${product.model}` : (product.model || product.brand)}
+          </p>
         )}
         {product.price && (
           <p className={`font-semibold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
@@ -240,8 +242,8 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
         {product.overallRating && (
           <div className={`inline-flex items-center gap-1 sm:gap-2 bg-purple-50 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 sm:px-4 py-1 sm:py-2'}`}>
             <span className={`text-purple-600 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>综合评分</span>
-            <span className={`font-bold text-purple-600 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
-              {Math.round(product.overallRating)}/100
+            <span className={`font-bold ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
+              <span className="text-purple-600">{Math.round(product.overallRating)}</span><span className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>/100</span>
             </span>
           </div>
         )}
@@ -255,7 +257,12 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
     {
       category: "基本信息",
       items: [
-        { label: "型号", key: "model" },
+        { label: "型号", key: "model", format: (model: any, product: any) => {
+          if (!product) return '-';
+          const brand = product.brand;
+          const modelName = model || product.model;
+          return brand && modelName ? `${brand} ${modelName}` : (modelName || '-');
+        }},
         { label: "发布时间", key: "releaseDate", format: (date: any) => {
           if (!date) return '-';
           const d = new Date(date);
@@ -267,25 +274,59 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
     {
       category: "综合评分",
       items: [
-        { label: "综合评分", key: "overallRating", format: (rating: any) => rating ? `${Math.round(rating)}/100` : '-' },
-        { label: "性能评分", key: "performanceRating", format: (rating: any) => rating ? `${Math.round(rating)}/100` : '-' },
-        { label: "体验评分", key: "experienceRating", format: (rating: any) => rating ? `${Math.round(rating)}/100` : '-' },
+        { label: "综合评分", key: "overallRating", format: (rating: any) => rating ? { score: Math.round(rating), isRating: true } : '-' },
+        { label: "性能评分", key: "performanceRating", format: (rating: any) => rating ? { score: Math.round(rating), isRating: true } : '-' },
+        { label: "体验评分", key: "experienceRating", format: (rating: any) => rating ? { score: Math.round(rating), isRating: true } : '-' },
       ]
     },
     {
       category: "性能参数",
       items: [
-        { label: "自充能力", key: "selfChargingCapability", format: (val: any) => val ? `${val}/40` : '-' },
-        { label: "输出能力", key: "outputCapability", format: (val: any) => val ? `${val}/35` : '-' },
-        { label: "能量", key: "energy", format: (val: any) => val ? `${val}/20` : '-' },
+        { label: "自充能力", key: "selfChargingCapability", format: (val: any) => val ? { score: val, max: 40, isRating: true } : '-' },
+        { label: "输出能力", key: "outputCapability", format: (val: any) => val ? { score: val, max: 35, isRating: true } : '-' },
+        { label: "能量", key: "energy", format: (val: any) => val ? { score: val, max: 20, isRating: true } : '-' },
       ]
     },
     {
       category: "体验参数",
       items: [
-        { label: "便携性", key: "portability", format: (val: any) => val ? `${val}/40` : '-' },
-        { label: "充电协议", key: "chargingProtocols", format: (val: any) => val ? `${val}/30` : '-' },
-        { label: "多接口使用", key: "multiPortUsage", format: (val: any) => val ? `${val}/20` : '-' },
+        { label: "便携性", key: "portability", format: (val: any) => val ? { score: val, max: 40, isRating: true } : '-' },
+        { label: "充电协议", key: "chargingProtocols", format: (val: any) => val ? { score: val, max: 30, isRating: true } : '-' },
+        { label: "多接口使用", key: "multiPortUsage", format: (val: any) => val ? { score: val, max: 20, isRating: true } : '-' },
+      ]
+    },
+    {
+      category: "物理规格",
+      items: [
+        { label: "重量", key: "detailData.weight", format: (val: any, product: any) => product?.detailData?.weight ? `${product.detailData.weight}g` : '-' },
+        { label: "体积", key: "detailData.volume", format: (val: any, product: any) => product?.detailData?.volume ? `${product.detailData.volume}cm³` : '-' },
+        { label: "能量重量比", key: "detailData.energyWeightRatio", format: (val: any, product: any) => {
+          const ratio = product?.detailData?.energyWeightRatio || product?.detailData?.capacityWeightRatio;
+          return ratio ? `${ratio} Wh/g` : '-';
+        }},
+      ]
+    },
+    {
+      category: "电池容量",
+      items: [
+        { label: "容量级别", key: "detailData.capacityLevel", format: (val: any, product: any) => product?.detailData?.capacityLevel ? `${product.detailData.capacityLevel}mAh` : '-' },
+        { label: "最大放电能量", key: "detailData.maxDischargeCapacity", format: (val: any, product: any) => product?.detailData?.maxDischargeCapacity ? `${product.detailData.maxDischargeCapacity}Wh` : '-' },
+        { label: "自充能量", key: "detailData.selfChargingEnergy", format: (val: any, product: any) => product?.detailData?.selfChargingEnergy ? `${product.detailData.selfChargingEnergy}Wh` : '-' },
+      ]
+    },
+    {
+      category: "充电性能",
+      items: [
+        { label: "最大自充电功率", key: "detailData.maxSelfChargingPower", format: (val: any, product: any) => product?.detailData?.maxSelfChargingPower ? `${product.detailData.maxSelfChargingPower}W` : '-' },
+        { label: "自充电时间", key: "detailData.selfChargingTime", format: (val: any, product: any) => product?.detailData?.selfChargingTime ? `${product.detailData.selfChargingTime}分钟` : '-' },
+        { label: "平均自充电功率", key: "detailData.avgSelfChargingPower", format: (val: any, product: any) => product?.detailData?.avgSelfChargingPower ? `${product.detailData.avgSelfChargingPower}W` : '-' },
+      ]
+    },
+    {
+      category: "输出性能",
+      items: [
+        { label: "最大输出功率", key: "detailData.maxOutputPower", format: (val: any, product: any) => product?.detailData?.maxOutputPower ? `${product.detailData.maxOutputPower}W` : '-' },
+        { label: "最大持续输出功率", key: "detailData.maxContinuousOutputPower", format: (val: any, product: any) => product?.detailData?.maxContinuousOutputPower ? `${product.detailData.maxContinuousOutputPower}W` : '-' },
       ]
     }
   ];
@@ -293,10 +334,10 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
   const maxColumns = isMobile ? 2 : 3;
   
   return (
-    <div className={`${isMobile ? 'space-y-8' : 'space-y-12 sm:space-y-16'}`}>
+    <div className={`${isMobile ? 'space-y-12' : 'space-y-16 sm:space-y-20'}`}>
       {comparisonData.map((category) => (
         <div key={category.category}>
-          <h2 className={`font-bold text-gray-900 mb-4 sm:mb-6 md:mb-8 text-center ${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
+          <h2 className={`font-bold text-gray-900 mb-6 sm:mb-8 md:mb-10 text-center ${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
             {category.category}
           </h2>
           
@@ -324,13 +365,20 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
                     }
                     
                     const value = (product as any)[item.key];
-                    const displayValue = item.format ? item.format(value) : value || '-';
+                    const displayValue = item.format ? item.format(value, product) : value || '-';
                     
                     return (
                       <div key={product.id} className="text-center">
                         <div className={`bg-white border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-4 py-8' : 'p-6 py-10 sm:py-12'} flex items-center justify-center`}>
-                          <div className={`font-bold text-gray-900 ${isMobile ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'}`}>
-                            {displayValue}
+                          <div className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'}`}>
+                            {typeof displayValue === 'object' && displayValue?.isRating ? (
+                              <>
+                                <span className="text-gray-900">{displayValue.score}</span>
+                                <span className={`text-gray-400 ${isMobile ? 'text-sm' : 'text-base sm:text-lg lg:text-xl'}`}>/{displayValue.max || 100}</span>
+                              </>
+                            ) : (
+                              <span className="text-gray-900">{displayValue}</span>
+                            )}
                           </div>
                         </div>
                       </div>

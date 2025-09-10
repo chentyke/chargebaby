@@ -3,13 +3,17 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, GitCompare, X, Trophy } from 'lucide-react';
+import { FilterComponent } from './filter-component';
+import { ChargeBaby } from '@/types/chargebaby';
 
 interface SearchCompareToolbarProps {
   onSearch: (query: string) => void;
+  chargeBabies: ChargeBaby[];
+  onFilterChange: (filteredBabies: ChargeBaby[]) => void;
   className?: string;
 }
 
-export function SearchCompareToolbar({ onSearch, className = '' }: SearchCompareToolbarProps) {
+export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, className = '' }: SearchCompareToolbarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -74,6 +78,13 @@ export function SearchCompareToolbar({ onSearch, className = '' }: SearchCompare
             <Trophy className="w-5 h-5" />
           </div>
         </Link>
+
+        {/* 筛选按钮 - 移动端 */}
+        <FilterComponent 
+          chargeBabies={chargeBabies} 
+          onFilterChange={onFilterChange}
+          isMobile={true}
+        />
       </div>
     );
   }
@@ -141,6 +152,12 @@ export function SearchCompareToolbar({ onSearch, className = '' }: SearchCompare
               <span className="text-sm font-medium whitespace-nowrap">排行榜</span>
             </div>
           </Link>
+
+          {/* 筛选按钮 - 桌面端 */}
+          <FilterComponent 
+            chargeBabies={chargeBabies} 
+            onFilterChange={onFilterChange}
+          />
         </div>
       )}
     </div>
