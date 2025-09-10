@@ -29,7 +29,6 @@ export default async function DetailDataPage({ params }: PageProps) {
             <ArrowLeft className="w-5 h-5" />
             <span>返回详情</span>
           </Link>
-          <div className="text-sm text-gray-500">详细数据</div>
         </div>
 
         {/* 标题 */}
@@ -54,7 +53,6 @@ export default async function DetailDataPage({ params }: PageProps) {
             <DataItem label="容量级别" value={`${detailData.capacityLevel}mAh`} />
             <DataItem label="最大放电容量" value={`${detailData.maxDischargeCapacity}Wh`} />
             <DataItem label="自充能量" value={`${detailData.selfChargingEnergy}Wh`} />
-            <DataItem label="能量达成率" value={`${(detailData.energyAchievementRate * 100).toFixed(1)}%`} />
             <DataItem label="放电容量达成率" value={`${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%`} />
           </DataSection>
 
@@ -70,57 +68,8 @@ export default async function DetailDataPage({ params }: PageProps) {
             <DataItem label="最大持续输出功率" value={`${detailData.maxContinuousOutputPower}W`} />
             <DataItem label="最大放电能力" value={`${detailData.maxDischargeCapability}`} />
             <DataItem label="最大能量转换率" value={`${(detailData.maxEnergyConversionRate * 100).toFixed(1)}%`} />
-            <DataItem label="转换率" value={`${(detailData.conversionRate * 100).toFixed(1)}%`} />
           </DataSection>
 
-          {/* 充电协议支持 */}
-          <DataSection title="充电协议支持" data={detailData}>
-            <DataItem label="PD协议" value={getRatingText(detailData.pdSupport)} />
-            <DataItem label="QC协议" value={getRatingText(detailData.qcSupport)} />
-            <DataItem label="PPS协议" value={getRatingText(detailData.ppsSupport)} />
-            <DataItem label="UFCS协议" value={getRatingText(detailData.ufcsSupport)} />
-            <DataItem label="私有协议" value={getRatingText(detailData.privateProtocol)} />
-            <DataItem label="协议兼容性" value={getRatingText(detailData.protocolCompatibility)} />
-          </DataSection>
-
-          {/* 多接口功能 */}
-          <DataSection title="多接口功能" data={detailData}>
-            <DataItem label="双接口同时输出" value={getRatingText(detailData.dualPortOutput)} />
-            <DataItem label="多口插拔不断联" value={getRatingText(detailData.hotSwap)} />
-            <DataItem label="边冲边放" value={getRatingText(detailData.passThrough)} />
-            <DataItem label="输入输出方向自定义" value={getRatingText(detailData.customDirection)} />
-          </DataSection>
-
-          {/* 温度控制 */}
-          <DataSection title="温度控制" data={detailData}>
-            <DataItem label="温度表现" value={`${detailData.temperature}分`} />
-            <DataItem label="最高温度" value={`${detailData.maxTemperature}°C`} />
-            <DataItem label="温度均匀度" value={`${detailData.temperatureUniformity}分`} />
-            <DataItem label="温控策略" value={`${detailData.temperatureControlStrategy}分`} />
-          </DataSection>
-
-          {/* 显示功能 */}
-          <DataSection title="显示功能" data={detailData}>
-            <DataItem label="显示功能" value={getRatingText(detailData.display)} />
-            <DataItem label="显示内容" value={getRatingText(detailData.displayContent)} />
-            <DataItem label="显示载体" value={getRatingText(detailData.displayCarrier)} />
-            <DataItem label="显示调节" value={getRatingText(detailData.displayAdjustment)} />
-            <DataItem label="亮度" value={getRatingText(detailData.brightness)} />
-          </DataSection>
-
-          {/* 线缆和电源质量 */}
-          <DataSection title="线缆和电源质量" data={detailData}>
-            <DataItem label="线缆长度" value={getRatingText(detailData.cableLength)} />
-            <DataItem label="线缆柔软度" value={getRatingText(detailData.cableSoftness)} />
-            <DataItem label="纹波" value={getRatingText(detailData.ripple)} />
-          </DataSection>
-
-          {/* 特殊功能 */}
-          <DataSection title="特殊功能" data={detailData}>
-            <DataItem label="IoT能力" value={getRatingText(detailData.iotCapability)} />
-            <DataItem label="自定义能力" value={getRatingText(detailData.customizationCapability)} />
-            <DataItem label="AC输入能力" value={getRatingText(detailData.acInputCapability)} />
-          </DataSection>
 
           {/* 数据来源 */}
           {detailData.dataSource && (
