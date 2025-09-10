@@ -164,8 +164,8 @@ export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
       <div className="container px-4 sm:px-6 lg:px-8 py-8 relative">
         <div className="max-w-4xl mx-auto">
 
-          {/* 前三名特殊展示 */}
-          {currentRanking.length >= 3 && (
+          {/* 前三名特殊展示 - 仅桌面端 */}
+          {!isMobile && currentRanking.length >= 3 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-12">
               {/* 第二名 */}
               <div className="md:order-1 relative">
@@ -202,11 +202,11 @@ export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
 
           {/* 排行榜列表 */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-            {currentRanking.slice(3).map((product, index) => (
+            {(isMobile ? currentRanking : currentRanking.slice(3)).map((product, index) => (
               <RankingItem
                 key={product.id}
                 product={product}
-                rank={index + 4}
+                rank={isMobile ? index + 1 : index + 4}
                 config={currentConfig}
                 isMobile={isMobile}
               />
