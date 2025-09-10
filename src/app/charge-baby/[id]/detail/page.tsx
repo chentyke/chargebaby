@@ -34,7 +34,7 @@ export default async function DetailDataPage({ params }: PageProps) {
         {/* 标题 */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title} - 详细测试数据</h1>
-          <p className="mt-2 text-gray-600">以下数据来自实验室环境的专业测试，仅供参考</p>
+          <p className="mt-2 text-gray-600">以下数据来自「{detailData.dataSource}」的测试，仅供参考</p>
         </div>
 
         {/* 数据展示 */}
