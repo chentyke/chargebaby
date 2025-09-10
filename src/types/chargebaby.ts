@@ -98,6 +98,7 @@ export interface ChargeBaby {
   createdAt: string;
   updatedAt: string;
   detailData?: DetailData; // 详细技术数据
+  articleContent?: string; // 图文内容（Markdown格式）
 }
 
 // 评分类型

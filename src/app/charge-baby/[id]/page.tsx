@@ -6,6 +6,7 @@ import SaveScreenshotButton from '@/components/save-screenshot-button';
 import { getChargeBabyById } from '@/lib/notion';
 import { formatPrice, formatRating, getRatingProgress, formatDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/back-button';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 
 interface PageProps {
   params: Promise<{
@@ -45,6 +46,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
     disadvantages,
     imageUrl,
     finalImageUrl,
+    articleContent,
   } = chargeBaby;
 
   const gradeLabels = ['入门级', '进阶级', '高端级', '旗舰级', '超旗舰级'];
@@ -69,75 +71,53 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
       {/* 背景装饰 */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-50/20 via-transparent to-purple-50/20 pointer-events-none"></div>
       
-      <div className="container py-6 sm:py-10 relative">
-        {/* 顶部操作栏：返回 / 详细数据 / 保存图片 */}
-        <div className="flex items-center justify-between mb-4 sm:mb-6" data-ignore-capture="true">
-          <Link href={backHref} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
-            <ArrowLeft className="w-5 h-5" />
-            <span className="hidden lg:inline">返回</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link href={`/charge-baby/${id}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
-              <FileText className="w-5 h-5" />
-              <span className="hidden lg:inline">详细数据</span>
+      {/* 移动端：普通滚动布局 */}
+      <div className="lg:hidden">
+        <div className="container py-6 sm:py-10 relative">
+          {/* 顶部操作栏 */}
+          <div className="flex items-center justify-between mb-4 sm:mb-6" data-ignore-capture="true">
+            <Link href={backHref} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="w-5 h-5" />
+              <span>返回</span>
             </Link>
-            {finalImageUrl ? (
-              <>
+            <div className="flex items-center gap-3">
+              <Link href={`/charge-baby/${id}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                <FileText className="w-5 h-5" />
+                <span>详细数据</span>
+              </Link>
+              {finalImageUrl ? (
                 <a
                   href={finalImageUrl}
                   download={(title || 'chargebaby') + '.jpg'}
-                  className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 lg:hidden"
+                  className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <span className="inline-block w-5 h-5" aria-hidden>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    </span>
-                    <span className="sr-only">保存图片</span>
-                </a>
-                <a
-                  href={finalImageUrl}
-                  download={(title || 'chargebaby') + '.jpg'}
-                  className="hidden lg:inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="inline-block w-5 h-5 relative">
-                    {/* simple svg download icon to avoid importing again here */}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   </span>
-                  <span>保存图片</span>
+                  <span className="sr-only">保存图片</span>
                 </a>
-              </>
-            ) : (
-              <>
+              ) : (
                 <SaveScreenshotButton
                   targetSelector="#capture-root"
                   filename={(title || 'chargebaby') + '.jpg'}
                   showText={false}
-                  className="lg:hidden"
                 />
-                <SaveScreenshotButton
-                  targetSelector="#capture-root"
-                  filename={(title || 'chargebaby') + '.jpg'}
-                  showText
-                  className="hidden lg:inline-flex"
-                />
-              </>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-        <div id="capture-root" className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-start">
-          {/* 左侧：大图 + 优劣势 */}
-          <div>
-            <div className="relative aspect-square overflow-hidden pl-0 pr-0 sm:pl-2 sm:pr-6 pt-2 pb-2 sm:pt-6 sm:pb-6 max-w-[320px] sm:max-w-none mx-auto sm:mx-0" data-detail-image>
+
+          <div id="capture-root" className="space-y-8">
+            {/* 产品图片 */}
+            <div className="relative aspect-square overflow-hidden max-w-[320px] mx-auto" data-detail-image>
               {imageUrl ? (
                 <Image
                   src={imageUrl}
                   alt={title}
                   fill
                   className="object-contain animate-fade-in"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="320px"
                   priority
                 />
               ) : (
@@ -147,26 +127,26 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               )}
             </div>
 
-            {/* 移动端：标题与标签（放在图片后，整屏显示） */}
-            <div className="mt-4 lg:hidden">
+            {/* 标题与标签 */}
+            <div className="text-center">
               {model && (
-                <div className="text-sm sm:text-base text-gray-600 mb-1">{model}</div>
+                <div className="text-sm text-gray-600 mb-1">{model}</div>
               )}
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight">
+              <h1 className="text-3xl font-extrabold text-gray-900 leading-tight">
                 {title}
               </h1>
               {subtitle && (
-                <div className="text-base sm:text-lg text-gray-600 mt-1">{subtitle}</div>
+                <div className="text-base text-gray-600 mt-1">{subtitle}</div>
               )}
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-3 justify-center">
                 {Array.isArray(tags) && tags.slice(0, 3).map((tag: string) => (
-                  <span key={tag} className="px-3 py-1 rounded-md text-xs sm:text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                  <span key={tag} className="px-3 py-1 rounded-md text-xs bg-gray-100 text-gray-700 border border-gray-200">
                     {tag}
                   </span>
                 ))}
               </div>
               {(priceText || releaseMonthText) && (
-                <div className="mt-3 text-sm sm:text-base text-gray-700">
+                <div className="mt-3 text-sm text-gray-700">
                   <span>官方定价 </span>
                   {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
                   {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
@@ -174,9 +154,63 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               )}
             </div>
 
+            {/* 综合评分 */}
+            <div>
+              <div className="text-gray-900 font-semibold text-center">综合评分</div>
+              <div className="mt-2 flex items-baseline gap-2 justify-center">
+                <div className="text-4xl font-extrabold tracking-tight text-gray-900">
+                  {Math.round(overallRating ?? 0)}
+                </div>
+                <div className="text-2xl text-gray-400">/100</div>
+              </div>
+              <div className="mt-3">
+                <ProgressSegmentBar value={overallRating ?? 0} labels={gradeLabels} labelsOnTop />
+              </div>
+            </div>
+
+            {/* 性能评分卡片 */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-5">
+              <div className="text-lg text-gray-900 font-semibold mb-2">性能评分</div>
+              <div className="text-center mb-4">
+                <div className="text-4xl font-extrabold text-gray-900 leading-none">
+                  {Math.round(performanceRating ?? 0)}
+                  <span className="text-2xl text-gray-400">/100</span>
+                </div>
+                <div className="mt-3">
+                  <ProgressSegmentBar value={performanceRating ?? 0} labels={perfLevelLabels} labelsOnTop />
+                </div>
+              </div>
+              <div className="h-px bg-gray-200 my-3" />
+              <div className="space-y-4">
+                <ItemBarInline label="自充能力" value={selfChargingCapability} max={40} />
+                <ItemBarInline label="输出能力" value={outputCapability} max={35} />
+                <ItemBarInline label="能量" value={energy} max={20} />
+              </div>
+            </div>
+
+            {/* 体验评分卡片 */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-5">
+              <div className="text-lg text-gray-900 font-semibold mb-2">体验评分</div>
+              <div className="text-center mb-4">
+                <div className="text-4xl font-extrabold text-gray-900 leading-none">
+                  {Math.round(experienceRating ?? 0)}
+                  <span className="text-2xl text-gray-400">/100</span>
+                </div>
+                <div className="mt-3">
+                  <ProgressSegmentBar value={experienceRating ?? 0} labels={expLevelLabels} labelsOnTop />
+                </div>
+              </div>
+              <div className="h-px bg-gray-200 my-3" />
+              <div className="space-y-4">
+                <ItemBarInline label="便携性" value={portability} max={40} />
+                <ItemBarInline label="充电协议" value={chargingProtocols} max={30} />
+                <ItemBarInline label="多接口使用" value={multiPortUsage} max={20} />
+              </div>
+            </div>
+
             {/* 优势 / 不足 */}
             {(advantages?.length || disadvantages?.length) && (
-              <div className="mt-6 sm:mt-8 lg:mt-10 space-y-6">
+              <div className="space-y-6">
                 {advantages?.length ? (
                   <div>
                     <h3 className="text-gray-900 font-semibold mb-2">优势</h3>
@@ -207,123 +241,242 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               </div>
             )}
 
-            {/* 免责声明区域（移动端放在页面底部，此处移除） */}
+            {/* 图文内容 */}
+            {articleContent && (
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">图文内容</h3>
+                <MarkdownRenderer content={articleContent} />
+              </div>
+            )}
           </div>
 
-          {/* 右侧：标题 + 评分卡片 */}
-          <div className="space-y-8">
-            {/* 桌面端：标题与标签（移动端隐藏） */}
-            <div className="hidden lg:block">
-              {model && (
-                <div className="text-sm sm:text-base text-gray-600 mb-1">{model}</div>
-              )}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
-                {title}
-              </h1>
-              {subtitle && (
-                <div className="text-base sm:text-lg text-gray-600 mt-1">{subtitle}</div>
-              )}
-              <div className="flex flex-wrap gap-2 mt-3">
-                {Array.isArray(tags) && tags.slice(0, 3).map((tag: string) => (
-                  <span key={tag} className="px-3 py-1 rounded-md text-xs sm:text-sm bg-gray-100 text-gray-700 border border-gray-200">
-                    {tag}
+          {/* 免责声明 */}
+          <div className="mt-10 text-[11px] leading-5 text-gray-400">
+            本页评分与内容基于实验室环境的客观测试与主观体验，仅供参考。不同使用场景及批次会存在差异，请以实际体验为准。
+          </div>
+
+          {/* 页脚版本信息 */}
+          <div className="mt-4 text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
+        </div>
+      </div>
+
+      {/* 桌面端：分栏布局（左侧固定，右侧可滚动） */}
+      <div className="hidden lg:block h-screen">
+        <div className="container py-6 relative h-full flex flex-col">
+          {/* 顶部操作栏 */}
+          <div className="flex items-center justify-between mb-6 flex-shrink-0" data-ignore-capture="true">
+            <Link href={backHref} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="w-5 h-5" />
+              <span>返回</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Link href={`/charge-baby/${id}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                <FileText className="w-5 h-5" />
+                <span>详细数据</span>
+              </Link>
+              {finalImageUrl ? (
+                <a
+                  href={finalImageUrl}
+                  download={(title || 'chargebaby') + '.jpg'}
+                  className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="inline-block w-5 h-5 relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   </span>
-                ))}
+                  <span>保存图片</span>
+                </a>
+              ) : (
+                <SaveScreenshotButton
+                  targetSelector="#capture-root"
+                  filename={(title || 'chargebaby') + '.jpg'}
+                  showText
+                />
+              )}
+            </div>
+          </div>
+
+          <div id="capture-root" className="grid grid-cols-2 gap-10 flex-1 min-h-0">
+            {/* 左侧：图片 + 优劣势（固定，不滚动） */}
+            <div className="flex flex-col h-full">
+              {/* 产品图片 */}
+              <div className="relative aspect-square overflow-hidden w-full" data-detail-image>
+                {imageUrl ? (
+                  <Image
+                    src={imageUrl}
+                    alt={title}
+                    fill
+                    className="object-contain animate-fade-in"
+                    sizes="50vw"
+                    priority
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center animate-fade-in">
+                    <Battery className="w-24 h-24 text-gray-300" />
+                  </div>
+                )}
               </div>
-              {(priceText || releaseMonthText) && (
-                <div className="mt-2 text-xs sm:text-sm text-gray-700">
-                  <span>官方定价 </span>
-                  {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
-                  {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
+
+              {/* 优势 / 不足 */}
+              {(advantages?.length || disadvantages?.length) && (
+                <div className="mt-8 space-y-6 flex-shrink-0">
+                  {advantages?.length ? (
+                    <div>
+                      <h3 className="text-gray-900 font-semibold mb-2">优势</h3>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        {advantages.map((item: string, i: number) => (
+                          <li key={i} className="flex">
+                            <span className="mr-2 text-gray-600">+</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {disadvantages?.length ? (
+                    <div>
+                      <h3 className="text-gray-900 font-semibold mb-2">不足</h3>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        {disadvantages.map((item: string, i: number) => (
+                          <li key={i} className="flex">
+                            <span className="mr-2 text-gray-600">-</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>
 
-            {/* 综合评分 */}
-            <div>
-              <div className="text-gray-900 font-semibold">综合评分</div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <div className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
-                  {Math.round(overallRating ?? 0)}
+            {/* 右侧：标题 + 评分数据 + 图文（可滚动） */}
+            <div className="overflow-y-auto auto-hide-scrollbar">
+              <div className="space-y-8 pr-4">
+                {/* 标题与标签 */}
+                <div>
+                  {model && (
+                    <div className="text-base text-gray-600 mb-1">{model}</div>
+                  )}
+                  <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
+                    {title}
+                  </h1>
+                  {subtitle && (
+                    <div className="text-lg text-gray-600 mt-1">{subtitle}</div>
+                  )}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {Array.isArray(tags) && tags.slice(0, 3).map((tag: string) => (
+                      <span key={tag} className="px-3 py-1 rounded-md text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  {(priceText || releaseMonthText) && (
+                    <div className="mt-2 text-sm text-gray-700">
+                      <span>官方定价 </span>
+                      {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
+                      {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
+                    </div>
+                  )}
                 </div>
-                <div className="text-2xl text-gray-400">/100</div>
-              </div>
-              <div className="mt-3">
-                <ProgressSegmentBar value={overallRating ?? 0} labels={gradeLabels} labelsOnTop />
-              </div>
-            </div>
 
-            {/* 性能评分卡片 */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg sm:text-xl text-gray-900 font-semibold mb-2">性能评分</div>
-              <div className="flex items-start gap-6">
-                <div className="shrink-0">
-                  <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-none">
-                    {Math.round(performanceRating ?? 0)}
-                    <span className="text-2xl text-gray-400">/100</span>
+                {/* 综合评分 */}
+                <div>
+                  <div className="text-gray-900 font-semibold">综合评分</div>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <div className="text-5xl font-extrabold tracking-tight text-gray-900">
+                      {Math.round(overallRating ?? 0)}
+                    </div>
+                    <div className="text-2xl text-gray-400">/100</div>
+                  </div>
+                  <div className="mt-3">
+                    <ProgressSegmentBar value={overallRating ?? 0} labels={gradeLabels} labelsOnTop />
                   </div>
                 </div>
-                <div className="flex-1">
-                  <ProgressSegmentBar value={performanceRating ?? 0} labels={perfLevelLabels} className="mb-4" labelsOnTop />
-                </div>
-              </div>
-              <div className="h-px bg-gray-200 my-3" />
 
-              <div className="mt-1 flex flex-col sm:flex-row sm:items-stretch gap-6 sm:gap-0">
-                <div className="flex-1 sm:pr-4">
-                  <ItemBarInline label="自充能力" value={selfChargingCapability} max={40} />
-                </div>
-                <div className="hidden sm:block w-px bg-gray-200 self-center h-14" />
-                <div className="flex-1 sm:px-4">
-                  <ItemBarInline label="输出能力" value={outputCapability} max={35} />
-                </div>
-                <div className="hidden sm:block w-px bg-gray-200 self-center h-14" />
-                <div className="flex-1 sm:pl-4">
-                  <ItemBarInline label="能量" value={energy} max={20} />
-                </div>
-              </div>
-            </div>
+                {/* 性能评分卡片 */}
+                <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                  <div className="text-xl text-gray-900 font-semibold mb-2">性能评分</div>
+                  <div className="flex items-start gap-6">
+                    <div className="shrink-0">
+                      <div className="text-6xl font-extrabold text-gray-900 leading-none">
+                        {Math.round(performanceRating ?? 0)}
+                        <span className="text-2xl text-gray-400">/100</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <ProgressSegmentBar value={performanceRating ?? 0} labels={perfLevelLabels} className="mb-4" labelsOnTop />
+                    </div>
+                  </div>
+                  <div className="h-px bg-gray-200 my-3" />
 
-            {/* 体验评分卡片 */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg sm:text-xl text-gray-900 font-semibold mb-2">体验评分</div>
-              <div className="flex items-start gap-6">
-                <div className="shrink-0">
-                  <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-none">
-                    {Math.round(experienceRating ?? 0)}
-                    <span className="text-2xl text-gray-400">/100</span>
+                  <div className="mt-1 flex items-stretch gap-0">
+                    <div className="flex-1 pr-4">
+                      <ItemBarInline label="自充能力" value={selfChargingCapability} max={40} />
+                    </div>
+                    <div className="w-px bg-gray-200 self-center h-14" />
+                    <div className="flex-1 px-4">
+                      <ItemBarInline label="输出能力" value={outputCapability} max={35} />
+                    </div>
+                    <div className="w-px bg-gray-200 self-center h-14" />
+                    <div className="flex-1 pl-4">
+                      <ItemBarInline label="能量" value={energy} max={20} />
+                    </div>
                   </div>
                 </div>
-                <div className="flex-1">
-                  <ProgressSegmentBar value={experienceRating ?? 0} labels={expLevelLabels} className="mb-4" labelsOnTop />
-                </div>
-              </div>
-              <div className="h-px bg-gray-200 my-3" />
 
-              <div className="mt-1 flex flex-col sm:flex-row sm:items-stretch gap-6 sm:gap-0">
-                <div className="flex-1 sm:pr-4">
-                  <ItemBarInline label="便携性" value={portability} max={40} />
+                {/* 体验评分卡片 */}
+                <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                  <div className="text-xl text-gray-900 font-semibold mb-2">体验评分</div>
+                  <div className="flex items-start gap-6">
+                    <div className="shrink-0">
+                      <div className="text-6xl font-extrabold text-gray-900 leading-none">
+                        {Math.round(experienceRating ?? 0)}
+                        <span className="text-2xl text-gray-400">/100</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <ProgressSegmentBar value={experienceRating ?? 0} labels={expLevelLabels} className="mb-4" labelsOnTop />
+                    </div>
+                  </div>
+                  <div className="h-px bg-gray-200 my-3" />
+
+                  <div className="mt-1 flex items-stretch gap-0">
+                    <div className="flex-1 pr-4">
+                      <ItemBarInline label="便携性" value={portability} max={40} />
+                    </div>
+                    <div className="w-px bg-gray-200 self-center h-14" />
+                    <div className="flex-1 px-4">
+                      <ItemBarInline label="充电协议" value={chargingProtocols} max={30} />
+                    </div>
+                    <div className="w-px bg-gray-200 self-center h-14" />
+                    <div className="flex-1 pl-4">
+                      <ItemBarInline label="多接口使用" value={multiPortUsage} max={20} />
+                    </div>
+                  </div>
                 </div>
-                <div className="hidden sm:block w-px bg-gray-200 self-center h-14" />
-                <div className="flex-1 sm:px-4">
-                  <ItemBarInline label="充电协议" value={chargingProtocols} max={30} />
+
+                {/* 图文内容 */}
+                {articleContent && (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">图文内容</h3>
+                    <MarkdownRenderer content={articleContent} />
+                  </div>
+                )}
+
+                {/* 免责声明 */}
+                <div className="text-[11px] leading-5 text-gray-400 border-t border-gray-200 pt-6">
+                  本页评分与内容基于实验室环境的客观测试与主观体验，仅供参考。不同使用场景及批次会存在差异，请以实际体验为准。
                 </div>
-                <div className="hidden sm:block w-px bg-gray-200 self-center h-14" />
-                <div className="flex-1 sm:pl-4">
-                  <ItemBarInline label="多接口使用" value={multiPortUsage} max={20} />
-                </div>
+
+                {/* 页脚版本信息 */}
+                <div className="text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* 免责声明（最后显示） */}
-        <div className="mt-10 text-[11px] leading-5 text-gray-400">
-          本页评分与内容基于实验室环境的客观测试与主观体验，仅供参考。不同使用场景及批次会存在差异，请以实际体验为准。
-        </div>
-
-        {/* 页脚版本信息 */}
-        <div className="mt-4 text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
       </div>
     </div>
   );

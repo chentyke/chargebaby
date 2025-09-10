@@ -49,13 +49,256 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
 }
 
 /**
+ * 获取页面内容块（递归获取子块）
+ */
+export async function getPageBlocks(pageId: string): Promise<any[]> {
+  try {
+    const response = await notionFetch<any>(`/blocks/${pageId}/children`);
+    const blocks = response.results || [];
+    
+    // 递归获取有子块的内容
+    for (const block of blocks) {
+      if (block.has_children) {
+        block.children = await getPageBlocks(block.id);
+      }
+    }
+    
+    return blocks;
+  } catch (error) {
+    console.error('Error fetching page blocks:', error);
+    return [];
+  }
+}
+
+/**
+ * 将页面内容块转换为Markdown
+ */
+function convertBlocksToMarkdown(blocks: any[]): string {
+  return blocks.map(block => {
+    switch (block.type) {
+      case 'paragraph':
+        return convertRichTextToMarkdown(block.paragraph?.rich_text || []);
+      
+      case 'heading_1':
+        return `# ${convertRichTextToMarkdown(block.heading_1?.rich_text || [])}`;
+      
+      case 'heading_2':
+        return `## ${convertRichTextToMarkdown(block.heading_2?.rich_text || [])}`;
+      
+      case 'heading_3':
+        return `### ${convertRichTextToMarkdown(block.heading_3?.rich_text || [])}`;
+      
+      case 'bulleted_list_item':
+        const bulletText = convertRichTextToMarkdown(block.bulleted_list_item?.rich_text || []);
+        const bulletChildren = block.children ? '\n' + convertBlocksToMarkdown(block.children).split('\n').map(line => '  ' + line).join('\n') : '';
+        return `- ${bulletText}${bulletChildren}`;
+      
+      case 'numbered_list_item':
+        const numberText = convertRichTextToMarkdown(block.numbered_list_item?.rich_text || []);
+        const numberChildren = block.children ? '\n' + convertBlocksToMarkdown(block.children).split('\n').map(line => '  ' + line).join('\n') : '';
+        return `1. ${numberText}${numberChildren}`;
+      
+      case 'to_do':
+        const checked = block.to_do?.checked ? '[x]' : '[ ]';
+        const todoText = convertRichTextToMarkdown(block.to_do?.rich_text || []);
+        const todoChildren = block.children ? '\n' + convertBlocksToMarkdown(block.children).split('\n').map(line => '  ' + line).join('\n') : '';
+        return `- ${checked} ${todoText}${todoChildren}`;
+      
+      case 'toggle':
+        const toggleTitle = convertRichTextToMarkdown(block.toggle?.rich_text || []);
+        const toggleContent = block.children ? convertBlocksToMarkdown(block.children) : '';
+        return `<details>\n<summary>${toggleTitle}</summary>\n\n${toggleContent}\n</details>`;
+      
+      case 'quote':
+        return `> ${convertRichTextToMarkdown(block.quote?.rich_text || [])}`;
+      
+      case 'callout':
+        const emoji = block.callout?.icon?.emoji || '💡';
+        const calloutText = convertRichTextToMarkdown(block.callout?.rich_text || []);
+        const calloutChildren = block.children ? '\n\n' + convertBlocksToMarkdown(block.children) : '';
+        return `> ${emoji} ${calloutText}${calloutChildren}`;
+      
+      case 'code':
+        const codeText = convertRichTextToMarkdown(block.code?.rich_text || []);
+        const language = block.code?.language || '';
+        return `\`\`\`${language}\n${codeText}\n\`\`\``;
+      
+      case 'image':
+        const imageUrl = block.image?.external?.url || block.image?.file?.url || '';
+        const caption = convertRichTextToMarkdown(block.image?.caption || []);
+        return `![${caption}](${imageUrl})`;
+      
+      case 'video':
+        const videoUrl = block.video?.external?.url || block.video?.file?.url || '';
+        const videoCaption = convertRichTextToMarkdown(block.video?.caption || []);
+        return `[📹 ${videoCaption || '视频'}](${videoUrl})`;
+      
+      case 'file':
+        const fileUrl = block.file?.external?.url || block.file?.file?.url || '';
+        const fileName = block.file?.name || '文件';
+        return `[📁 ${fileName}](${fileUrl})`;
+      
+      case 'pdf':
+        const pdfUrl = block.pdf?.external?.url || block.pdf?.file?.url || '';
+        const pdfCaption = convertRichTextToMarkdown(block.pdf?.caption || []);
+        return `[📄 ${pdfCaption || 'PDF文件'}](${pdfUrl})`;
+      
+      case 'bookmark':
+        const bookmarkUrl = block.bookmark?.url || '';
+        const bookmarkCaption = convertRichTextToMarkdown(block.bookmark?.caption || []);
+        return `[🔗 ${bookmarkCaption || bookmarkUrl}](${bookmarkUrl})`;
+      
+      case 'embed':
+        const embedUrl = block.embed?.url || '';
+        const embedCaption = convertRichTextToMarkdown(block.embed?.caption || []);
+        return `[🔗 ${embedCaption || '嵌入内容'}](${embedUrl})`;
+      
+      case 'divider':
+        return '---';
+      
+      case 'table':
+        // 处理表格：获取所有行数据
+        if (block.children && block.children.length > 0) {
+          const rows = block.children.filter((child: any) => child.type === 'table_row');
+          if (rows.length === 0) return '';
+          
+          // 处理表头（第一行）
+          const headerRow = rows[0];
+          const headerCells = headerRow.table_row?.cells || [];
+          const headers = headerCells.map((cell: any[]) => convertRichTextToMarkdown(cell) || '   ').join(' | ');
+          
+          // 创建分隔行
+          const separator = headerCells.map(() => '---').join(' | ');
+          
+          // 处理数据行
+          const dataRows = rows.slice(1).map((row: any) => {
+            const cells = row.table_row?.cells || [];
+            return cells.map((cell: any[]) => convertRichTextToMarkdown(cell) || '   ').join(' | ');
+          });
+          
+          // 组合表格
+          return `| ${headers} |\n| ${separator} |\n${dataRows.map(row => `| ${row} |`).join('\n')}`;
+        }
+        return '';
+      
+      case 'table_row':
+        // 表格行在table中处理，这里直接跳过
+        return '';
+      
+      case 'equation':
+        const equation = block.equation?.expression || '';
+        return `$$${equation}$$`;
+      
+      default:
+        // 忽略不支持的块类型
+        return '';
+    }
+  }).filter(content => content.trim() !== '').join('\n\n');
+}
+
+/**
+ * 将富文本转换为Markdown（支持HTML）
+ */
+function convertRichTextToMarkdown(richText: any[]): string {
+  if (!Array.isArray(richText) || richText.length === 0) {
+    return '';
+  }
+  
+  return richText.map(text => {
+    let content = text.text?.content || '';
+    
+    // 如果是空内容，直接返回
+    if (!content.trim()) {
+      return content;
+    }
+    
+    // 收集需要应用的样式
+    const styles: string[] = [];
+    const annotations = text.annotations || {};
+    
+    // 颜色处理
+    if (annotations.color && annotations.color !== 'default') {
+      const colorMap: Record<string, string> = {
+        red: '#ef4444',
+        orange: '#f97316', 
+        yellow: '#eab308',
+        green: '#22c55e',
+        blue: '#3b82f6',
+        purple: '#a855f7',
+        pink: '#ec4899',
+        gray: '#6b7280',
+        brown: '#a3a3a3'
+      };
+      const color = colorMap[annotations.color] || annotations.color;
+      styles.push(`color:${color}`);
+    }
+    
+    // 背景颜色处理
+    if (annotations.background_color && annotations.background_color !== 'default') {
+      const bgColorMap: Record<string, string> = {
+        red_background: '#fef2f2',
+        orange_background: '#fff7ed',
+        yellow_background: '#fefce8',
+        green_background: '#f0fdf4',
+        blue_background: '#eff6ff',
+        purple_background: '#faf5ff',
+        pink_background: '#fdf2f8',
+        gray_background: '#f9fafb'
+      };
+      const bgColor = bgColorMap[annotations.background_color] || '#f9fafb';
+      styles.push(`background-color:${bgColor}`);
+    }
+    
+    // 应用HTML样式（如果有颜色或背景色）
+    if (styles.length > 0) {
+      content = `<span style="${styles.join(';')}">${content}</span>`;
+    }
+    
+    // 应用文本样式（顺序很重要）
+    if (annotations.strikethrough) {
+      content = `~~${content}~~`;
+    }
+    if (annotations.underline) {
+      content = `<u>${content}</u>`;
+    }
+    if (annotations.code) {
+      content = `\`${content}\``;
+    }
+    if (annotations.bold) {
+      content = `**${content}**`;
+    }
+    if (annotations.italic) {
+      content = `*${content}*`;
+    }
+    
+    // 链接处理（放在最后）
+    if (text.text?.link?.url) {
+      content = `[${content}](${text.text.link.url})`;
+    }
+    
+    return content;
+  }).join('');
+}
+
+/**
  * 根据 ID 获取单个充电宝数据
  */
 export async function getChargeBabyById(id: string): Promise<ChargeBaby | null> {
   try {
-    const response = await notionFetch<NotionPage>(`/pages/${id}`);
+    const [pageResponse, blocks] = await Promise.all([
+      notionFetch<NotionPage>(`/pages/${id}`),
+      getPageBlocks(id)
+    ]);
 
-    return parseNotionPageToChargeBaby(response);
+    const chargeBaby = parseNotionPageToChargeBaby(pageResponse);
+    
+    // 将页面内容转换为Markdown并添加到articleContent
+    const articleContent = convertBlocksToMarkdown(blocks);
+    
+    return {
+      ...chargeBaby,
+      articleContent: articleContent || chargeBaby.articleContent
+    };
   } catch (error) {
     console.error('Error fetching charge baby by ID:', error);
     return null;
@@ -120,6 +363,8 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
     // 详细技术规格数据
     detailData: parseDetailData(props),
+    // 图文内容将在 getChargeBabyById 中从页面内容获取
+    articleContent: '',
   };
 }
 
