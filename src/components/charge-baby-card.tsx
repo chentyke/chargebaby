@@ -58,7 +58,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyC
               priority={index < 6}
               loading={index < 6 ? "eager" : "lazy"}
               placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyKKhupVkD/AL9Fz6QbZ7xE4x/vQozGfTlqBQqkgYrNPXn0UvU1s0DJy0HB1NE7Kdi2Sb2YRYk9tMWHsNLGNYtITqCDmQ3wfGYyMdp6lfUdADT9pSFH9NAgOQT9L9Fz6QbZ7xE4x/vQKAR6eHrUh4iYX6GCnynR4bAhERBQcHFIXB9TQZW1M4rrXQ4b0Ob/9k="
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjMyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjlmYWZiIi8+PC9zdmc+"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
