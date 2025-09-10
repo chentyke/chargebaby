@@ -72,10 +72,6 @@ export interface DetailData {
   
   // 数据来源
   dataSource: string; // 数据来源
-  
-  // 筛选相关字段
-  maxOutputPower?: number; // 最大输出功率（用于筛选）
-  maxSelfChargingPower?: number; // 最大自充电功率（用于筛选）
 }
 
 // 充电宝基础类型定义

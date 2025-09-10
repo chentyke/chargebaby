@@ -446,10 +446,6 @@ function parseDetailData(props: any): DetailData {
     
     // 数据来源
     dataSource: getRichTextProperty(props['数据来源']) || '',
-    
-    // 筛选相关字段
-    maxOutputPower: getNumberProperty(props['最大输出功率']) || getNumberProperty(props['最大输出功率（W）']) || 0,
-    maxSelfChargingPower: getNumberProperty(props['最大自充电功率']) || getNumberProperty(props['最大自充电功率（W）']) || 0,
   };
 }
 
