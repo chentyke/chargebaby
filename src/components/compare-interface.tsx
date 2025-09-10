@@ -295,7 +295,7 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
           
           <div className={`${isMobile ? 'space-y-4' : 'space-y-6 sm:space-y-8'}`}>
             {category.items.map((item) => (
-              <div key={item.key} className="border-b border-gray-200 pb-4 sm:pb-6 last:border-b-0">
+              <div key={item.key}>
                 <h3 className={`font-semibold text-gray-700 mb-3 sm:mb-4 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
                   {item.label}
                 </h3>
@@ -307,12 +307,9 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
                     if (!product) {
                       return (
                         <div key={index} className="text-center">
-                          <div className={`bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
-                            <div className={`text-gray-400 mb-1 sm:mb-2 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
+                          <div className={`bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-4 py-8' : 'p-6 py-10 sm:py-12'} flex items-center justify-center`}>
+                            <div className={`text-gray-400 ${isMobile ? 'text-2xl' : 'text-3xl sm:text-4xl'} font-light`}>
                               -
-                            </div>
-                            <div className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>
-                              未选择
                             </div>
                           </div>
                         </div>
@@ -324,12 +321,9 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
                     
                     return (
                       <div key={product.id} className="text-center">
-                        <div className={`bg-white border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
-                          <div className={`font-bold text-gray-900 mb-1 sm:mb-2 ${isMobile ? 'text-base' : 'text-lg sm:text-xl md:text-2xl'}`}>
+                        <div className={`bg-white border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-4 py-8' : 'p-6 py-10 sm:py-12'} flex items-center justify-center`}>
+                          <div className={`font-bold text-gray-900 ${isMobile ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'}`}>
                             {displayValue}
-                          </div>
-                          <div className={`text-gray-500 truncate ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>
-                            {product.displayName || product.title}
                           </div>
                         </div>
                       </div>
