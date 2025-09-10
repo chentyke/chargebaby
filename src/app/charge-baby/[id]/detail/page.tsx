@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getChargeBabyById } from '@/lib/notion';
 import { DetailData } from '@/types/chargebaby';
 import { PageHeader } from '@/components/ui/back-button';
+import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
 
 interface PageProps {
   params: Promise<{
@@ -98,7 +99,9 @@ function DataSection({ title, children, data }: { title: string; children: React
 function DataItem({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex flex-col">
-      <div className="text-sm font-medium text-gray-700">{label}</div>
+      <div className="text-sm font-medium text-gray-700">
+        <TitleWithTooltip title={label} />
+      </div>
       <div className="text-base text-gray-900 mt-1">{value || '-'}</div>
     </div>
   );

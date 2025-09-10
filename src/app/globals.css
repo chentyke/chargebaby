@@ -186,6 +186,13 @@
   background: rgba(0, 0, 0, 0.6);
 }
 
+/* 工具提示样式 */
+.tooltip-content {
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
 /* Markdown内容样式 */
 .markdown-content details summary {
   list-style: none;

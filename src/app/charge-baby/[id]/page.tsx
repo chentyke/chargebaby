@@ -7,6 +7,7 @@ import { getChargeBabyById } from '@/lib/notion';
 import { formatPrice, formatRating, getRatingProgress, formatDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/back-button';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
+import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
 
 interface PageProps {
   params: Promise<{
@@ -156,7 +157,9 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
             {/* 综合评分 */}
             <div>
-              <div className="text-gray-900 font-semibold text-center">综合评分</div>
+              <div className="text-gray-900 font-semibold text-center">
+                <TitleWithTooltip title="综合评分" className="justify-center" />
+              </div>
               <div className="mt-2 flex items-baseline gap-2 justify-center">
                 <div className="text-4xl font-extrabold tracking-tight text-gray-900">
                   {Math.round(overallRating ?? 0)}
@@ -170,7 +173,9 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
             {/* 性能评分卡片 */}
             <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg text-gray-900 font-semibold mb-2">性能评分</div>
+              <div className="text-lg text-gray-900 font-semibold mb-2">
+                <TitleWithTooltip title="性能评分" />
+              </div>
               <div className="text-center mb-4">
                 <div className="text-4xl font-extrabold text-gray-900 leading-none">
                   {Math.round(performanceRating ?? 0)}
@@ -190,7 +195,9 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
             {/* 体验评分卡片 */}
             <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg text-gray-900 font-semibold mb-2">体验评分</div>
+              <div className="text-lg text-gray-900 font-semibold mb-2">
+                <TitleWithTooltip title="体验评分" />
+              </div>
               <div className="text-center mb-4">
                 <div className="text-4xl font-extrabold text-gray-900 leading-none">
                   {Math.round(experienceRating ?? 0)}
@@ -384,7 +391,9 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
                 {/* 综合评分 */}
                 <div>
-                  <div className="text-gray-900 font-semibold">综合评分</div>
+                  <div className="text-gray-900 font-semibold">
+                    <TitleWithTooltip title="综合评分" />
+                  </div>
                   <div className="mt-2 flex items-baseline gap-2">
                     <div className="text-5xl font-extrabold tracking-tight text-gray-900">
                       {Math.round(overallRating ?? 0)}
@@ -398,7 +407,9 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
                 {/* 性能评分卡片 */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-5">
-                  <div className="text-xl text-gray-900 font-semibold mb-2">性能评分</div>
+                  <div className="text-xl text-gray-900 font-semibold mb-2">
+                    <TitleWithTooltip title="性能评分" />
+                  </div>
                   <div className="flex items-start gap-6">
                     <div className="shrink-0">
                       <div className="text-6xl font-extrabold text-gray-900 leading-none">
@@ -429,7 +440,9 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
                 {/* 体验评分卡片 */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-5">
-                  <div className="text-xl text-gray-900 font-semibold mb-2">体验评分</div>
+                  <div className="text-xl text-gray-900 font-semibold mb-2">
+                    <TitleWithTooltip title="体验评分" />
+                  </div>
                   <div className="flex items-start gap-6">
                     <div className="shrink-0">
                       <div className="text-6xl font-extrabold text-gray-900 leading-none">
@@ -551,7 +564,9 @@ function ItemBarInline({ label, value = 0, max }: { label: string; value?: numbe
   const width = `${getRatingProgress(value, max)}%`;
   return (
     <div className="w-full">
-      <div className="text-sm text-gray-700">{label}</div>
+      <div className="text-sm text-gray-700">
+        <TitleWithTooltip title={label} />
+      </div>
       <div className="mt-1 text-lg md:text-xl font-bold text-gray-900 leading-none">
         {formatRating(value)}/{max}
       </div>
