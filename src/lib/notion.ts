@@ -177,7 +177,7 @@ function convertBlocksToMarkdown(blocks: any[]): string {
           });
           
           // 组合表格
-          return `| ${headers} |\n| ${separator} |\n${dataRows.map(row => `| ${row} |`).join('\n')}`;
+          return `| ${headers} |\n| ${separator} |\n${dataRows.map((row: string) => `| ${row} |`).join('\n')}`;
         }
         return '';
       
