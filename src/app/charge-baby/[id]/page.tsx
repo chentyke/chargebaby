@@ -57,8 +57,11 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
     : null;
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container py-6 sm:py-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative animate-slide-up">
+      {/* 背景装饰 */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-50/20 via-transparent to-purple-50/20 pointer-events-none"></div>
+      
+      <div className="container py-6 sm:py-10 relative">
         {/* 顶部操作栏：返回 / 详细数据 / 保存图片 */}
         <div className="flex items-center justify-between mb-4 sm:mb-6" data-ignore-capture="true">
           <Link href="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
@@ -116,7 +119,7 @@ export default async function ChargeBabyDetailPage({ params }: PageProps) {
             )}
           </div>
         </div>
-        <div id="capture-root" className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-start bg-white">
+        <div id="capture-root" className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-start">
           {/* 左侧：大图 + 优劣势 */}
           <div>
             <div className="relative aspect-square overflow-hidden pl-0 pr-0 sm:pl-2 sm:pr-6 pt-2 pb-2 sm:pt-6 sm:pb-6 max-w-[320px] sm:max-w-none mx-auto sm:mx-0" data-detail-image>

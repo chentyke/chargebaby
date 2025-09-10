@@ -33,14 +33,32 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config) => {
+  webpack: (config, { dev }) => {
     // Map core 'punycode' to the userland module to silence Node DEP0040
     config.resolve = config.resolve || {}
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       punycode$: require.resolve('punycode/'),
     }
+    
+    // 优化开发环境构建
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
+    
     return config
+  },
+  // Turbopack配置
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
   },
 }
 

@@ -1,30 +1,45 @@
 import { Suspense } from 'react';
 import { getChargeBabies } from '@/lib/notion';
-import { ChargeBabyCard } from '@/components/charge-baby-card';
+import { SearchableProductsGrid } from '@/components/searchable-products-grid';
 import { Loading } from '@/components/ui/loading';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* 页面标题 */}
-      <header className="pt-8 pb-4">
-        <div className="container">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-2">
-            充电宝图鉴
-          </h1>
-          <p className="text-center text-gray-600 text-sm sm:text-base">
-            专业充电宝性能测试与评测
-          </p>
-        </div>
-      </header>
-
-      <section className="py-6">
-        <div className="container">
-          <Suspense fallback={<Loading text="加载中..." />}>
-            <ProductsGrid />
-          </Suspense>
-        </div>
-      </section>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative">
+      {/* 统一背景装饰层 */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/30 via-transparent to-purple-50/30 pointer-events-none"></div>
+      
+      {/* 网格背景 */}
+      <div className="absolute inset-0 opacity-[0.015]" 
+           style={{
+             backgroundImage: `linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+             backgroundSize: '50px 50px'
+           }}>
+      </div>
+      
+      {/* 主要内容容器 - 无分割线 */}
+      <div className="relative">
+        {/* 页面标题和搜索区域 */}
+        <header className="pt-12 pb-8">
+          <div className="container">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-3 leading-tight">
+                <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+                  充电宝图鉴
+                </span>
+              </h1>
+              <p className="text-lg text-gray-600/90">
+                专业充电宝性能测试与评测
+              </p>
+            </div>
+            
+            {/* 集成搜索区域 */}
+            <Suspense fallback={<Loading text="加载中..." />}>
+              <ProductsGrid />
+            </Suspense>
+          </div>
+        </header>
+      </div>
     </div>
   );
 }
@@ -33,28 +48,17 @@ async function ProductsGrid() {
   try {
     const chargeBabies = await getChargeBabies();
     
-    if (chargeBabies.length === 0) {
-      return (
-        <div className="text-center py-12 text-gray-600">暂无产品数据</div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
-        {chargeBabies.map((chargeBaby, index) => (
-          <ChargeBabyCard 
-            key={chargeBaby.id} 
-            chargeBaby={chargeBaby}
-            index={index}
-          />
-        ))}
-      </div>
-    );
+    return <SearchableProductsGrid chargeBabies={chargeBabies} />;
   } catch (error) {
     console.error('Error loading products:', error);
     
     return (
-      <div className="text-center py-12 text-gray-600">加载失败</div>
+      <div className="text-center py-12 text-gray-600 animate-fade-in">
+        <div className="space-y-3">
+          <div className="text-lg font-medium">加载失败</div>
+          <div className="text-sm">请刷新页面重试</div>
+        </div>
+      </div>
     );
   }
 }
