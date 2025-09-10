@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ChevronDown, Battery } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Battery, Trophy } from 'lucide-react';
 import { ChargeBaby } from '@/types/chargebaby';
 import { BackButton } from '@/components/ui/back-button';
 
@@ -44,11 +44,21 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 返回按钮 */}
+      {/* 顶部导航 */}
       <div className="container px-4 sm:px-6 lg:px-8 pt-6 pb-4">
-        <BackButton href="/" variant="compact">
-          返回首页
-        </BackButton>
+        <div className="flex items-center justify-between">
+          <BackButton href="/" variant="compact">
+            返回首页
+          </BackButton>
+          
+          {/* 排行榜按钮 */}
+          <Link href="/ranking">
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200 shadow-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50/50 transition-all duration-300">
+              <Trophy className="w-5 h-5" />
+              <span className="font-medium text-sm">排行榜</span>
+            </div>
+          </Link>
+        </div>
       </div>
 
       {/* 主标题区域 */}
