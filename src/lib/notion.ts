@@ -1,4 +1,4 @@
-import { ChargeBaby, NotionDatabase, NotionPage } from '@/types/chargebaby';
+import { ChargeBaby, NotionDatabase, NotionPage, DetailData } from '@/types/chargebaby';
 
 const notionApiBase = 'https://api.notion.com/v1';
 const notionVersion = process.env.NOTION_VERSION || '2022-06-28';
@@ -118,6 +118,86 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
       '',
     createdAt: getDateProperty(props.CreatedAt) || new Date().toISOString(),
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
+    // 详细技术规格数据
+    detailData: parseDetailData(props),
+  };
+}
+
+/**
+ * 解析详细技术数据
+ */
+function parseDetailData(props: any): DetailData {
+  return {
+    // 物理尺寸
+    length: getNumberProperty(props['长度（cm）']) || 0,
+    width: getNumberProperty(props['宽度（cm）']) || 0,
+    thickness: getNumberProperty(props['厚度（cm）']) || getNumberProperty(props['厚度']) || 0,
+    volume: getNumberProperty(props['体积（cm3）']) || 0,
+    weight: getNumberProperty(props['重量（g）']) || 0,
+    
+    // 容量相关
+    capacityLevel: getNumberProperty(props['容量级别（mAh）']) || 0,
+    maxDischargeCapacity: getNumberProperty(props['最大放电容量（Wh）']) || 0,
+    selfChargingEnergy: getNumberProperty(props['自充能量（Wh）']) || 0,
+    capacityWeightRatio: getNumberProperty(props['容量重量比（Wh/g）']) || 0,
+    capacityVolumeRatio: getNumberProperty(props['容量体积比（Wh/cm3）']) || 0,
+    energyWeightRatio: getNumberProperty(props['能量重量比']) || 0,
+    energyVolumeRatio: getNumberProperty(props['能量体积比']) || 0,
+    energyAchievementRate: getNumberProperty(props['能量达成率']) || 0,
+    dischargeCapacityAchievementRate: getNumberProperty(props['放电容量达成率']) || 0,
+    
+    // 充电性能
+    selfChargingTime: getNumberProperty(props['自充时间（min）']) || 0,
+    avgSelfChargingPower: getNumberProperty(props['平均自充功率（W）']) || getNumberProperty(props['平均自充功率']) || 0,
+    energy20min: getNumberProperty(props['20分钟充入能量']) || getNumberProperty(props['20分钟充入能量（Wh）']) || 0,
+    
+    // 输出性能
+    maxContinuousOutputPower: getNumberProperty(props['最大持续输出平均功率（W）']) || 0,
+    maxDischargeCapability: getNumberProperty(props['最大放电能力']) || 0,
+    maxEnergyConversionRate: getNumberProperty(props['最大能量转换率']) || 0,
+    conversionRate: getNumberProperty(props['转换率']) || 0,
+    
+    // 充电协议支持
+    pdSupport: getNumberProperty(props['PD']) || 0,
+    qcSupport: getNumberProperty(props['QC']) || 0,
+    ppsSupport: getNumberProperty(props['PPS']) || 0,
+    ufcsSupport: getNumberProperty(props['UFCS']) || 0,
+    privateProtocol: getNumberProperty(props['私有协议']) || 0,
+    protocolCompatibility: getNumberProperty(props['协议相互兼容']) || 0,
+    
+    // 多接口功能
+    dualPortOutput: getNumberProperty(props['双接口同时输出']) || 0,
+    hotSwap: getNumberProperty(props['多口插拔不断联']) || 0,
+    passThrough: getNumberProperty(props['边冲边放']) || 0,
+    customDirection: getNumberProperty(props['输入输出方向自定义']) || 0,
+    
+    // 温度控制
+    temperature: getNumberProperty(props['温度']) || 0,
+    maxTemperature: getNumberProperty(props['最高温度']) || 0,
+    temperatureUniformity: getNumberProperty(props['温度均匀度']) || 0,
+    temperatureControlStrategy: getNumberProperty(props['温控策略']) || getNumberProperty(props['温控策略 1']) || 0,
+    
+    // 显示功能
+    display: getNumberProperty(props['显示']) || 0,
+    displayContent: getNumberProperty(props['显示内容']) || 0,
+    displayCarrier: getNumberProperty(props['显示载体']) || 0,
+    displayAdjustment: getNumberProperty(props['显示调节']) || 0,
+    brightness: getNumberProperty(props['亮度']) || 0,
+    
+    // 线缆相关
+    cableLength: getNumberProperty(props['线缆长度']) || 0,
+    cableSoftness: getNumberProperty(props['线缆柔软度']) || 0,
+    
+    // 电源质量
+    ripple: getNumberProperty(props['纹波']) || getNumberProperty(props['纹波 1']) || 0,
+    
+    // 特殊功能
+    iotCapability: getNumberProperty(props['IoT能力']) || 0,
+    customizationCapability: getNumberProperty(props['自定义能力']) || 0,
+    acInputCapability: getNumberProperty(props['AC输入能力']) || 0,
+    
+    // 数据来源
+    dataSource: getRichTextProperty(props['数据来源']) || '',
   };
 }
 

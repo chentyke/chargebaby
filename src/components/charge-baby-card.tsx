@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 interface ChargeBabyCardProps {
   chargeBaby: ChargeBaby;
   className?: string;
+  index?: number;
 }
 
-export function ChargeBabyCard({ chargeBaby, className }: ChargeBabyCardProps) {
+export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyCardProps) {
   const {
     id,
     title,
@@ -19,30 +20,47 @@ export function ChargeBabyCard({ chargeBaby, className }: ChargeBabyCardProps) {
 
   return (
     <Link href={`/charge-baby/${id}`}>
-      <div className={cn(
-        'bg-white rounded-lg p-2 hover:shadow-md transition-shadow cursor-pointer',
-        className
-      )}>
-        {/* 图片 */}
-        <div className="relative aspect-square mb-2 overflow-hidden rounded bg-gray-50">
+      <div 
+        className={cn(
+          'group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-200 transition-all duration-300 ease-out transform hover:scale-[1.02] hover:shadow-xl cursor-pointer',
+          className
+        )}
+        style={{ 
+          animationDelay: `${index * 100}ms`,
+          opacity: 0,
+          animation: `fadeIn 0.6s ease-out ${index * 100}ms forwards`
+        }}
+      >
+        {/* 图片容器 */}
+        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
           {imageUrl ? (
             <Image
               src={imageUrl}
               alt={title}
               fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-contain p-4 transition-transform duration-300 ease-out group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+              priority={index < 8}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Battery className="w-12 h-12 text-gray-400" />
+              <Battery className="w-16 h-16 text-gray-300 transition-colors duration-300 group-hover:text-gray-400" />
             </div>
           )}
+          
+          {/* 悬停时显示的渐变遮罩 */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
         </div>
-        {/* 标题 */}
-        <h3 className="font-medium text-gray-900 text-sm truncate">
-          {displayName || title}
-        </h3>
+        
+        {/* 标题区域 */}
+        <div className="p-4">
+          <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2 group-hover:text-gray-800 transition-colors duration-300">
+            {displayName || title}
+          </h3>
+          
+          {/* 底部装饰线 */}
+          <div className="mt-3 h-0.5 bg-gradient-to-r from-gray-200 to-transparent group-hover:from-gray-400 transition-colors duration-300" />
+        </div>
       </div>
     </Link>
   );

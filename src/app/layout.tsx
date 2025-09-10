@@ -55,13 +55,10 @@ export default function RootLayout({
     <html lang="zh-CN" className="scroll-smooth">
       <body className={inter.className}>
         <div className="min-h-screen bg-white">
-
           {/* 主要内容区域 */}
           <main className="flex-1">
             {children}
           </main>
-
-          
         </div>
       </body>
     </html>

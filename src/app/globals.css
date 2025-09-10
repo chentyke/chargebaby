@@ -40,24 +40,25 @@
     @apply flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
-  .performance-chart {
-    @apply w-full h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-4;
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
   }
 
-  .spec-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
-  .spec-item {
-    @apply bg-gray-50 rounded-lg p-4 border border-gray-200;
-  }
-
-  .feature-badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800;
-  }
-
-  .rating-stars {
-    @apply flex items-center space-x-1 text-yellow-400;
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 }
 
@@ -80,21 +81,6 @@
   background: #475569;
 }
 
-/* 响应式字体大小 */
-@media (max-width: 640px) {
-  .responsive-text-xl {
-    @apply text-lg;
-  }
-  
-  .responsive-text-2xl {
-    @apply text-xl;
-  }
-  
-  .responsive-text-3xl {
-    @apply text-2xl;
-  }
-}
-
 /* 动画效果 */
 @keyframes fadeIn {
   from {
@@ -108,18 +94,5 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 2s infinite;
+  animation: fadeIn 0.6s ease-out;
 }

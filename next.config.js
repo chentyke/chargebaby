@@ -26,6 +26,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'notion.so',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+      },
     ],
   },
   webpack: (config) => {
