@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Battery } from 'lucide-react';
@@ -12,6 +12,21 @@ interface CompareInterfaceProps {
 
 export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
   const [selectedProducts, setSelectedProducts] = useState<(ChargeBaby | null)[]>([null, null, null]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  const maxProducts = isMobile ? 2 : 3;
+  const displayedProducts = isMobile ? selectedProducts.slice(0, 2) : selectedProducts;
 
   const updateProduct = (index: number, product: ChargeBaby | null) => {
     const newProducts = [...selectedProducts];
@@ -21,10 +36,10 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
 
   const availableProducts = (excludeIndex: number) => 
     chargeBabies.filter(product => 
-      !selectedProducts.some((selected, i) => i !== excludeIndex && selected?.id === product.id)
+      !displayedProducts.some((selected, i) => i !== excludeIndex && selected?.id === product.id)
     );
 
-  const hasValidComparison = selectedProducts.filter(p => p !== null).length >= 2;
+  const hasValidComparison = displayedProducts.filter(p => p !== null).length >= 2;
 
   return (
     <div className="min-h-screen bg-white">
@@ -49,14 +64,15 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
       {/* 粘性选择器区域 */}
       <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl">
         <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {selectedProducts.map((selectedProduct, index) => (
+          <div className={`grid gap-4 sm:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+            {displayedProducts.map((selectedProduct, index) => (
               <ProductSelector
                 key={index}
                 selectedProduct={selectedProduct}
                 availableProducts={availableProducts(index)}
                 onSelect={(product) => updateProduct(index, product)}
                 position={index}
+                isMobile={isMobile}
               />
             ))}
           </div>
@@ -64,10 +80,10 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
       </div>
 
       {/* 产品展示区域 */}
-      <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {selectedProducts.map((product, index) => (
-            <ProductDisplay key={index} product={product} />
+      <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-8 sm:py-16">
+        <div className={`grid gap-6 sm:gap-8 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+          {displayedProducts.map((product, index) => (
+            <ProductDisplay key={index} product={product} isMobile={isMobile} />
           ))}
         </div>
       </div>
@@ -75,8 +91,8 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
       {/* 详细对比表格 */}
       {hasValidComparison && (
         <div className="bg-white">
-          <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-16">
-            <ComparisonTable products={selectedProducts} />
+          <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-8 sm:py-16">
+            <ComparisonTable products={displayedProducts} isMobile={isMobile} />
           </div>
         </div>
       )}
@@ -88,12 +104,14 @@ function ProductSelector({
   selectedProduct, 
   availableProducts, 
   onSelect, 
-  position 
+  position,
+  isMobile 
 }: {
   selectedProduct: ChargeBaby | null;
   availableProducts: ChargeBaby[];
   onSelect: (product: ChargeBaby | null) => void;
   position: number;
+  isMobile?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -103,7 +121,7 @@ function ProductSelector({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full p-3 sm:p-4 bg-white border border-gray-300 rounded-xl hover:border-gray-400 transition-colors text-left flex items-center justify-between shadow-sm"
       >
-        <span className="font-medium text-gray-900 text-sm sm:text-base truncate pr-2">
+        <span className="font-medium text-gray-900 text-xs sm:text-sm md:text-base truncate pr-2">
           {selectedProduct ? (selectedProduct.displayName || selectedProduct.title) : `选择充电宝 ${position + 1}`}
         </span>
         <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
@@ -168,14 +186,14 @@ function ProductSelector({
   );
 }
 
-function ProductDisplay({ product }: { product: ChargeBaby | null }) {
+function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product) {
     return (
       <div className="text-center">
-        <div className="aspect-square bg-gray-50 rounded-3xl mb-6 flex items-center justify-center border-2 border-dashed border-gray-200">
+        <div className={`aspect-square bg-gray-50 rounded-3xl mb-4 sm:mb-6 flex items-center justify-center border-2 border-dashed border-gray-200 ${isMobile ? 'p-4' : 'p-6 sm:p-8'}`}>
           <div className="text-center text-gray-400">
-            <Battery className="w-16 h-16 mx-auto mb-4" />
-            <p className="text-lg">选择充电宝</p>
+            <Battery className={`mx-auto mb-2 sm:mb-4 ${isMobile ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'}`} />
+            <p className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>选择充电宝</p>
           </div>
         </div>
       </div>
@@ -185,37 +203,37 @@ function ProductDisplay({ product }: { product: ChargeBaby | null }) {
   return (
     <div className="text-center">
       {/* 产品图片 */}
-      <div className="aspect-square bg-gray-50 rounded-3xl mb-6 p-8 flex items-center justify-center">
+      <div className={`aspect-square bg-gray-50 rounded-3xl mb-4 sm:mb-6 ${isMobile ? 'p-4' : 'p-6 sm:p-8'} flex items-center justify-center`}>
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
             alt={product.title}
-            width={300}
-            height={300}
+            width={isMobile ? 200 : 300}
+            height={isMobile ? 200 : 300}
             className="object-contain w-full h-full"
           />
         ) : (
-          <Battery className="w-24 h-24 text-gray-300" />
+          <Battery className={`text-gray-300 ${isMobile ? 'w-16 h-16' : 'w-20 h-20 sm:w-24 sm:h-24'}`} />
         )}
       </div>
 
       {/* 产品信息 */}
-      <div className="space-y-2">
-        <h3 className="text-xl font-bold text-gray-900">
+      <div className="space-y-1 sm:space-y-2">
+        <h3 className={`font-bold text-gray-900 ${isMobile ? 'text-sm line-clamp-2' : 'text-lg sm:text-xl'}`}>
           {product.displayName || product.title}
         </h3>
         {product.model && (
-          <p className="text-gray-600">{product.model}</p>
+          <p className={`text-gray-600 ${isMobile ? 'text-xs truncate' : 'text-sm sm:text-base'}`}>{product.model}</p>
         )}
         {product.price && (
-          <p className="text-2xl font-semibold text-gray-900">
+          <p className={`font-semibold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
             ¥{Math.round(product.price)}
           </p>
         )}
         {product.overallRating && (
-          <div className="inline-flex items-center gap-2 bg-purple-50 px-4 py-2 rounded-full">
-            <span className="text-sm text-purple-600">综合评分</span>
-            <span className="text-lg font-bold text-purple-600">
+          <div className={`inline-flex items-center gap-1 sm:gap-2 bg-purple-50 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 sm:px-4 py-1 sm:py-2'}`}>
+            <span className={`text-purple-600 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>综合评分</span>
+            <span className={`font-bold text-purple-600 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
               {Math.round(product.overallRating)}/100
             </span>
           </div>
@@ -225,7 +243,7 @@ function ProductDisplay({ product }: { product: ChargeBaby | null }) {
   );
 }
 
-function ComparisonTable({ products }: { products: (ChargeBaby | null)[] }) {
+function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)[]; isMobile?: boolean }) {
   const comparisonData = [
     {
       category: "基本信息",
@@ -265,33 +283,35 @@ function ComparisonTable({ products }: { products: (ChargeBaby | null)[] }) {
     }
   ];
 
+  const maxColumns = isMobile ? 2 : 3;
+  
   return (
-    <div className="space-y-16">
+    <div className={`${isMobile ? 'space-y-8' : 'space-y-12 sm:space-y-16'}`}>
       {comparisonData.map((category) => (
         <div key={category.category}>
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+          <h2 className={`font-bold text-gray-900 mb-4 sm:mb-6 md:mb-8 text-center ${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
             {category.category}
           </h2>
           
-          <div className="space-y-8">
+          <div className={`${isMobile ? 'space-y-4' : 'space-y-6 sm:space-y-8'}`}>
             {category.items.map((item) => (
-              <div key={item.key} className="border-b border-gray-200 pb-6 last:border-b-0">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              <div key={item.key} className="border-b border-gray-200 pb-4 sm:pb-6 last:border-b-0">
+                <h3 className={`font-semibold text-gray-700 mb-3 sm:mb-4 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
                   {item.label}
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className={`grid gap-3 sm:gap-4 md:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
                   {/* 按选择器的顺序显示产品 */}
-                  {[0, 1, 2].map((index) => {
+                  {Array.from({ length: maxColumns }, (_, index) => {
                     const product = products[index];
                     if (!product) {
                       return (
                         <div key={index} className="text-center">
-                          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
-                            <div className="text-lg text-gray-400 mb-2">
+                          <div className={`bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
+                            <div className={`text-gray-400 mb-1 sm:mb-2 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
                               -
                             </div>
-                            <div className="text-sm text-gray-400">
+                            <div className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                               未选择
                             </div>
                           </div>
@@ -304,11 +324,11 @@ function ComparisonTable({ products }: { products: (ChargeBaby | null)[] }) {
                     
                     return (
                       <div key={product.id} className="text-center">
-                        <div className="bg-white border border-gray-200 rounded-2xl p-6">
-                          <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                        <div className={`bg-white border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
+                          <div className={`font-bold text-gray-900 mb-1 sm:mb-2 ${isMobile ? 'text-base' : 'text-lg sm:text-xl md:text-2xl'}`}>
                             {displayValue}
                           </div>
-                          <div className="text-xs sm:text-sm text-gray-500 truncate">
+                          <div className={`text-gray-500 truncate ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                             {product.displayName || product.title}
                           </div>
                         </div>
