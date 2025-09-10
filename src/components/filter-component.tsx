@@ -141,19 +141,40 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full right-0 mt-2 w-96 bg-white/95 backdrop-blur-xl rounded-2xl border border-white/40 shadow-2xl shadow-black/10 z-50 animate-scale-in">
-            <div className="p-6 space-y-6">
+          <div className={`${
+            isMobile 
+              ? 'fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl shadow-black/20' 
+              : 'absolute top-full right-0 mt-2 w-96 bg-white/95 backdrop-blur-xl rounded-2xl border border-white/40 shadow-2xl shadow-black/10'
+          } z-50 ${isMobile ? 'animate-slide-up' : 'animate-scale-in'}`}>
+            {/* 移动端拖拽指示器 */}
+            {isMobile && (
+              <div className="flex justify-center py-3">
+                <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+              </div>
+            )}
+            
+            <div className={`${isMobile ? 'px-4 pb-6 space-y-5 max-h-[80vh] overflow-y-auto' : 'p-6 space-y-6'}`}>
               {/* 标题和重置按钮 */}
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">筛选条件</h3>
-                {hasActiveFilters && (
-                  <button
-                    onClick={resetFilters}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    重置
-                  </button>
-                )}
+                <h3 className={`font-semibold text-gray-900 ${isMobile ? 'text-base' : 'text-lg'}`}>筛选条件</h3>
+                <div className="flex items-center gap-3">
+                  {hasActiveFilters && (
+                    <button
+                      onClick={resetFilters}
+                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      重置
+                    </button>
+                  )}
+                  {isMobile && (
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* 容量筛选 */}
@@ -178,7 +199,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                           ...prev,
                           capacityRange: { ...prev.capacityRange, min: Number(e.target.value) || 0 }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          isMobile ? 'py-3' : 'py-2'
+                        }`}
                       />
                     </div>
                     <div>
@@ -191,7 +214,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                           ...prev,
                           capacityRange: { ...prev.capacityRange, max: Number(e.target.value) || 100000 }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          isMobile ? 'py-3' : 'py-2'
+                        }`}
                       />
                     </div>
                   </div>
@@ -220,7 +245,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                           ...prev,
                           powerRange: { ...prev.powerRange, min: Number(e.target.value) || 0 }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          isMobile ? 'py-3' : 'py-2'
+                        }`}
                       />
                     </div>
                     <div>
@@ -233,7 +260,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                           ...prev,
                           powerRange: { ...prev.powerRange, max: Number(e.target.value) || 1000 }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          isMobile ? 'py-3' : 'py-2'
+                        }`}
                       />
                     </div>
                   </div>
@@ -242,10 +271,14 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
 
               {/* 品牌筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">品牌</label>
-                <div className="space-y-2 max-h-36 overflow-y-auto border border-gray-100 rounded-lg p-3">
+                <label className={`block font-medium text-gray-700 mb-3 ${isMobile ? 'text-sm' : 'text-sm'}`}>品牌</label>
+                <div className={`space-y-2 overflow-y-auto border border-gray-100 rounded-lg p-3 ${
+                  isMobile ? 'max-h-40' : 'max-h-36'
+                }`}>
                   {availableBrands.length > 0 ? availableBrands.map(brand => (
-                    <label key={brand} className="flex items-center hover:bg-gray-50 -mx-1 px-1 py-1 rounded">
+                    <label key={brand} className={`flex items-center hover:bg-gray-50 -mx-1 px-1 rounded cursor-pointer ${
+                      isMobile ? 'py-2' : 'py-1'
+                    }`}>
                       <input
                         type="checkbox"
                         checked={filters.brands.includes(brand)}
@@ -262,7 +295,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                             }));
                           }
                         }}
-                        className="mr-3 rounded text-blue-600 focus:ring-blue-500"
+                        className={`rounded text-blue-600 focus:ring-blue-500 ${
+                          isMobile ? 'mr-3 w-4 h-4' : 'mr-3'
+                        }`}
                       />
                       <span className="text-sm text-gray-700 flex-1">{brand}</span>
                     </label>
@@ -274,10 +309,12 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
 
               {/* 产品特性筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">产品特性</label>
-                <div className="grid grid-cols-2 gap-2">
+                <label className={`block font-medium text-gray-700 mb-3 ${isMobile ? 'text-sm' : 'text-sm'}`}>产品特性</label>
+                <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   {PRODUCT_FEATURES.map(feature => (
-                    <label key={feature} className="flex items-center hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
+                    <label key={feature} className={`flex items-center hover:bg-gray-50 rounded-lg cursor-pointer ${
+                      isMobile ? 'p-3 border border-gray-100' : 'p-2'
+                    }`}>
                       <input
                         type="checkbox"
                         checked={filters.features.includes(feature)}
@@ -294,7 +331,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                             }));
                           }
                         }}
-                        className="mr-2 rounded text-blue-600 focus:ring-blue-500"
+                        className={`rounded text-blue-600 focus:ring-blue-500 ${
+                          isMobile ? 'mr-3 w-4 h-4' : 'mr-2'
+                        }`}
                       />
                       <span className="text-sm text-gray-700 flex-1">{feature}</span>
                     </label>
