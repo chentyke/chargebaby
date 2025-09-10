@@ -5,6 +5,7 @@ import { Battery, ArrowLeft, FileText } from 'lucide-react';
 import SaveScreenshotButton from '@/components/save-screenshot-button';
 import { getChargeBabyById } from '@/lib/notion';
 import { formatPrice, formatRating, getRatingProgress, formatDate } from '@/lib/utils';
+import { PageHeader } from '@/components/ui/back-button';
 
 interface PageProps {
   params: Promise<{

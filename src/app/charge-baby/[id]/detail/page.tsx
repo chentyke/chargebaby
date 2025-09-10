@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getChargeBabyById } from '@/lib/notion';
 import { DetailData } from '@/types/chargebaby';
+import { PageHeader } from '@/components/ui/back-button';
 
 interface PageProps {
   params: Promise<{
@@ -23,19 +24,11 @@ export default async function DetailDataPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-white">
       <div className="container py-6 sm:py-10">
-        {/* 顶部导航 */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link href={`/charge-baby/${id}`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
-            <ArrowLeft className="w-5 h-5" />
-            <span>返回详情</span>
-          </Link>
-        </div>
-
-        {/* 标题 */}
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title} - 详细测试数据</h1>
-          <p className="mt-2 text-gray-600">以下数据来自「{detailData.dataSource}」的测试，仅供参考</p>
-        </div>
+        <PageHeader 
+          backButton={{ href: `/charge-baby/${id}`, text: "返回详情" }}
+          title={`${title} - 详细测试数据`}
+          subtitle={`以下数据来自「${detailData.dataSource}」的测试，仅供参考`}
+        />
 
         {/* 数据展示 */}
         <div className="space-y-8">

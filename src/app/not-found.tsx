@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Home, Search } from 'lucide-react';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function NotFound() {
   return (
@@ -20,13 +21,11 @@ export default function NotFound() {
         </div>
 
         <div className="space-y-4">
-          <Link 
-            href="/"
-            className="btn btn-primary flex items-center justify-center space-x-2 mx-auto"
-          >
-            <Home className="w-4 h-4" />
-            <span>返回首页</span>
-          </Link>
+          <div className="flex justify-center">
+            <BackButton href="/" variant="home">
+              返回首页
+            </BackButton>
+          </div>
           
           <p className="text-sm text-gray-500">
             或者您可以尝试搜索您需要的充电宝产品

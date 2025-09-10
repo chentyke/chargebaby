@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Home, Search, ArrowLeft } from 'lucide-react';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function NotFound() {
   return (
@@ -19,21 +20,17 @@ export default function NotFound() {
         </div>
 
         <div className="space-y-3">
-          <Link 
-            href="/"
-            className="btn btn-primary w-full flex items-center justify-center space-x-2"
-          >
-            <Home className="w-4 h-4" />
-            <span>返回首页</span>
-          </Link>
+          <div className="flex justify-center">
+            <BackButton href="/" variant="home" className="w-full justify-center">
+              返回首页
+            </BackButton>
+          </div>
           
-          <Link 
-            href="/products"
-            className="btn btn-outline w-full flex items-center justify-center space-x-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>浏览所有产品</span>
-          </Link>
+          <div className="flex justify-center">
+            <BackButton href="/" className="btn btn-outline w-full justify-center">
+              浏览所有产品
+            </BackButton>
+          </div>
         </div>
 
         <div className="pt-6 border-t border-gray-200">

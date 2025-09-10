@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Battery } from 'lucide-react';
 import { ChargeBaby } from '@/types/chargebaby';
+import { BackButton } from '@/components/ui/back-button';
 
 interface CompareInterfaceProps {
   chargeBabies: ChargeBaby[];
@@ -45,13 +46,9 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
     <div className="min-h-screen bg-white">
       {/* 返回按钮 */}
       <div className="container px-4 sm:px-6 lg:px-8 pt-6 pb-4">
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
+        <BackButton href="/" variant="compact">
           返回首页
-        </Link>
+        </BackButton>
       </div>
 
       {/* 主标题区域 */}

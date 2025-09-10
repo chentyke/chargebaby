@@ -35,7 +35,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyC
           animation: `slideInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 80}ms forwards`
         }}
       >
-        {/* 图片容器 */}
+        {/* 图片容器和文字叠加区域 */}
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-100/80 backdrop-blur-sm">
           {/* 背景装饰 */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
@@ -48,6 +48,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyC
                }}>
           </div>
           
+          {/* 产品图片 */}
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -66,23 +67,23 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyC
             </div>
           )}
           
-          {/* 光效 */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-        </div>
-        
-        {/* 标题区域 */}
-        <div className="relative p-5 bg-white/50 backdrop-blur-md border-t border-white/20">
-          {/* 背景模糊层 */}
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-50/60 via-white/40 to-gray-50/60 backdrop-blur-sm"></div>
+          {/* 渐变毛玻璃遮罩层 - 使用mask实现毛玻璃强度渐变 */}
+          <div className="absolute inset-x-0 bottom-0 h-2/5 backdrop-blur-2xl bg-white/40 transition-all duration-500 group-hover:backdrop-blur-3xl group-hover:bg-white/50"
+               style={{
+                 maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 40%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)',
+                 WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 40%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)'
+               }}>
+          </div>
           
-          <div className="relative">
-            <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2 transition-all duration-300 group-hover:text-gray-800 group-hover:scale-[1.02] transform-gpu">
+          {/* 文字叠加区域 */}
+          <div className="absolute inset-x-0 bottom-0 p-5 pb-4">
+            <h3 className="font-semibold text-gray-900 text-base leading-tight truncate transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
               {displayName || title}
             </h3>
-            
-            {/* 底部装饰渐变线 */}
-            <div className="mt-3 h-px bg-gradient-to-r from-transparent via-gray-300/60 to-transparent opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
           </div>
+          
+          {/* 光效 */}
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
         </div>
       </div>
     </Link>
