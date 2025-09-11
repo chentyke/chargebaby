@@ -1,4 +1,5 @@
 import { ChargeBaby, NotionDatabase, NotionPage, DetailData } from '@/types/chargebaby';
+import { serverCache, CACHE_KEYS } from './cache';
 
 const notionApiBase = 'https://api.notion.com/v1';
 const notionVersion = process.env.NOTION_VERSION || '2022-06-28';
@@ -15,7 +16,7 @@ async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
       'Content-Type': 'application/json',
       ...(init?.headers || {}),
     },
-    cache: 'no-store',
+    next: { revalidate: 60 }, // 60秒缓存
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
@@ -25,25 +26,58 @@ async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 /**
- * 从 Notion 数据库获取所有充电宝数据
+ * 从 Notion API 获取数据（不使用缓存）
+ */
+async function fetchChargeBabiesFromNotion(): Promise<ChargeBaby[]> {
+  const response = await notionFetch<NotionDatabase>(`/databases/${databaseId}/query`, {
+    method: 'POST',
+    body: JSON.stringify({
+      sorts: [
+        {
+          property: 'Title',
+          direction: 'ascending',
+        },
+      ],
+    }),
+  });
+
+  return response.results.map(parseNotionPageToChargeBaby);
+}
+
+/**
+ * 从 Notion 数据库获取所有充电宝数据（带缓存）
  */
 export async function getChargeBabies(): Promise<ChargeBaby[]> {
   try {
-    const response = await notionFetch<NotionDatabase>(`/databases/${databaseId}/query`, {
-      method: 'POST',
-      body: JSON.stringify({
-        sorts: [
-          {
-            property: 'Title',
-            direction: 'ascending',
-          },
-        ],
-      }),
-    });
+    // 尝试从缓存获取
+    const cached = serverCache.get<ChargeBaby[]>(CACHE_KEYS.CHARGE_BABIES);
+    if (cached) {
+      console.log('📦 Serving charge babies from cache');
+      return cached;
+    }
 
-    return response.results.map(parseNotionPageToChargeBaby);
+    console.log('🌐 Fetching charge babies from Notion API');
+    const data = await fetchChargeBabiesFromNotion();
+    
+    // 设置缓存，60秒过期，自动刷新
+    serverCache.setWithAutoRefresh(
+      CACHE_KEYS.CHARGE_BABIES,
+      data,
+      60, // 60秒
+      fetchChargeBabiesFromNotion
+    );
+
+    return data;
   } catch (error) {
     console.error('Error fetching charge babies from Notion:', error);
+    
+    // 如果API调用失败，尝试返回过期的缓存数据
+    const staleCache = serverCache.get<ChargeBaby[]>(CACHE_KEYS.CHARGE_BABIES);
+    if (staleCache) {
+      console.log('⚠️  Serving stale cache due to API error');
+      return staleCache;
+    }
+    
     return [];
   }
 }
@@ -283,24 +317,57 @@ function convertRichTextToMarkdown(richText: any[]): string {
 /**
  * 根据 ID 获取单个充电宝数据
  */
+/**
+ * 从 Notion API 获取单个充电宝数据（不使用缓存）
+ */
+async function fetchChargeBabyByIdFromNotion(id: string): Promise<ChargeBaby | null> {
+  const [pageResponse, blocks] = await Promise.all([
+    notionFetch<NotionPage>(`/pages/${id}`),
+    getPageBlocks(id)
+  ]);
+
+  const chargeBaby = parseNotionPageToChargeBaby(pageResponse);
+  
+  // 将页面内容转换为Markdown并添加到articleContent
+  const articleContent = convertBlocksToMarkdown(blocks);
+  
+  return {
+    ...chargeBaby,
+    articleContent: articleContent || chargeBaby.articleContent
+  };
+}
+
 export async function getChargeBabyById(id: string): Promise<ChargeBaby | null> {
   try {
-    const [pageResponse, blocks] = await Promise.all([
-      notionFetch<NotionPage>(`/pages/${id}`),
-      getPageBlocks(id)
-    ]);
+    const cacheKey = CACHE_KEYS.CHARGE_BABY_BY_ID(id);
+    
+    // 尝试从缓存获取
+    const cached = serverCache.get<ChargeBaby>(cacheKey);
+    if (cached) {
+      console.log(`📦 Serving charge baby ${id} from cache`);
+      return cached;
+    }
 
-    const chargeBaby = parseNotionPageToChargeBaby(pageResponse);
+    console.log(`🌐 Fetching charge baby ${id} from Notion API`);
+    const data = await fetchChargeBabyByIdFromNotion(id);
     
-    // 将页面内容转换为Markdown并添加到articleContent
-    const articleContent = convertBlocksToMarkdown(blocks);
+    if (data) {
+      // 设置缓存，5分钟过期（单个页面变化频率较低）
+      serverCache.set(cacheKey, data, 300);
+    }
     
-    return {
-      ...chargeBaby,
-      articleContent: articleContent || chargeBaby.articleContent
-    };
+    return data;
   } catch (error) {
     console.error('Error fetching charge baby by ID:', error);
+    
+    // 如果API调用失败，尝试返回过期的缓存数据
+    const cacheKey = CACHE_KEYS.CHARGE_BABY_BY_ID(id);
+    const staleCache = serverCache.get<ChargeBaby>(cacheKey);
+    if (staleCache) {
+      console.log(`⚠️  Serving stale cache for charge baby ${id} due to API error`);
+      return staleCache;
+    }
+    
     return null;
   }
 }
