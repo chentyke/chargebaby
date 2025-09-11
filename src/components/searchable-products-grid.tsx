@@ -5,6 +5,7 @@ import { Search } from 'lucide-react';
 import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { ChargeBabyCard } from '@/components/charge-baby-card';
 import { SearchCompareToolbar } from '@/components/search-compare-toolbar';
+import { useImagePreloader } from '@/hooks/useImagePreloader';
 
 interface SearchableProductsGridProps {
   chargeBabies: ChargeBaby[];
@@ -14,6 +15,9 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredByFilter, setFilteredByFilter] = useState<ChargeBaby[]>(chargeBabies);
   const [currentSortBy, setCurrentSortBy] = useState<SortOption>('updatedAt');
+
+  // 启用智能图片预加载
+  useImagePreloader(chargeBabies, true);
 
   const filteredProducts = useMemo(() => {
     const baseProducts = filteredByFilter;

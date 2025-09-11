@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ImageCache } from '@/lib/image-cache';
 
+// 请求去重：防止同一张图片被同时请求多次
+const pendingRequests = new Map<string, Promise<NextResponse>>();
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const imageUrl = searchParams.get('url');
@@ -35,7 +38,35 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // 检查是否已有相同的请求正在处理（防止重复获取）
+    if (pendingRequests.has(imageUrl)) {
+      console.log(`⏳ Waiting for pending request: ${imageUrl.substring(0, 50)}...`);
+      return await pendingRequests.get(imageUrl)!;
+    }
+
     console.log(`🌐 Fetching image from Notion: ${imageUrl.substring(0, 50)}...`);
+
+    // 创建新的请求 Promise
+    const fetchPromise = fetchImageWithRetry(imageUrl);
+    pendingRequests.set(imageUrl, fetchPromise);
+
+    try {
+      const response = await fetchPromise;
+      return response;
+    } finally {
+      // 请求完成后清除 pending 状态
+      pendingRequests.delete(imageUrl);
+    }
+  } catch (error) {
+    console.error('Image proxy error:', error);
+    pendingRequests.delete(imageUrl);
+    return ImageCache.getPlaceholderResponse();
+  }
+}
+
+// 提取图片获取逻辑为独立函数
+async function fetchImageWithRetry(imageUrl: string): Promise<NextResponse> {
+  try {
 
     // 尝试多种方式获取图片
     const fetchOptions: RequestInit[] = [
@@ -121,6 +152,7 @@ export async function GET(request: NextRequest) {
 
     // 缓存图片
     ImageCache.set(imageUrl, imageBuffer, contentType);
+    console.log(`✅ Image cached successfully: ${imageUrl.substring(0, 50)}...`);
 
     // 返回图片数据
     return new NextResponse(imageBuffer, {
@@ -133,9 +165,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Image proxy error:', error);
-    
-    // 返回占位图而不是错误
+    console.error('Image fetch error:', error);
     return ImageCache.getPlaceholderResponse();
   }
 }
