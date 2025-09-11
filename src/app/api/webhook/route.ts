@@ -102,7 +102,10 @@ export async function POST(request: NextRequest) {
 
     // 检查是否是验证事件
     if ('verification_token' in payload) {
+      const verificationEvent = payload as VerificationEvent;
       console.log('🔐 Received webhook verification token');
+      console.log('📝 Verification Token:', verificationEvent.verification_token);
+      console.log('🔑 Copy this token to Notion:', verificationEvent.verification_token);
       
       // 如果配置了webhook secret，验证签名
       if (WEBHOOK_SECRET && signature) {
@@ -120,6 +123,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Verification token received',
+        verification_token: verificationEvent.verification_token,
         timestamp: new Date().toISOString(),
       });
     }
