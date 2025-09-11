@@ -1,8 +1,8 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { Battery } from 'lucide-react';
 import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { cn } from '@/lib/utils';
+import { NotionImage } from './notion-image';
 
 interface ChargeBabyCardProps {
   chargeBaby: ChargeBaby;
@@ -94,7 +94,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: Cha
           
           {/* 产品图片 */}
           {imageUrl ? (
-            <Image
+            <NotionImage
               src={imageUrl}
               alt={title}
               fill

@@ -25,11 +25,30 @@ export async function GET(request: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
+      case 'refresh':
+        // 手动刷新主缓存
+        try {
+          const { getChargeBabies } = await import('@/lib/notion');
+          serverCache.delete('charge-babies');
+          await getChargeBabies(); // 这会重新获取并缓存数据
+          return NextResponse.json({
+            success: true,
+            message: 'Cache refreshed successfully',
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: 'Failed to refresh cache',
+            timestamp: new Date().toISOString(),
+          }, { status: 500 });
+        }
+
       default:
         return NextResponse.json(
           { 
             success: false, 
-            error: 'Invalid action. Supported actions: stats, clear' 
+            error: 'Invalid action. Supported actions: stats, clear, refresh' 
           },
           { status: 400 }
         );
