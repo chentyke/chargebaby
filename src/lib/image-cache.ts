@@ -1,4 +1,5 @@
 import { serverCache, CACHE_KEYS } from './cache';
+import { NextResponse } from 'next/server';
 
 interface ImageCacheItem {
   buffer: ArrayBuffer;
@@ -75,9 +76,9 @@ export class ImageCache {
   /**
    * 获取占位图响应
    */
-  static getPlaceholderResponse(): Response {
+  static getPlaceholderResponse(): NextResponse {
     const svg = this.generatePlaceholderSVG();
-    return new Response(svg, {
+    return new NextResponse(svg, {
       status: 200,
       headers: {
         'Content-Type': 'image/svg+xml',
