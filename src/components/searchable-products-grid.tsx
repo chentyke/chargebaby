@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
-import { ChargeBaby } from '@/types/chargebaby';
+import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { ChargeBabyCard } from '@/components/charge-baby-card';
 import { SearchCompareToolbar } from '@/components/search-compare-toolbar';
 
@@ -13,6 +13,7 @@ interface SearchableProductsGridProps {
 export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredByFilter, setFilteredByFilter] = useState<ChargeBaby[]>(chargeBabies);
+  const [currentSortBy, setCurrentSortBy] = useState<SortOption>('updatedAt');
 
   const filteredProducts = useMemo(() => {
     const baseProducts = filteredByFilter;
@@ -42,8 +43,9 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
     setSearchQuery(query);
   };
 
-  const handleFilterChange = useCallback((filteredBabies: ChargeBaby[]) => {
+  const handleFilterChange = useCallback((filteredBabies: ChargeBaby[], sortBy: SortOption) => {
     setFilteredByFilter(filteredBabies);
+    setCurrentSortBy(sortBy);
   }, []);
 
   // 当chargeBabies变化时更新筛选状态
@@ -83,6 +85,7 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
               key={chargeBaby.id}
               chargeBaby={chargeBaby}
               index={index}
+              sortBy={currentSortBy}
             />
           ))}
         </div>

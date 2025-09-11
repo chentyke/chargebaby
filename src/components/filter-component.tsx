@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Filter, X, ChevronDown } from 'lucide-react';
-import { ChargeBaby, FilterOptions, PRODUCT_FEATURES } from '@/types/chargebaby';
+import { Filter, X, ChevronDown, ArrowUpDown } from 'lucide-react';
+import { ChargeBaby, FilterOptions, PRODUCT_FEATURES, SORT_OPTIONS, SortOption } from '@/types/chargebaby';
 
 interface FilterComponentProps {
   chargeBabies: ChargeBaby[];
-  onFilterChange: (filteredBabies: ChargeBaby[]) => void;
+  onFilterChange: (filteredBabies: ChargeBaby[], sortBy: SortOption) => void;
   isMobile?: boolean;
   className?: string;
 }
@@ -17,7 +17,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     capacityRange: { min: 0, max: 100000 },
     powerRange: { min: 0, max: 1000 },
     brands: [],
-    features: []
+    features: [],
+    sortBy: 'updatedAt',
+    sortOrder: 'desc'
   });
 
   // 获取所有可用的品牌
@@ -49,7 +51,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
   // 应用筛选
   useEffect(() => {
     if (!chargeBabies || chargeBabies.length === 0) {
-      onFilterChange([]);
+      onFilterChange([], filters.sortBy);
       return;
     }
 
@@ -91,7 +93,52 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       });
     }
 
-    onFilterChange(filtered);
+    // 应用排序
+    filtered = [...filtered].sort((a, b) => {
+      let valueA: any;
+      let valueB: any;
+
+      switch (filters.sortBy) {
+        case 'updatedAt':
+          valueA = new Date(a.updatedAt).getTime();
+          valueB = new Date(b.updatedAt).getTime();
+          break;
+        case 'capacity':
+          valueA = a.detailData?.capacityLevel || 0;
+          valueB = b.detailData?.capacityLevel || 0;
+          break;
+        case 'power':
+          valueA = Math.max(a.detailData?.maxOutputPower || 0, a.detailData?.maxSelfChargingPower || 0);
+          valueB = Math.max(b.detailData?.maxOutputPower || 0, b.detailData?.maxSelfChargingPower || 0);
+          break;
+        case 'overallRating':
+          valueA = a.overallRating || 0;
+          valueB = b.overallRating || 0;
+          break;
+        case 'performanceRating':
+          valueA = a.performanceRating || 0;
+          valueB = b.performanceRating || 0;
+          break;
+        case 'experienceRating':
+          valueA = a.experienceRating || 0;
+          valueB = b.experienceRating || 0;
+          break;
+        case 'alphabetical':
+          valueA = a.model.toLowerCase();
+          valueB = b.model.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (filters.sortOrder === 'asc') {
+        return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+      } else {
+        return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+      }
+    });
+
+    onFilterChange(filtered, filters.sortBy);
   }, [filters, chargeBabies, onFilterChange, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max]);
 
   const resetFilters = useCallback(() => {
@@ -99,7 +146,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       capacityRange: { min: capacityRange.min, max: capacityRange.max },
       powerRange: { min: powerRange.min, max: powerRange.max },
       brands: [],
-      features: []
+      features: [],
+      sortBy: 'updatedAt',
+      sortOrder: 'desc'
     });
   }, [capacityRange.min, capacityRange.max, powerRange.min, powerRange.max]);
 
@@ -109,7 +158,9 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     filters.powerRange.min > powerRange.min ||
     filters.powerRange.max < powerRange.max ||
     filters.brands.length > 0 ||
-    filters.features.length > 0;
+    filters.features.length > 0 ||
+    filters.sortBy !== 'updatedAt' ||
+    filters.sortOrder !== 'desc';
 
   return (
     <div className={`relative ${className}`}>
@@ -174,6 +225,47 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                       <X className="w-5 h-5" />
                     </button>
                   )}
+                </div>
+              </div>
+
+              {/* 排序选项 - 移到最上方 */}
+              <div>
+                <label className={`block font-medium text-gray-700 mb-3 ${isMobile ? 'text-sm' : 'text-sm'}`}>排序方式</label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-2">排序字段</label>
+                    <select
+                      value={filters.sortBy}
+                      onChange={(e) => setFilters(prev => ({
+                        ...prev,
+                        sortBy: e.target.value as SortOption
+                      }))}
+                      className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        isMobile ? 'py-3' : 'py-2'
+                      }`}
+                    >
+                      {SORT_OPTIONS.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs text-gray-500">排序方向</label>
+                    <button
+                      onClick={() => setFilters(prev => ({
+                        ...prev,
+                        sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc'
+                      }))}
+                      className={`flex items-center gap-2 px-3 border border-gray-200 rounded-lg text-sm transition-colors hover:bg-gray-50 ${
+                        isMobile ? 'py-3' : 'py-2'
+                      }`}
+                    >
+                      <ArrowUpDown className="w-4 h-4" />
+                      <span>{filters.sortOrder === 'asc' ? '升序' : '降序'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -340,6 +432,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                   ))}
                 </div>
               </div>
+
             </div>
           </div>
         </>

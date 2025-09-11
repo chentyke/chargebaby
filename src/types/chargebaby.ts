@@ -143,6 +143,19 @@ export interface NotionDatabase {
   has_more: boolean;
 }
 
+// 排序选项类型
+export type SortOption = 'updatedAt' | 'capacity' | 'power' | 'alphabetical' | 'overallRating' | 'performanceRating' | 'experienceRating';
+
+export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'updatedAt', label: '更新时间' },
+  { value: 'overallRating', label: '综合评分' },
+  { value: 'performanceRating', label: '性能评分' },
+  { value: 'experienceRating', label: '体验评分' },
+  { value: 'capacity', label: '容量' },
+  { value: 'power', label: '功率' },
+  { value: 'alphabetical', label: '首字母' }
+];
+
 // 筛选选项类型
 export interface FilterOptions {
   capacityRange: {
@@ -155,6 +168,8 @@ export interface FilterOptions {
   };
   brands: string[];
   features: string[];
+  sortBy: SortOption;
+  sortOrder: 'asc' | 'desc';
 }
 
 // 产品特性类型

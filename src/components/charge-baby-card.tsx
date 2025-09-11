@@ -1,16 +1,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Battery } from 'lucide-react';
-import { ChargeBaby } from '@/types/chargebaby';
+import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { cn } from '@/lib/utils';
 
 interface ChargeBabyCardProps {
   chargeBaby: ChargeBaby;
   className?: string;
   index?: number;
+  sortBy?: SortOption;
 }
 
-export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyCardProps) {
+export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: ChargeBabyCardProps) {
   const {
     id,
     brand,
@@ -18,7 +19,37 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyC
     title,
     displayName,
     imageUrl,
+    updatedAt,
+    detailData,
   } = chargeBaby;
+
+  // 根据排序方式获取显示值
+  const getSortValue = () => {
+    if (!sortBy || sortBy === 'alphabetical') return null;
+    
+    switch (sortBy) {
+      case 'updatedAt':
+        return new Date(updatedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+      case 'capacity':
+        const capacity = detailData?.capacityLevel;
+        return capacity ? `${(capacity / 1000).toFixed(0)}K` : null;
+      case 'power':
+        const maxOutput = detailData?.maxOutputPower || 0;
+        const maxSelfCharging = detailData?.maxSelfChargingPower || 0;
+        const maxPower = Math.max(maxOutput, maxSelfCharging);
+        return maxPower > 0 ? `${maxPower}W` : null;
+      case 'overallRating':
+        return chargeBaby.overallRating ? `${chargeBaby.overallRating}分` : null;
+      case 'performanceRating':
+        return chargeBaby.performanceRating ? `${chargeBaby.performanceRating}分` : null;
+      case 'experienceRating':
+        return chargeBaby.experienceRating ? `${chargeBaby.experienceRating}分` : null;
+      default:
+        return null;
+    }
+  };
+
+  const sortValue = getSortValue();
 
   return (
     <Link 
@@ -50,12 +81,12 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0 }: ChargeBabyC
                }}>
           </div>
           
-          {/* 产品型号标签 - 左上角 */}
-          {model && (
+          {/* 产品型号标签或排序值标签 - 左上角 */}
+          {(sortValue || model) && (
             <div className="absolute top-3 left-3 z-10">
               <div className="bg-white/90 backdrop-blur-md rounded-lg px-2.5 py-1.5 shadow-sm border border-white/20 transition-all duration-300 group-hover:bg-white/95 group-hover:shadow-md">
                 <span className="text-xs font-medium text-gray-700">
-                  {model}
+                  {sortValue || model}
                 </span>
               </div>
             </div>

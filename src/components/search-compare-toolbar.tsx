@@ -2,14 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, GitCompare, X, Trophy } from 'lucide-react';
+import { Search, GitCompare, X, Trophy, Plus } from 'lucide-react';
 import { FilterComponent } from './filter-component';
-import { ChargeBaby } from '@/types/chargebaby';
+import { ChargeBaby, SortOption } from '@/types/chargebaby';
 
 interface SearchCompareToolbarProps {
   onSearch: (query: string) => void;
   chargeBabies: ChargeBaby[];
-  onFilterChange: (filteredBabies: ChargeBaby[]) => void;
+  onFilterChange: (filteredBabies: ChargeBaby[], sortBy: SortOption) => void;
   className?: string;
 }
 
@@ -76,6 +76,13 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         <Link href="/ranking">
           <div className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300">
             <Trophy className="w-5 h-5" />
+          </div>
+        </Link>
+
+        {/* 投稿按钮 */}
+        <Link href="/submit">
+          <div className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300">
+            <Plus className="w-5 h-5" />
           </div>
         </Link>
 
@@ -150,6 +157,14 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             <div className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300 group">
               <Trophy className="w-5 h-5" />
               <span className="text-sm font-medium whitespace-nowrap">排行榜</span>
+            </div>
+          </Link>
+
+          {/* 投稿按钮 */}
+          <Link href="/submit">
+            <div className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300 group">
+              <Plus className="w-5 h-5" />
+              <span className="text-sm font-medium whitespace-nowrap">投稿</span>
             </div>
           </Link>
 
