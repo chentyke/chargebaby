@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
 import { Battery, ArrowLeft, FileText } from 'lucide-react';
 import SaveScreenshotButton from '@/components/save-screenshot-button';
@@ -114,7 +114,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
             {/* 产品图片 */}
             <div className="relative aspect-square overflow-hidden max-w-[320px] mx-auto" data-detail-image>
               {imageUrl ? (
-                <Image
+                <NotionImage
                   src={imageUrl}
                   alt={title}
                   fill
@@ -311,7 +311,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               {/* 产品图片 */}
               <div className="relative aspect-square overflow-hidden w-full" data-detail-image>
                 {imageUrl ? (
-                  <Image
+                  <NotionImage
                     src={imageUrl}
                     alt={title}
                     fill

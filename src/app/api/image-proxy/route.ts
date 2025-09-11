@@ -39,23 +39,40 @@ export async function GET(request: NextRequest) {
 
     // 尝试多种方式获取图片
     const fetchOptions: RequestInit[] = [
-      // 尝试1: 标准User-Agent
+      // 尝试1: 标准浏览器User-Agent
       {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.9',
-          'Accept-Encoding': 'gzip, deflate, br',
           'Referer': 'https://www.notion.so/',
+          'Sec-Fetch-Dest': 'image',
+          'Sec-Fetch-Mode': 'no-cors',
+          'Sec-Fetch-Site': 'cross-site',
         },
       },
-      // 尝试2: 简化headers
+      // 尝试2: 不同的浏览器
       {
         headers: {
-          'User-Agent': 'curl/7.68.0',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+          'Referer': 'https://notion.so/',
         },
       },
-      // 尝试3: 无headers
+      // 尝试3: 简化headers
+      {
+        headers: {
+          'User-Agent': 'curl/8.0.0',
+          'Accept': '*/*',
+        },
+      },
+      // 尝试4: wget风格
+      {
+        headers: {
+          'User-Agent': 'Wget/1.21.1',
+        },
+      },
+      // 尝试5: 无headers
       {},
     ];
 

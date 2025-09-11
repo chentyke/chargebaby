@@ -110,9 +110,10 @@ curl "http://localhost:3000/api/cache?action=clear-images"
 ## 故障排除
 
 ### 图片加载失败
-1. **自动重试**: 系统会自动使用3种不同方式重试
+1. **自动重试**: 系统会自动使用5种不同方式重试
 2. **占位图**: 最终失败会显示占位图，不影响用户体验
 3. **查看日志**: 检查控制台是否有图片获取失败的日志
+4. **测试特定图片**: `GET /api/test-image?url=<notion_image_url>` 测试图片是否可访问
 
 ### 图片缓存问题
 1. **查看状态**: `GET /api/cache?action=images`

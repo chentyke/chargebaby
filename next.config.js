@@ -11,27 +11,12 @@ const nextConfig = {
         hostname: 'via.placeholder.com',
       },
       {
-        protocol: 'https',
-        hostname: 'prod-files-secure.s3.us-west-2.amazonaws.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'prod-files-secure.s3.us-east-1.amazonaws.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.notion.so',
-      },
-      {
-        protocol: 'https',
-        hostname: 'notion.so',
-      },
-      {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
       },
     ],
+    // 不包含 Notion 域名，强制使用我们的代理
   },
   webpack: (config, { dev }) => {
     // Map core 'punycode' to the userland module to silence Node DEP0040

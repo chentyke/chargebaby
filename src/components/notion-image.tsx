@@ -30,12 +30,18 @@ export function NotionImage({ src, alt, ...props }: NotionImageProps) {
     src.includes('notion.so')
   );
 
-  // 对于Notion图片，默认使用代理
-  useEffect(() => {
-    if (isNotionImage) {
-      setUseProxy(true);
-    }
-  }, [isNotionImage]);
+  // 生成占位符SVG
+  const placeholderSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+    <svg width="320" height="320" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#f3f4f6"/>
+      <g transform="translate(160, 160)">
+        <rect x="-40" y="-40" width="80" height="80" fill="#e5e7eb" rx="8"/>
+        <path d="M-24 -16L-8 0L-24 16M8 -16L24 0L8 16" stroke="#9ca3af" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="0" cy="0" r="4" fill="#9ca3af"/>
+      </g>
+      <text x="50%" y="85%" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="14">图片加载中...</text>
+    </svg>
+  `)}`;
 
   // 处理图片加载错误
   const handleError = () => {
@@ -59,44 +65,82 @@ export function NotionImage({ src, alt, ...props }: NotionImageProps) {
     }
   };
 
-  // 生成占位符SVG（使用 URL 编码而不是 base64）
-  const placeholderSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-    <svg width="320" height="320" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#f3f4f6"/>
-      <g transform="translate(160, 160)">
-        <rect x="-40" y="-40" width="80" height="80" fill="#e5e7eb" rx="8"/>
-        <path d="M-24 -16L-8 0L-24 16M8 -16L24 0L8 16" stroke="#9ca3af" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="0" cy="0" r="4" fill="#9ca3af"/>
-      </g>
-      <text x="50%" y="85%" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="14">图片加载中...</text>
-    </svg>
-  `)}`;
+  // 对于Notion图片，默认使用代理
+  useEffect(() => {
+    if (isNotionImage) {
+      setUseProxy(true);
+    }
+  }, [isNotionImage]);
 
   // 如果图片加载失败且重试次数用完，显示占位符
   if (imageError || !src) {
     return (
       <div className={`flex items-center justify-center bg-gray-100 ${props.className || ''}`}>
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={placeholderSvg}
           alt="图片加载失败"
-          {...props}
+          className={props.className || ''}
+          style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+            width: props.width,
+            height: props.height
+          }}
         />
       </div>
     );
   }
 
-  // 决定使用的图片URL
-  const imageUrl = useProxy && isNotionImage 
-    ? `/api/image-proxy?url=${encodeURIComponent(src)}`
-    : src;
+  // 如果是Notion图片且使用代理，直接返回img标签而不是Next.js Image组件
+  if (isNotionImage && useProxy) {
+    const imageUrl = `/api/image-proxy?url=${encodeURIComponent(src)}`;
+    
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={imageUrl}
+        alt={alt}
+        className={props.className || ''}
+        style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+          width: props.width,
+          height: props.height
+        }}
+        onError={handleError}
+        loading={props.loading}
+        key={`${imageUrl}-${retryCount}`}
+      />
+    );
+  }
 
+  // 对于所有其他情况，也要确保Notion图片使用代理
+  if (isNotionImage) {
+    // 如果是Notion图片但没有使用代理，强制使用代理
+    const imageUrl = `/api/image-proxy?url=${encodeURIComponent(src)}`;
+    
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={imageUrl}
+        alt={alt}
+        className={props.className || ''}
+        style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+          width: props.width,
+          height: props.height
+        }}
+        onError={handleError}
+        loading={props.loading}
+        key={`${imageUrl}-${retryCount}`}
+      />
+    );
+  }
+
+  // 只有非Notion图片才使用Next.js Image组件
   return (
     <Image
       {...props}
-      src={imageUrl}
+      src={src}
       alt={alt}
       onError={handleError}
-      key={`${imageUrl}-${retryCount}`} // 强制重新加载
+      key={`${src}-${retryCount}`}
     />
   );
 }

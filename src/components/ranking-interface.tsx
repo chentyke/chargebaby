@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
 import { Trophy, Medal, Award, Battery, Crown, Star, GitCompare } from 'lucide-react';
 import { ChargeBaby } from '@/types/chargebaby';
@@ -249,7 +249,7 @@ function TopProduct({
         {/* 产品图片 */}
         <div className="aspect-square bg-gray-50 rounded-2xl mb-4 p-4 flex items-center justify-center">
           {product.imageUrl ? (
-            <Image
+            <NotionImage
               src={product.imageUrl}
               alt={product.title}
               width={isMobile ? 120 : 150}
@@ -306,7 +306,7 @@ function RankingItem({
         <div className="flex-shrink-0">
           <div className="w-16 h-16 bg-gray-50 rounded-xl p-2 flex items-center justify-center">
             {product.imageUrl ? (
-              <Image
+              <NotionImage
                 src={product.imageUrl}
                 alt={product.title}
                 width={48}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Battery, Trophy } from 'lucide-react';
 import { ChargeBaby } from '@/types/chargebaby';
@@ -162,7 +162,7 @@ function ProductSelector({
                 >
                   <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
                     {product.imageUrl ? (
-                      <Image
+                      <NotionImage
                         src={product.imageUrl}
                         alt={product.title}
                         width={32}
@@ -212,7 +212,7 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
       {/* 产品图片 */}
       <div className={`aspect-square bg-gray-50 rounded-3xl mb-4 sm:mb-6 ${isMobile ? 'p-4' : 'p-6 sm:p-8'} flex items-center justify-center`}>
         {product.imageUrl ? (
-          <Image
+          <NotionImage
             src={product.imageUrl}
             alt={product.title}
             width={isMobile ? 200 : 300}
