@@ -64,6 +64,15 @@ yarn install
 # Notion API 配置
 NOTION_API_KEY=your_notion_api_key_here
 NOTION_DATABASE_ID=your_notion_database_id_here
+NOTION_SUBMISSION_DATABASE_ID=your_submission_database_id_here
+# API版本 - 使用稳定版本确保兼容性
+# 如需尝试新功能，可升级到: 2025-09-03
+NOTION_VERSION=2022-06-28
+
+# Notion Webhook 配置（可选，推荐用于生产环境）
+# 用于webhook签名验证，提高安全性
+# 这应该是从Notion webhook验证时收到的verification_token
+NOTION_WEBHOOK_SECRET=your_webhook_verification_token_here
 
 # Next.js 配置
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -78,6 +87,194 @@ yarn dev
 ```
 
 访问 [http://localhost:3000](http://localhost:3000) 查看应用。
+
+## 🚀 Notion API 版本说明
+
+项目当前使用稳定版本 `2022-06-28`，确保最佳的兼容性和稳定性。
+
+### 📋 版本选择说明
+
+**当前版本**: `2022-06-28` (稳定版本)  
+**最新版本**: `2025-09-03` (包含多源数据库等新功能)
+
+### ⚠️ 为什么使用稳定版本？
+
+1. **兼容性保证**: 2022-06-28 版本经过充分测试，与现有数据库结构完全兼容
+2. **稳定性优先**: 避免因新版本的重大架构变更导致的不稳定问题
+3. **渐进升级**: 新版本的多源数据库功能需要额外的适配工作
+
+### 🎯 新版本功能（计划支持）
+
+- **多源数据库支持**：支持 Notion 最新的多源数据库架构
+- **增强的 Webhook 功能**：更稳定的实时同步机制
+- **更好的性能**：优化的 API 响应速度和稳定性
+- **新功能支持**：可以使用 Notion 最新发布的所有功能
+
+**代码兼容性**：✅ 已做好向后兼容处理
+- 支持新旧版本的属性结构 (`title` 和 `rich_text`)
+- 智能属性解析，自动适配不同版本的响应格式
+- 无需修改现有数据库结构
+
+### 🔧 如何升级到最新版本（可选）
+
+如果您想尝试最新的 API 功能，可以升级到新版本：
+
+1. **修改环境变量**：
+   ```env
+   NOTION_VERSION=2025-09-03
+   ```
+
+2. **注意事项**：
+   - 新版本引入了多源数据库架构，可能需要额外的适配
+   - 建议在测试环境中先进行验证
+   - 如遇问题可随时回退到 `2022-06-28`
+
+3. **重新部署应用**：
+   ```bash
+   npm run build
+   npm start
+   ```
+
+4. **清除缓存**：
+   ```bash
+   curl "https://your-domain.com/api/cache?action=clear"
+   ```
+
+### 📝 升级测试检查清单
+
+部署新版本后，建议进行以下测试：
+
+- [ ] 数据列表页面正常加载
+- [ ] 产品详情页面显示完整
+- [ ] 搜索和筛选功能正常
+- [ ] 投稿功能可以正常提交
+- [ ] Webhook 事件正常接收（如已配置）
+- [ ] 缓存刷新机制正常工作
+
+如有任何问题，请及时回退到旧版本并联系技术支持。
+
+## 📡 Webhook 实时同步配置（可选）
+
+项目支持 Notion webhook 实时同步，当 Notion 数据库中的数据更新时，会自动清除相关缓存，确保网站内容实时更新。
+
+### Webhook 功能说明
+
+- **实时数据同步**：Notion 数据更新时立即清除缓存，无需等待60秒自动刷新
+- **智能缓存失效**：根据更新的页面ID智能清除相关缓存
+- **安全验证**：支持 HMAC-SHA256 签名验证，防止恶意请求
+- **性能优化**：减少不必要的API调用，提升响应速度
+
+### 配置 Notion Webhook
+
+#### 1. 创建 Webhook 订阅
+
+1. 访问 [Notion 集成设置页面](https://www.notion.so/my-integrations)
+2. 选择您的集成或创建新的集成
+3. 导航到 **Webhooks** 标签页
+4. 点击 **+ Create a subscription**
+5. 输入您的 Webhook URL：`https://your-domain.com/api/webhook`
+   - 本地开发：需要使用 ngrok 等工具暴露本地端口
+   - 生产环境：使用您的实际域名
+6. 选择要订阅的事件类型：
+   - `page.content_updated` - 页面内容更新
+   - `data_source.schema_updated` - 数据库结构更新（新版本API）
+   - `database.schema_updated` - 数据库结构更新（旧版本API）
+
+#### 2. 验证 Webhook 订阅
+
+1. 创建订阅后，Notion 会发送验证请求到您的端点
+2. 检查服务器日志，找到包含 `verification_token` 的日志
+3. 复制 `verification_token` 值（例如：`secret_YOUR_VERIFICATION_TOKEN_HERE`）
+4. 回到 Notion 集成页面，点击 **⚠️ Verify**
+5. 粘贴 `verification_token` 并点击 **Verify subscription**
+
+#### 3. 配置环境变量
+
+将收到的 `verification_token` 添加到环境变量中：
+
+```env
+NOTION_WEBHOOK_SECRET=secret_YOUR_VERIFICATION_TOKEN_HERE
+```
+
+#### 4. 测试 Webhook
+
+1. **健康检查**：
+   ```bash
+   curl https://your-domain.com/api/webhook?action=health
+   ```
+
+2. **测试事件处理**（仅开发环境）：
+   ```bash
+   curl https://your-domain.com/api/webhook?action=test
+   ```
+
+3. **实际测试**：在 Notion 中修改充电宝页面标题，查看服务器日志是否收到 webhook 事件
+
+### Webhook 监控和调试
+
+#### 查看 Webhook 状态
+
+- **健康检查**：`GET /api/webhook?action=health`
+- **缓存状态**：`GET /api/cache?action=stats`
+
+#### 日志示例
+
+正常的 webhook 处理日志：
+```
+📡 Received webhook event: {
+  type: 'page.content_updated',
+  objectType: 'page',
+  objectId: 'abc123...',
+  timestamp: '2024-01-15T10:30:00.000Z'
+}
+🔄 Invalidating cache for page: abc123...
+🗑️ Deleted cache key: charge-baby-abc123...
+🗑️ Deleted cache key: charge-babies
+✅ Page cache invalidated: abc123...
+```
+
+#### 故障排除
+
+1. **未收到 webhook 事件**：
+   - 检查 Webhook URL 是否正确且可访问
+   - 确认订阅状态为 "active"
+   - 检查 Notion 集成是否有访问数据库的权限
+
+2. **签名验证失败**：
+   - 确认 `NOTION_WEBHOOK_SECRET` 环境变量设置正确
+   - 检查是否使用了正确的 `verification_token`
+
+3. **缓存未更新**：
+   - 查看服务器日志确认事件已处理
+   - 检查缓存失效逻辑是否正确执行
+
+### 本地开发 Webhook 测试
+
+由于 Notion 需要访问公网 URL，本地开发时需要使用隧道工具：
+
+#### 使用 ngrok
+```bash
+# 安装 ngrok
+npm install -g ngrok
+
+# 启动本地服务器
+npm run dev
+
+# 在另一个终端中启动 ngrok
+ngrok http 3000
+
+# 使用 ngrok 提供的 URL 配置 webhook
+# 例如：https://abc123.ngrok.io/api/webhook
+```
+
+#### 使用 Vercel 预览部署
+```bash
+# 推送到 Git 分支
+git push origin feature/webhook-test
+
+# Vercel 会自动创建预览部署
+# 使用预览 URL 配置 webhook
+```
 
 ## 🗃️ Notion 数据库配置
 
@@ -213,8 +410,15 @@ git push origin main
 ```
 NOTION_API_KEY=your_notion_api_key_here
 NOTION_DATABASE_ID=your_notion_database_id_here
+NOTION_SUBMISSION_DATABASE_ID=your_submission_database_id_here
+# API版本 - 使用稳定版本确保兼容性
+# 如需尝试新功能，可升级到: 2025-09-03
+NOTION_VERSION=2022-06-28
+NOTION_WEBHOOK_SECRET=your_webhook_verification_token_here
 NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
 ```
+
+**注意**：部署完成后，您需要使用实际的域名（如 `https://your-project.vercel.app`）来配置 Notion webhook。
 
 ### 4. 部署
 
@@ -226,6 +430,11 @@ Vercel 会自动构建和部署您的应用。
 chargebaby/
 ├── src/
 │   ├── app/                    # Next.js App Router 页面
+│   │   ├── api/                # API 路由
+│   │   │   ├── cache/          # 缓存管理 API
+│   │   │   ├── image-proxy/    # 图片代理 API
+│   │   │   ├── submit/         # 投稿提交 API
+│   │   │   └── webhook/        # Notion Webhook API
 │   │   ├── charge-baby/[id]/   # 产品详情页
 │   │   ├── globals.css         # 全局样式
 │   │   ├── layout.tsx          # 根布局
@@ -235,6 +444,7 @@ chargebaby/
 │   │   ├── charge-baby-card.tsx
 │   │   └── filter-section.tsx
 │   ├── lib/                    # 工具函数和配置
+│   │   ├── cache.ts            # 缓存系统
 │   │   ├── notion.ts           # Notion API 集成
 │   │   └── utils.ts            # 工具函数
 │   └── types/                  # TypeScript 类型定义
@@ -242,6 +452,7 @@ chargebaby/
 ├── public/                     # 静态资源
 ├── .env.local                  # 环境变量（需要自行创建）
 ├── .env.example               # 环境变量示例
+├── CACHE.md                   # 缓存系统说明
 ├── next.config.js             # Next.js 配置
 ├── tailwind.config.ts         # Tailwind CSS 配置
 ├── tsconfig.json              # TypeScript 配置

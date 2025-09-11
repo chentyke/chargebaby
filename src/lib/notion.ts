@@ -29,6 +29,12 @@ async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
  * 从 Notion API 获取数据（不使用缓存）
  */
 async function fetchChargeBabiesFromNotion(): Promise<ChargeBaby[]> {
+  // 检查必要的环境变量
+  if (!databaseId) {
+    console.warn('⚠️  NOTION_DATABASE_ID not configured, returning empty array');
+    return [];
+  }
+
   const response = await notionFetch<NotionDatabase>(`/databases/${databaseId}/query`, {
     method: 'POST',
     body: JSON.stringify({
@@ -377,6 +383,12 @@ export async function getChargeBabyById(id: string): Promise<ChargeBaby | null> 
  */
 export async function getChargeBabiesByTag(tag: string): Promise<ChargeBaby[]> {
   try {
+    // 检查必要的环境变量
+    if (!databaseId) {
+      console.warn('⚠️  NOTION_DATABASE_ID not configured, returning empty array');
+      return [];
+    }
+
     const response = await notionFetch<NotionDatabase>(`/databases/${databaseId}/query`, {
       method: 'POST',
       body: JSON.stringify({

@@ -84,6 +84,48 @@ class ServerCache {
       clearInterval(interval);
       this.refreshIntervals.delete(key);
     }
+    console.log(`🗑️  Deleted cache key: ${key}`);
+  }
+
+  /**
+   * 按前缀批量删除缓存项
+   */
+  deleteByPrefix(prefix: string): number {
+    const keys = Array.from(this.cache.keys());
+    const matchingKeys = keys.filter(key => key.startsWith(prefix));
+    
+    matchingKeys.forEach(key => this.delete(key));
+    
+    console.log(`🗑️  Deleted ${matchingKeys.length} cache entries with prefix: ${prefix}`);
+    return matchingKeys.length;
+  }
+
+  /**
+   * 智能缓存失效 - 根据页面ID清除相关缓存
+   */
+  invalidatePageCache(pageId: string): void {
+    console.log(`🔄 Invalidating cache for page: ${pageId}`);
+    
+    // 删除具体页面缓存
+    const pageKey = `charge-baby-${pageId}`;
+    this.delete(pageKey);
+    
+    // 删除主列表缓存（因为列表中可能包含更新的页面）
+    this.delete('charge-babies');
+    
+    console.log(`✅ Page cache invalidated: ${pageId}`);
+  }
+
+  /**
+   * 智能缓存失效 - 数据库结构更新
+   */
+  invalidateSchemaCache(): void {
+    console.log('🏗️  Invalidating cache due to schema update');
+    
+    // 清除所有充电宝相关缓存
+    const deletedCount = this.deleteByPrefix('charge-baby');
+    
+    console.log(`✅ Schema cache invalidated, cleared ${deletedCount} entries`);
   }
 
   /**
