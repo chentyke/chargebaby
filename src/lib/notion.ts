@@ -16,7 +16,7 @@ async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
       'Content-Type': 'application/json',
       ...(init?.headers || {}),
     },
-    next: { revalidate: 60 }, // 60秒缓存
+    cache: 'no-store', // 禁用 Next.js fetch 缓存，完全依赖我们的应用缓存
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
