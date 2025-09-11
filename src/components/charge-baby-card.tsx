@@ -68,7 +68,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: Cha
           animation: `slideInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 80}ms forwards`
         }}
       >
-        {/* 图片容器和文字叠加区域 */}
+        {/* 图片容器 */}
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-100/80 backdrop-blur-sm">
           {/* 背景装饰 */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
@@ -81,13 +81,18 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: Cha
                }}>
           </div>
           
-          {/* 产品型号标签或排序值标签 - 左上角 */}
+          {/* 高级标签设计 - 左上角 */}
           {(sortValue || model) && (
             <div className="absolute top-3 left-3 z-10">
-              <div className="bg-white/90 backdrop-blur-md rounded-lg px-2.5 py-1.5 shadow-sm border border-white/20 transition-all duration-300 group-hover:bg-white/95 group-hover:shadow-md">
-                <span className="text-xs font-medium text-gray-700">
-                  {sortValue || model}
-                </span>
+              <div className="relative">
+                {/* 背景渐变层 */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/8 to-indigo-500/10 rounded-full blur-sm"></div>
+                {/* 主体 */}
+                <div className="relative bg-gradient-to-r from-white/95 via-white/90 to-white/95 backdrop-blur-lg rounded-full px-3 py-1.5 border border-white/30 shadow-lg shadow-black/5 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-blue-500/10 group-hover:border-blue-200/40">
+                  <span className="text-xs font-semibold bg-gradient-to-r from-gray-700 via-gray-800 to-gray-700 bg-clip-text text-transparent">
+                    {sortValue || model}
+                  </span>
+                </div>
               </div>
             </div>
           )}

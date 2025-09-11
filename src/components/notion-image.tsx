@@ -15,9 +15,19 @@ interface NotionImageProps {
   blurDataURL?: string;
   width?: number;
   height?: number;
+  size?: 'thumbnail' | 'small' | 'medium' | 'large' | 'original';
+  quality?: number;
+  responsive?: boolean;
 }
 
-export function NotionImage({ src, alt, ...props }: NotionImageProps) {
+export function NotionImage({ 
+  src, 
+  alt, 
+  size = 'medium',
+  quality = 85,
+  responsive = false,
+  ...props 
+}: NotionImageProps) {
   const [imageError, setImageError] = useState(false);
   const [useProxy, setUseProxy] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -90,9 +100,63 @@ export function NotionImage({ src, alt, ...props }: NotionImageProps) {
     );
   }
 
-  // 如果是Notion图片且使用代理，直接返回img标签而不是Next.js Image组件
+  // 生成图片URL的函数
+  const generateImageUrl = (targetSize?: string) => {
+    const params = new URLSearchParams();
+    params.set('url', src);
+    
+    if (targetSize && targetSize !== 'original') {
+      params.set('size', targetSize);
+    }
+    
+    if (quality !== 85) {
+      params.set('q', quality.toString());
+    }
+    
+    // 如果指定了自定义宽高，优先使用
+    if (props.width && !props.fill) {
+      params.set('w', props.width.toString());
+    }
+    if (props.height && !props.fill) {
+      params.set('h', props.height.toString());
+    }
+    
+    return `/api/image-proxy?${params.toString()}`;
+  };
+
+  // 如果是Notion图片且使用代理
   if (isNotionImage && useProxy) {
-    const imageUrl = `/api/image-proxy?url=${encodeURIComponent(src)}`;
+    // 如果启用了响应式图片，生成srcSet
+    if (responsive) {
+      const srcSet = [
+        `${generateImageUrl('small')} 320w`,
+        `${generateImageUrl('medium')} 640w`,
+        `${generateImageUrl('large')} 1024w`,
+      ].join(', ');
+      
+      const defaultSizes = props.sizes || '(max-width: 640px) 320px, (max-width: 1024px) 640px, 1024px';
+      
+      return (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={generateImageUrl(size)}
+          srcSet={srcSet}
+          sizes={defaultSizes}
+          alt={alt}
+          className={props.className || ''}
+          style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+            width: props.width,
+            height: props.height
+          }}
+          onError={handleError}
+          loading={props.loading}
+          key={`${generateImageUrl(size)}-${retryCount}`}
+        />
+      );
+    }
+    
+    // 非响应式图片
+    const imageUrl = generateImageUrl(size);
     
     return (
       /* eslint-disable-next-line @next/next/no-img-element */
@@ -114,7 +178,7 @@ export function NotionImage({ src, alt, ...props }: NotionImageProps) {
   // 对于所有其他情况，也要确保Notion图片使用代理
   if (isNotionImage) {
     // 如果是Notion图片但没有使用代理，强制使用代理
-    const imageUrl = `/api/image-proxy?url=${encodeURIComponent(src)}`;
+    const imageUrl = generateImageUrl(size);
     
     return (
       /* eslint-disable-next-line @next/next/no-img-element */

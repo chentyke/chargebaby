@@ -11,16 +11,30 @@ const IMAGE_CACHE_TTL = 7 * 24 * 60 * 60; // 7天缓存
 
 export class ImageCache {
   /**
-   * 获取图片的缓存键
+   * 获取图片的缓存键，支持分辨率区分
    */
-  private static getCacheKey(url: string): string {
+  private static getCacheKey(
+    url: string, 
+    resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
+  ): string {
     // 移除查询参数中的签名信息，保留基础URL
     const urlObj = new URL(url);
     const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+    
+    // 生成分辨率标识符
+    let resolutionSuffix = '';
+    if (resolutionConfig) {
+      const width = resolutionConfig.width || 'auto';
+      const height = resolutionConfig.height || 'auto';
+      const quality = resolutionConfig.quality || 85;
+      resolutionSuffix = `:${width}x${height}:q${quality}`;
+    }
+    
     // 使用简单的hash而不是base64
+    const fullKey = baseUrl + resolutionSuffix;
     let hash = 0;
-    for (let i = 0; i < baseUrl.length; i++) {
-      const char = baseUrl.charCodeAt(i);
+    for (let i = 0; i < fullKey.length; i++) {
+      const char = fullKey.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash; // 转换为32位整数
     }
@@ -30,23 +44,35 @@ export class ImageCache {
   /**
    * 从缓存获取图片
    */
-  static get(url: string): ImageCacheItem | null {
-    const cacheKey = this.getCacheKey(url);
+  static get(
+    url: string, 
+    resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
+  ): ImageCacheItem | null {
+    const cacheKey = this.getCacheKey(url, resolutionConfig);
     return serverCache.get<ImageCacheItem>(cacheKey);
   }
 
   /**
    * 缓存图片
    */
-  static set(url: string, buffer: ArrayBuffer, contentType: string): void {
-    const cacheKey = this.getCacheKey(url);
+  static set(
+    url: string, 
+    buffer: ArrayBuffer, 
+    contentType: string, 
+    resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
+  ): void {
+    const cacheKey = this.getCacheKey(url, resolutionConfig);
     const item: ImageCacheItem = {
       buffer,
       contentType,
       timestamp: Date.now(),
     };
     serverCache.set(cacheKey, item, IMAGE_CACHE_TTL);
-    console.log(`📸 Cached image: ${cacheKey.substring(0, 20)}...`);
+    
+    const resolutionInfo = resolutionConfig ? 
+      ` (${resolutionConfig.width || 'auto'}x${resolutionConfig.height || 'auto'} q${resolutionConfig.quality || 85})` : 
+      ' (original)';
+    console.log(`📸 Cached image${resolutionInfo}: ${cacheKey.substring(0, 20)}...`);
   }
 
   /**
