@@ -44,11 +44,36 @@ export async function GET(request: NextRequest) {
           }, { status: 500 });
         }
 
+      case 'images':
+        // 查看图片缓存状态
+        const imageStats = serverCache.getStats();
+        const imageKeys = imageStats.keys.filter(key => key.startsWith('image:'));
+        return NextResponse.json({
+          success: true,
+          data: {
+            total: imageStats.size,
+            images: imageKeys.length,
+            imageKeys: imageKeys.slice(0, 10), // 只显示前10个
+          },
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'clear-images':
+        // 清空图片缓存
+        const allStats = serverCache.getStats();
+        const imageKeysToDelete = allStats.keys.filter(key => key.startsWith('image:'));
+        imageKeysToDelete.forEach(key => serverCache.delete(key));
+        return NextResponse.json({
+          success: true,
+          message: `Cleared ${imageKeysToDelete.length} image cache entries`,
+          timestamp: new Date().toISOString(),
+        });
+
       default:
         return NextResponse.json(
           { 
             success: false, 
-            error: 'Invalid action. Supported actions: stats, clear, refresh' 
+            error: 'Invalid action. Supported actions: stats, clear, refresh, images, clear-images' 
           },
           { status: 400 }
         );
