@@ -194,6 +194,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         status: 'healthy',
         webhook_secret_configured: !!WEBHOOK_SECRET,
+        supported_events: [
+          'page.content_updated',
+          'data_source.schema_updated',
+          'database.schema_updated',
+          'comment.created',
+        ],
+        endpoints: {
+          POST: 'Receive webhook events',
+          'GET?action=health': 'Health check',
+          'GET?action=test': 'Test webhook (dev only)',
+        },
+        environment: process.env.NODE_ENV || 'unknown',
         timestamp: new Date().toISOString(),
       });
 
