@@ -4,14 +4,21 @@ import { serverCache, CACHE_KEYS } from '@/lib/cache';
 
 // Webhook事件类型
 interface WebhookEvent {
-  object: 'event';
   id: string;
-  created_time: string;
-  event_type: string;
-  event: {
-    object: string;
+  timestamp: string;
+  type: string;
+  entity: {
     id: string;
+    type: string;
   };
+  workspace_id?: string;
+  workspace_name?: string;
+  subscription_id?: string;
+  integration_id?: string;
+  authors?: any[];
+  attempt_number?: number;
+  api_version?: string;
+  data?: any;
 }
 
 // 验证令牌事件
@@ -49,23 +56,25 @@ function verifyWebhookSignature(
  */
 function handleWebhookEvent(event: WebhookEvent): void {
   console.log('📡 Received webhook event:', {
-    type: event.event_type,
-    objectType: event.event?.object || 'unknown',
-    objectId: event.event?.id || 'unknown',
-    timestamp: event.created_time,
+    type: event.type,
+    objectType: event.entity?.type || 'unknown',
+    objectId: event.entity?.id || 'unknown',
+    timestamp: event.timestamp,
   });
 
-  // 安全检查 event.event 是否存在
-  if (!event.event) {
-    console.warn('⚠️ Webhook event missing event data:', JSON.stringify(event, null, 2));
+  // 安全检查 entity 是否存在
+  if (!event.entity) {
+    console.warn('⚠️ Webhook event missing entity data:', JSON.stringify(event, null, 2));
     return;
   }
 
-  switch (event.event_type) {
+  switch (event.type) {
     case 'page.content_updated':
-      // 页面内容更新 - 智能缓存失效
-      if (event.event.object === 'page') {
-        const pageId = event.event.id;
+    case 'page.properties_updated':
+      // 页面内容或属性更新 - 智能缓存失效
+      if (event.entity.type === 'page') {
+        const pageId = event.entity.id;
+        console.log('🔄 Page updated, clearing cache for:', pageId);
         serverCache.invalidatePageCache(pageId);
       }
       break;
@@ -73,16 +82,18 @@ function handleWebhookEvent(event: WebhookEvent): void {
     case 'data_source.schema_updated':
     case 'database.schema_updated':
       // 数据库结构更新 - 清除所有相关缓存
+      console.log('🏗️ Database schema updated, clearing all caches');
       serverCache.invalidateSchemaCache();
       break;
 
     case 'comment.created':
       // 评论创建 - 通常不需要清除产品数据缓存
-      console.log('💬 New comment created on:', event.event.id);
+      console.log('💬 New comment created on:', event.entity.id);
       break;
 
     default:
-      console.log('❓ Unhandled webhook event type:', event.event_type);
+      console.log('❓ Unhandled webhook event type:', event.type);
+      console.log('📋 Full event data:', JSON.stringify(event, null, 2));
   }
 }
 
@@ -165,7 +176,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Webhook processed successfully',
-      eventType: event.event_type,
+      eventType: event.type,
       timestamp: new Date().toISOString(),
     });
 
@@ -196,6 +207,7 @@ export async function GET(request: NextRequest) {
         webhook_secret_configured: !!WEBHOOK_SECRET,
         supported_events: [
           'page.content_updated',
+          'page.properties_updated',
           'data_source.schema_updated',
           'database.schema_updated',
           'comment.created',
@@ -220,12 +232,11 @@ export async function GET(request: NextRequest) {
 
       // 模拟webhook事件
       const testEvent: WebhookEvent = {
-        object: 'event',
         id: 'test-event-id',
-        created_time: new Date().toISOString(),
-        event_type: 'page.content_updated',
-        event: {
-          object: 'page',
+        timestamp: new Date().toISOString(),
+        type: 'page.properties_updated',
+        entity: {
+          type: 'page',
           id: 'test-page-id',
         },
       };
@@ -246,6 +257,7 @@ export async function GET(request: NextRequest) {
         webhook_secret_configured: !!WEBHOOK_SECRET,
         supported_events: [
           'page.content_updated',
+          'page.properties_updated',
           'data_source.schema_updated',
           'database.schema_updated',
           'comment.created',
