@@ -50,10 +50,16 @@ function verifyWebhookSignature(
 function handleWebhookEvent(event: WebhookEvent): void {
   console.log('📡 Received webhook event:', {
     type: event.event_type,
-    objectType: event.event.object,
-    objectId: event.event.id,
+    objectType: event.event?.object || 'unknown',
+    objectId: event.event?.id || 'unknown',
     timestamp: event.created_time,
   });
+
+  // 安全检查 event.event 是否存在
+  if (!event.event) {
+    console.warn('⚠️ Webhook event missing event data:', JSON.stringify(event, null, 2));
+    return;
+  }
 
   switch (event.event_type) {
     case 'page.content_updated':
