@@ -53,7 +53,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: Cha
 
   return (
     <Link 
-      href={`/charge-baby/${id}`}
+      href={`/${encodeURIComponent(model)}`}
       prefetch={index < 8} // 预取前8个项目的页面
     >
       <div 

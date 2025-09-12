@@ -9,9 +9,13 @@ import { BackButton } from '@/components/ui/back-button';
 
 interface CompareInterfaceProps {
   chargeBabies: ChargeBaby[];
+  searchParams?: {
+    product?: string;
+    from?: string;
+  };
 }
 
-export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
+export function CompareInterface({ chargeBabies, searchParams }: CompareInterfaceProps) {
   const [selectedProducts, setSelectedProducts] = useState<(ChargeBaby | null)[]>([null, null, null]);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -25,6 +29,16 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
     
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
+
+  // 初始化时预填充产品
+  useEffect(() => {
+    if (searchParams?.product && chargeBabies.length > 0) {
+      const prefilledProduct = chargeBabies.find(cb => cb.model === decodeURIComponent(searchParams.product!));
+      if (prefilledProduct) {
+        setSelectedProducts([prefilledProduct, null, null]);
+      }
+    }
+  }, [chargeBabies, searchParams?.product]);
 
   const maxProducts = isMobile ? 2 : 3;
   const displayedProducts = isMobile ? selectedProducts.slice(0, 2) : selectedProducts;
@@ -42,13 +56,19 @@ export function CompareInterface({ chargeBabies }: CompareInterfaceProps) {
 
   const hasValidComparison = displayedProducts.filter(p => p !== null).length >= 2;
 
+  // 决定返回链接
+  const backHref = searchParams?.from === 'detail' && searchParams?.product 
+    ? `/${encodeURIComponent(searchParams.product)}` 
+    : '/';
+  const backText = searchParams?.from === 'detail' ? '返回详情' : '返回首页';
+
   return (
     <div className="min-h-screen bg-white">
       {/* 顶部导航 */}
       <div className="container px-4 sm:px-6 lg:px-8 pt-6 pb-4">
         <div className="flex items-center justify-between">
-          <BackButton href="/" variant="compact">
-            返回首页
+          <BackButton href={backHref} variant="compact">
+            {backText}
           </BackButton>
           
           {/* 排行榜按钮 */}

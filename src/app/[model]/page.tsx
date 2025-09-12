@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
-import { Battery, ArrowLeft, FileText } from 'lucide-react';
+import { Battery, ArrowLeft, FileText, GitCompare } from 'lucide-react';
 import SaveScreenshotButton from '@/components/save-screenshot-button';
-import { getChargeBabyById } from '@/lib/notion';
+import { getChargeBabyByModel } from '@/lib/notion';
 import { formatPrice, formatRating, getRatingProgress, formatDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/back-button';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -11,7 +11,7 @@ import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
 
 interface PageProps {
   params: Promise<{
-    id: string;
+    model: string;
   }>;
   searchParams: Promise<{
     from?: string;
@@ -19,9 +19,9 @@ interface PageProps {
 }
 
 export default async function ChargeBabyDetailPage({ params, searchParams }: PageProps) {
-  const { id } = await params;
+  const { model } = await params;
   const { from } = await searchParams;
-  const chargeBaby = await getChargeBabyById(id);
+  const chargeBaby = await getChargeBabyByModel(decodeURIComponent(model));
 
   if (!chargeBaby) {
     notFound();
@@ -29,7 +29,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
   const {
     brand,
-    model,
+    model: productModel,
     title,
     subtitle,
     tags,
@@ -83,9 +83,13 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               <span>返回</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Link href={`/charge-baby/${id}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+              <Link href={`/${encodeURIComponent(productModel)}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <FileText className="w-5 h-5" />
                 <span>详细数据</span>
+              </Link>
+              <Link href={`/compare?product=${encodeURIComponent(productModel)}&from=detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                <GitCompare className="w-5 h-5" />
+                <span>对比</span>
               </Link>
               {finalImageUrl ? (
                 <a
@@ -131,8 +135,8 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
             {/* 标题与标签 */}
             <div className="text-center">
-              {(brand || model) && (
-                <div className="text-sm text-gray-600 mb-1">{brand ? `${brand} ${model}` : model}</div>
+              {(brand || productModel) && (
+                <div className="text-sm text-gray-600 mb-1">{brand ? `${brand} ${productModel}` : productModel}</div>
               )}
               <h1 className="text-3xl font-extrabold text-gray-900 leading-tight">
                 {title}
@@ -278,9 +282,13 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               <span>返回</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Link href={`/charge-baby/${id}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+              <Link href={`/${encodeURIComponent(productModel)}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <FileText className="w-5 h-5" />
                 <span>详细数据</span>
+              </Link>
+              <Link href={`/compare?product=${encodeURIComponent(productModel)}&from=detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                <GitCompare className="w-5 h-5" />
+                <span>对比</span>
               </Link>
               {finalImageUrl ? (
                 <a
@@ -365,8 +373,8 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               <div className="space-y-8 pr-4">
                 {/* 标题与标签 */}
                 <div>
-                  {(brand || model) && (
-                    <div className="text-base text-gray-600 mb-1">{brand ? `${brand} ${model}` : model}</div>
+                  {(brand || productModel) && (
+                    <div className="text-base text-gray-600 mb-1">{brand ? `${brand} ${productModel}` : productModel}</div>
                   )}
                   <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
                     {title}

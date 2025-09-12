@@ -6,23 +6,50 @@ const notionVersion = process.env.NOTION_VERSION || '2022-06-28';
 const notionApiKey = process.env.NOTION_API_KEY;
 const databaseId = process.env.NOTION_DATABASE_ID!;
 
-async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function notionFetch<T>(path: string, init?: RequestInit, retries = 3): Promise<T> {
   if (!notionApiKey) throw new Error('NOTION_API_KEY is not set');
-  const res = await fetch(`${notionApiBase}${path}`, {
-    ...init,
-    headers: {
-      'Authorization': `Bearer ${notionApiKey}`,
-      'Notion-Version': notionVersion,
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-    cache: 'no-store', // 禁用 Next.js fetch 缓存，完全依赖我们的应用缓存
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`Notion API ${res.status}: ${text}`);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+  
+  try {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch(`${notionApiBase}${path}`, {
+          ...init,
+          headers: {
+            'Authorization': `Bearer ${notionApiKey}`,
+            'Notion-Version': notionVersion,
+            'Content-Type': 'application/json',
+            ...(init?.headers || {}),
+          },
+          cache: 'no-store', // 禁用 Next.js fetch 缓存，完全依赖我们的应用缓存
+          signal: controller.signal,
+        });
+        
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error(`Notion API ${res.status}: ${text}`);
+        }
+        
+        return res.json() as Promise<T>;
+      } catch (error: any) {
+        console.warn(`Notion API attempt ${attempt}/${retries} failed:`, error.message);
+        
+        // 如果是最后一次重试，抛出错误
+        if (attempt === retries) {
+          throw error;
+        }
+        
+        // 等待后重试（指数退避）
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
+    }
+    
+    throw new Error('All retry attempts failed');
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return res.json() as Promise<T>;
 }
 
 /**
@@ -85,6 +112,43 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
     }
     
     return [];
+  }
+}
+
+/**
+ * 通过型号获取充电宝数据
+ */
+export async function getChargeBabyByModel(model: string): Promise<ChargeBaby | null> {
+  try {
+    const cacheKey = `charge-baby-model-${model}`;
+    
+    // 尝试从缓存获取
+    const cached = serverCache.get<ChargeBaby>(cacheKey);
+    if (cached) {
+      console.log(`📦 Serving charge baby ${model} from cache`);
+      return cached;
+    }
+
+    // 先获取所有数据，然后查找匹配的型号
+    const allChargeBabies = await getChargeBabies();
+    const found = allChargeBabies.find(cb => cb.model === model);
+    
+    if (found) {
+      // 获取完整数据（包含文章内容）
+      console.log(`🌐 Fetching charge baby ${model} details from Notion API`);
+      const fullData = await fetchChargeBabyByIdFromNotion(found.id);
+      
+      if (fullData) {
+        // 设置缓存，5分钟过期
+        serverCache.set(cacheKey, fullData, 300);
+        return fullData;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching charge baby by model:', error);
+    return null;
   }
 }
 

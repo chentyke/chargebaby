@@ -53,10 +53,21 @@ async function ProductsGrid() {
     console.error('Error loading products:', error);
     
     return (
-      <div className="text-center py-12 text-gray-600 animate-fade-in">
-        <div className="space-y-3">
-          <div className="text-lg font-medium">加载失败</div>
-          <div className="text-sm">请刷新页面重试</div>
+      <div className="text-center py-20 text-gray-600 animate-fade-in">
+        <div className="space-y-4">
+          <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <div className="text-lg font-medium text-gray-900">数据加载失败</div>
+          <div className="text-sm text-gray-600">网络连接异常，请刷新页面重试</div>
+          <div className="mt-6">
+            <a
+              href="/"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              🔄 刷新页面
+            </a>
+          </div>
         </div>
       </div>
     );

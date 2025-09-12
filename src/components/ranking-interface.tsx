@@ -239,7 +239,7 @@ function TopProduct({
   };
 
   return (
-    <Link href={`/charge-baby/${product.id}?from=ranking`}>
+    <Link href={`/${encodeURIComponent(product.model)}?from=ranking`}>
       <div className={`bg-white rounded-3xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${isFirst ? 'ring-2 ring-yellow-200' : ''}`}>
         {/* 排名图标 */}
         <div className="flex justify-center mb-4">
@@ -293,7 +293,7 @@ function RankingItem({
   isMobile: boolean;
 }) {
   return (
-    <Link href={`/charge-baby/${product.id}?from=ranking`}>
+    <Link href={`/${encodeURIComponent(product.model)}?from=ranking`}>
       <div className="flex items-center gap-4 p-4 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0">
         {/* 排名 */}
         <div className="flex-shrink-0">

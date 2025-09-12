@@ -1,20 +1,20 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getChargeBabyById } from '@/lib/notion';
+import { getChargeBabyByModel } from '@/lib/notion';
 import { DetailData } from '@/types/chargebaby';
 import { PageHeader } from '@/components/ui/back-button';
 import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
 
 interface PageProps {
   params: Promise<{
-    id: string;
+    model: string;
   }>;
 }
 
 export default async function DetailDataPage({ params }: PageProps) {
-  const { id } = await params;
-  const chargeBaby = await getChargeBabyById(id);
+  const { model } = await params;
+  const chargeBaby = await getChargeBabyByModel(decodeURIComponent(model));
 
   if (!chargeBaby || !chargeBaby.detailData) {
     notFound();
@@ -26,7 +26,7 @@ export default async function DetailDataPage({ params }: PageProps) {
     <div className="min-h-screen bg-white">
       <div className="container py-6 sm:py-10">
         <PageHeader 
-          backButton={{ href: `/charge-baby/${id}`, text: "返回详情" }}
+          backButton={{ href: `/${encodeURIComponent(model)}`, text: "返回详情" }}
           title={`${title} - 详细测试数据`}
           subtitle={`以下数据来自「${detailData.dataSource}」的测试，仅供参考`}
         />

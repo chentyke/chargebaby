@@ -8,21 +8,29 @@ export const metadata = {
   description: '专业充电宝性能对比，支持多产品参数和评分对比分析',
 };
 
-export default function ComparePage() {
+interface ComparePageProps {
+  searchParams: Promise<{
+    product?: string;
+    from?: string;
+  }>;
+}
+
+export default function ComparePage({ searchParams }: ComparePageProps) {
   return (
     <div className="min-h-screen">
       <Suspense fallback={<Loading text="加载对比数据..." />}>
-        <CompareContent />
+        <CompareContent searchParams={searchParams} />
       </Suspense>
     </div>
   );
 }
 
-async function CompareContent() {
+async function CompareContent({ searchParams }: { searchParams: Promise<{ product?: string; from?: string }> }) {
   try {
     const chargeBabies = await getChargeBabies();
+    const params = await searchParams;
     
-    return <CompareInterface chargeBabies={chargeBabies} />;
+    return <CompareInterface chargeBabies={chargeBabies} searchParams={params} />;
   } catch (error) {
     console.error('Error loading compare data:', error);
     
