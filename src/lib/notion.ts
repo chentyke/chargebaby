@@ -40,8 +40,8 @@ async function fetchChargeBabiesFromNotion(): Promise<ChargeBaby[]> {
     body: JSON.stringify({
       sorts: [
         {
-          property: 'Title',
-          direction: 'ascending',
+          property: 'UpdatedAt',
+          direction: 'descending',
         },
       ],
     }),

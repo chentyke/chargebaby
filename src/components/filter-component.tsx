@@ -55,7 +55,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       return;
     }
 
-    let filtered = chargeBabies;
+    let filtered = [...chargeBabies];
 
     // 容量筛选
     if (filters.capacityRange.min > capacityRange.min || filters.capacityRange.max < capacityRange.max) {
