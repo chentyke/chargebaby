@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { getChargeBabies } from '@/lib/notion';
 import { SearchableProductsGrid } from '@/components/searchable-products-grid';
 import { Loading } from '@/components/ui/loading';
@@ -61,12 +62,12 @@ async function ProductsGrid() {
           <div className="text-lg font-medium text-gray-900">数据加载失败</div>
           <div className="text-sm text-gray-600">网络连接异常，请刷新页面重试</div>
           <div className="mt-6">
-            <a
+            <Link
               href="/"
               className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
               🔄 刷新页面
-            </a>
+            </Link>
           </div>
         </div>
       </div>
