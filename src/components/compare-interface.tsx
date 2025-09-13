@@ -327,10 +327,7 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
       items: [
         { label: "重量", key: "detailData.weight", format: (val: any, product: any) => product?.detailData?.weight ? `${formatNumber(product.detailData.weight)}g` : '-' },
         { label: "体积", key: "detailData.volume", format: (val: any, product: any) => product?.detailData?.volume ? `${formatNumber(product.detailData.volume)}cm³` : '-' },
-        { label: "能量重量比", key: "detailData.energyWeightRatio", format: (val: any, product: any) => {
-          const ratio = product?.detailData?.energyWeightRatio || product?.detailData?.capacityWeightRatio;
-          return ratio ? `${formatNumber(ratio)} Wh/g` : '-';
-        }},
+        { label: "能量重量比", key: "detailData.capacityWeightRatio", format: (val: any, product: any) => product?.detailData?.capacityWeightRatio ? `${formatNumber(product.detailData.capacityWeightRatio)} Wh/g` : '-' },
       ]
     },
     {

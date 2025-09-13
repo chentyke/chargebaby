@@ -38,7 +38,7 @@ export default async function DetailDataPage({ params }: PageProps) {
             <DataItem label="尺寸" value={`${detailData.length} × ${detailData.width} × ${detailData.thickness} cm`} />
             <DataItem label="重量" value={`${detailData.weight}g`} />
             <DataItem label="体积" value={`${detailData.volume}cm³`} />
-            <DataItem label="能量重量比" value={`${detailData.energyWeightRatio || detailData.capacityWeightRatio} Wh/g`} />
+            <DataItem label="能量重量比" value={`${detailData.capacityWeightRatio} Wh/g`} />
             <DataItem label="能量体积比" value={`${detailData.energyVolumeRatio || detailData.capacityVolumeRatio} Wh/cm³`} />
           </DataSection>
 

@@ -37,10 +37,10 @@ const rankingConfig = {
   },
 };
 
-// 格式化数字，保留最多两位小数
+// 格式化数字，四舍五入为整数
 function formatNumber(num: number): number {
   if (num === 0 || !num) return 0;
-  return Math.round(num * 100) / 100;
+  return Math.round(num);
 }
 
 export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
