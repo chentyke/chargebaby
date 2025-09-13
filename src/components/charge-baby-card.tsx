@@ -127,7 +127,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
           
           {/* 文字叠加区域 */}
           <div className="absolute inset-x-0 bottom-0 p-5 pb-4">
-            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight truncate transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
+            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2 transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
               {displayName || title}
             </h3>
           </div>
