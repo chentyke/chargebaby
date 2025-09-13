@@ -123,6 +123,7 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
           </div>
         </div>
       )}
+
     </div>
   );
 }
@@ -354,6 +355,12 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
         { label: "最大输出功率", key: "detailData.maxOutputPower", format: (val: any, product: any) => product?.detailData?.maxOutputPower ? `${formatNumber(product.detailData.maxOutputPower)}W` : '-' },
         { label: "最大持续输出功率", key: "detailData.maxContinuousOutputPower", format: (val: any, product: any) => product?.detailData?.maxContinuousOutputPower ? `${formatNumber(product.detailData.maxContinuousOutputPower)}W` : '-' },
       ]
+    },
+    {
+      category: "数据来源",
+      items: [
+        { label: "数据来源", key: "detailData.dataSource", format: (val: any, product: any) => product?.detailData?.dataSource || '-' },
+      ]
     }
   ];
 
@@ -419,3 +426,4 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
     </div>
   );
 }
+
