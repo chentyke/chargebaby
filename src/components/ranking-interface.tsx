@@ -37,6 +37,12 @@ const rankingConfig = {
   },
 };
 
+// 格式化数字，保留最多两位小数
+function formatNumber(num: number): number {
+  if (num === 0 || !num) return 0;
+  return Math.round(num * 100) / 100;
+}
+
 export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
   const [activeTab, setActiveTab] = useState<RankingType>('overall');
   const [isMobile, setIsMobile] = useState(false);
@@ -272,7 +278,7 @@ function TopProduct({
           <div className="inline-flex items-center gap-1 bg-gray-100 rounded-full px-3 py-1">
             <span className="text-gray-600 text-xs">评分</span>
             <span className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-xl'}`}>
-              {Math.round(product[config.key])}/100
+              {formatNumber(product[config.key])}/100
             </span>
           </div>
         </div>
@@ -332,7 +338,7 @@ function RankingItem({
         {/* 评分 */}
         <div className="flex-shrink-0 mr-2">
           <span className={`font-bold text-gray-900 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-            {Math.round(product[config.key])}
+            {formatNumber(product[config.key])}
           </span>
         </div>
       </div>

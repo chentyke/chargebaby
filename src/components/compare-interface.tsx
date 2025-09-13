@@ -263,13 +263,19 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
           <div className={`inline-flex items-center gap-1 sm:gap-2 bg-purple-50 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 sm:px-4 py-1 sm:py-2'}`}>
             <span className={`text-purple-600 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>综合评分</span>
             <span className={`font-bold ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
-              <span className="text-purple-600">{Math.round(product.overallRating)}</span><span className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>/100</span>
+              <span className="text-purple-600">{formatNumber(product.overallRating)}</span><span className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>/100</span>
             </span>
           </div>
         )}
       </div>
     </div>
   );
+}
+
+// 格式化数字，保留最多两位小数
+function formatNumber(num: number): number {
+  if (num === 0 || !num) return 0;
+  return Math.round(num * 100) / 100;
 }
 
 function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)[]; isMobile?: boolean }) {
@@ -294,59 +300,59 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
     {
       category: "综合评分",
       items: [
-        { label: "综合评分", key: "overallRating", format: (rating: any) => rating ? { score: Math.round(rating), isRating: true } : '-' },
-        { label: "性能评分", key: "performanceRating", format: (rating: any) => rating ? { score: Math.round(rating), isRating: true } : '-' },
-        { label: "体验评分", key: "experienceRating", format: (rating: any) => rating ? { score: Math.round(rating), isRating: true } : '-' },
+        { label: "综合评分", key: "overallRating", format: (rating: any) => rating ? { score: formatNumber(rating), isRating: true } : '-' },
+        { label: "性能评分", key: "performanceRating", format: (rating: any) => rating ? { score: formatNumber(rating), isRating: true } : '-' },
+        { label: "体验评分", key: "experienceRating", format: (rating: any) => rating ? { score: formatNumber(rating), isRating: true } : '-' },
       ]
     },
     {
       category: "性能参数",
       items: [
-        { label: "自充能力", key: "selfChargingCapability", format: (val: any) => val ? { score: val, max: 40, isRating: true } : '-' },
-        { label: "输出能力", key: "outputCapability", format: (val: any) => val ? { score: val, max: 35, isRating: true } : '-' },
-        { label: "能量", key: "energy", format: (val: any) => val ? { score: val, max: 20, isRating: true } : '-' },
+        { label: "自充能力", key: "selfChargingCapability", format: (val: any) => val ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
+        { label: "输出能力", key: "outputCapability", format: (val: any) => val ? { score: formatNumber(val), max: 35, isRating: true } : '-' },
+        { label: "能量", key: "energy", format: (val: any) => val ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
       ]
     },
     {
       category: "体验参数",
       items: [
-        { label: "便携性", key: "portability", format: (val: any) => val ? { score: val, max: 40, isRating: true } : '-' },
-        { label: "充电协议", key: "chargingProtocols", format: (val: any) => val ? { score: val, max: 30, isRating: true } : '-' },
-        { label: "多接口使用", key: "multiPortUsage", format: (val: any) => val ? { score: val, max: 20, isRating: true } : '-' },
+        { label: "便携性", key: "portability", format: (val: any) => val ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
+        { label: "充电协议", key: "chargingProtocols", format: (val: any) => val ? { score: formatNumber(val), max: 30, isRating: true } : '-' },
+        { label: "多接口使用", key: "multiPortUsage", format: (val: any) => val ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
       ]
     },
     {
       category: "物理规格",
       items: [
-        { label: "重量", key: "detailData.weight", format: (val: any, product: any) => product?.detailData?.weight ? `${product.detailData.weight}g` : '-' },
-        { label: "体积", key: "detailData.volume", format: (val: any, product: any) => product?.detailData?.volume ? `${product.detailData.volume}cm³` : '-' },
+        { label: "重量", key: "detailData.weight", format: (val: any, product: any) => product?.detailData?.weight ? `${formatNumber(product.detailData.weight)}g` : '-' },
+        { label: "体积", key: "detailData.volume", format: (val: any, product: any) => product?.detailData?.volume ? `${formatNumber(product.detailData.volume)}cm³` : '-' },
         { label: "能量重量比", key: "detailData.energyWeightRatio", format: (val: any, product: any) => {
           const ratio = product?.detailData?.energyWeightRatio || product?.detailData?.capacityWeightRatio;
-          return ratio ? `${ratio} Wh/g` : '-';
+          return ratio ? `${formatNumber(ratio)} Wh/g` : '-';
         }},
       ]
     },
     {
       category: "电池容量",
       items: [
-        { label: "容量级别", key: "detailData.capacityLevel", format: (val: any, product: any) => product?.detailData?.capacityLevel ? `${product.detailData.capacityLevel}mAh` : '-' },
-        { label: "最大放电能量", key: "detailData.maxDischargeCapacity", format: (val: any, product: any) => product?.detailData?.maxDischargeCapacity ? `${product.detailData.maxDischargeCapacity}Wh` : '-' },
-        { label: "自充能量", key: "detailData.selfChargingEnergy", format: (val: any, product: any) => product?.detailData?.selfChargingEnergy ? `${product.detailData.selfChargingEnergy}Wh` : '-' },
+        { label: "容量级别", key: "detailData.capacityLevel", format: (val: any, product: any) => product?.detailData?.capacityLevel ? `${formatNumber(product.detailData.capacityLevel)}mAh` : '-' },
+        { label: "最大放电能量", key: "detailData.maxDischargeCapacity", format: (val: any, product: any) => product?.detailData?.maxDischargeCapacity ? `${formatNumber(product.detailData.maxDischargeCapacity)}Wh` : '-' },
+        { label: "自充能量", key: "detailData.selfChargingEnergy", format: (val: any, product: any) => product?.detailData?.selfChargingEnergy ? `${formatNumber(product.detailData.selfChargingEnergy)}Wh` : '-' },
       ]
     },
     {
       category: "充电性能",
       items: [
-        { label: "最大自充电功率", key: "detailData.maxSelfChargingPower", format: (val: any, product: any) => product?.detailData?.maxSelfChargingPower ? `${product.detailData.maxSelfChargingPower}W` : '-' },
-        { label: "自充电时间", key: "detailData.selfChargingTime", format: (val: any, product: any) => product?.detailData?.selfChargingTime ? `${product.detailData.selfChargingTime}分钟` : '-' },
-        { label: "平均自充电功率", key: "detailData.avgSelfChargingPower", format: (val: any, product: any) => product?.detailData?.avgSelfChargingPower ? `${product.detailData.avgSelfChargingPower}W` : '-' },
+        { label: "最大自充电功率", key: "detailData.maxSelfChargingPower", format: (val: any, product: any) => product?.detailData?.maxSelfChargingPower ? `${formatNumber(product.detailData.maxSelfChargingPower)}W` : '-' },
+        { label: "自充电时间", key: "detailData.selfChargingTime", format: (val: any, product: any) => product?.detailData?.selfChargingTime ? `${formatNumber(product.detailData.selfChargingTime)}分钟` : '-' },
+        { label: "平均自充电功率", key: "detailData.avgSelfChargingPower", format: (val: any, product: any) => product?.detailData?.avgSelfChargingPower ? `${formatNumber(product.detailData.avgSelfChargingPower)}W` : '-' },
       ]
     },
     {
       category: "输出性能",
       items: [
-        { label: "最大输出功率", key: "detailData.maxOutputPower", format: (val: any, product: any) => product?.detailData?.maxOutputPower ? `${product.detailData.maxOutputPower}W` : '-' },
-        { label: "最大持续输出功率", key: "detailData.maxContinuousOutputPower", format: (val: any, product: any) => product?.detailData?.maxContinuousOutputPower ? `${product.detailData.maxContinuousOutputPower}W` : '-' },
+        { label: "最大输出功率", key: "detailData.maxOutputPower", format: (val: any, product: any) => product?.detailData?.maxOutputPower ? `${formatNumber(product.detailData.maxOutputPower)}W` : '-' },
+        { label: "最大持续输出功率", key: "detailData.maxContinuousOutputPower", format: (val: any, product: any) => product?.detailData?.maxContinuousOutputPower ? `${formatNumber(product.detailData.maxContinuousOutputPower)}W` : '-' },
       ]
     }
   ];

@@ -24,6 +24,12 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
     detailData,
   } = chargeBaby;
 
+  // 格式化数字，保留最多两位小数
+  const formatNumber = (num: number): number => {
+    if (num === 0 || !num) return 0;
+    return Math.round(num * 100) / 100;
+  };
+
   // 根据排序方式获取显示值
   const getSortValue = () => {
     if (!sortBy || sortBy === 'alphabetical') return null;
@@ -33,18 +39,18 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
         return new Date(updatedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
       case 'capacity':
         const capacity = detailData?.capacityLevel;
-        return capacity ? `${(capacity / 1000).toFixed(0)}K` : null;
+        return capacity ? `${Math.round(capacity / 1000)}K` : null;
       case 'power':
         const maxOutput = detailData?.maxOutputPower || 0;
         const maxSelfCharging = detailData?.maxSelfChargingPower || 0;
         const maxPower = Math.max(maxOutput, maxSelfCharging);
-        return maxPower > 0 ? `${maxPower}W` : null;
+        return maxPower > 0 ? `${formatNumber(maxPower)}W` : null;
       case 'overallRating':
-        return chargeBaby.overallRating ? `${chargeBaby.overallRating}分` : null;
+        return chargeBaby.overallRating ? `${formatNumber(chargeBaby.overallRating)}分` : null;
       case 'performanceRating':
-        return chargeBaby.performanceRating ? `${chargeBaby.performanceRating}分` : null;
+        return chargeBaby.performanceRating ? `${formatNumber(chargeBaby.performanceRating)}分` : null;
       case 'experienceRating':
-        return chargeBaby.experienceRating ? `${chargeBaby.experienceRating}分` : null;
+        return chargeBaby.experienceRating ? `${formatNumber(chargeBaby.experienceRating)}分` : null;
       default:
         return null;
     }
