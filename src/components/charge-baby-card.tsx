@@ -47,11 +47,11 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
         const maxPower = Math.max(maxOutput, maxSelfCharging);
         return maxPower > 0 ? `${formatNumber(maxPower)}W` : null;
       case 'overallRating':
-        return chargeBaby.overallRating ? `${formatNumber(chargeBaby.overallRating)}分` : null;
+        return chargeBaby.overallRating != null ? `${formatNumber(chargeBaby.overallRating)}分` : null;
       case 'performanceRating':
-        return chargeBaby.performanceRating ? `${formatNumber(chargeBaby.performanceRating)}分` : null;
+        return chargeBaby.performanceRating != null ? `${formatNumber(chargeBaby.performanceRating)}分` : null;
       case 'experienceRating':
-        return chargeBaby.experienceRating ? `${formatNumber(chargeBaby.experienceRating)}分` : null;
+        return chargeBaby.experienceRating != null ? `${formatNumber(chargeBaby.experienceRating)}分` : null;
       default:
         return null;
     }

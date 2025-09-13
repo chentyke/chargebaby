@@ -301,25 +301,25 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
     {
       category: "综合评分",
       items: [
-        { label: "综合评分", key: "overallRating", format: (rating: any) => rating ? { score: formatNumber(rating), isRating: true } : '-' },
-        { label: "性能评分", key: "performanceRating", format: (rating: any) => rating ? { score: formatNumber(rating), isRating: true } : '-' },
-        { label: "体验评分", key: "experienceRating", format: (rating: any) => rating ? { score: formatNumber(rating), isRating: true } : '-' },
+        { label: "综合评分", key: "overallRating", format: (rating: any) => rating != null ? { score: formatNumber(rating), isRating: true } : '-' },
+        { label: "性能评分", key: "performanceRating", format: (rating: any) => rating != null ? { score: formatNumber(rating), isRating: true } : '-' },
+        { label: "体验评分", key: "experienceRating", format: (rating: any) => rating != null ? { score: formatNumber(rating), isRating: true } : '-' },
       ]
     },
     {
       category: "性能参数",
       items: [
-        { label: "自充能力", key: "selfChargingCapability", format: (val: any) => val ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
-        { label: "输出能力", key: "outputCapability", format: (val: any) => val ? { score: formatNumber(val), max: 35, isRating: true } : '-' },
-        { label: "能量", key: "energy", format: (val: any) => val ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
+        { label: "自充能力", key: "selfChargingCapability", format: (val: any) => val != null ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
+        { label: "输出能力", key: "outputCapability", format: (val: any) => val != null ? { score: formatNumber(val), max: 35, isRating: true } : '-' },
+        { label: "能量", key: "energy", format: (val: any) => val != null ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
       ]
     },
     {
       category: "体验参数",
       items: [
-        { label: "便携性", key: "portability", format: (val: any) => val ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
-        { label: "充电协议", key: "chargingProtocols", format: (val: any) => val ? { score: formatNumber(val), max: 30, isRating: true } : '-' },
-        { label: "多接口使用", key: "multiPortUsage", format: (val: any) => val ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
+        { label: "便携性", key: "portability", format: (val: any) => val != null ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
+        { label: "充电协议", key: "chargingProtocols", format: (val: any) => val != null ? { score: formatNumber(val), max: 30, isRating: true } : '-' },
+        { label: "多接口使用", key: "multiPortUsage", format: (val: any) => val != null ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
       ]
     },
     {
