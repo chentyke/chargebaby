@@ -45,9 +45,9 @@ export default async function DetailDataPage({ params }: PageProps) {
           {/* 电池容量 */}
           <DataSection title="电池容量" data={detailData}>
             <DataItem label="容量级别" value={`${detailData.capacityLevel}mAh`} />
-            <DataItem label="最大放电能量" value={`${detailData.maxDischargeCapacity}Wh`} />
+            <DataItem label="最大放电容量" value={`${detailData.maxDischargeCapacity}Wh`} />
             <DataItem label="自充能量" value={`${detailData.selfChargingEnergy}Wh`} />
-            <DataItem label="放电能量达成率" value={`${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%`} />
+            <DataItem label="放电容量达成率" value={`${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%`} />
             <DataItem label="最大能量转换率" value={`${(detailData.maxEnergyConversionRate * 100).toFixed(1)}%`} />
           </DataSection>
 

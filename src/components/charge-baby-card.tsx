@@ -30,6 +30,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
     return Math.round(num * 100) / 100;
   };
 
+
   // 根据排序方式获取显示值
   const getSortValue = () => {
     if (!sortBy || sortBy === 'alphabetical') return null;
