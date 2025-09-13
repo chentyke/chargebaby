@@ -70,7 +70,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
         }}
       >
         {/* 图片容器 */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-100/80 backdrop-blur-sm">
+        <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-100/80 backdrop-blur-sm">
           {/* 背景装饰 */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
           
@@ -84,7 +84,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
           
           {/* 高级标签设计 - 左上角 */}
           {hasActiveFilters && sortValue && (
-            <div className="absolute top-3 left-3 z-10">
+            <div className="absolute top-1 left-2 z-10">
               <div className="relative">
                 {/* 背景渐变层 */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/8 to-indigo-500/10 rounded-full blur-sm"></div>
@@ -104,7 +104,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
               src={imageUrl}
               alt={title}
               fill
-              className="object-contain p-6 transition-all duration-500 ease-out group-hover:scale-110 group-hover:drop-shadow-lg filter"
+              className="object-contain p-3 pt-1 transition-all duration-500 ease-out group-hover:scale-110 group-hover:drop-shadow-lg filter"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
               priority={index < 6}
               loading={index < 6 ? "eager" : "lazy"}
@@ -118,16 +118,16 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
           )}
           
           {/* 渐变毛玻璃遮罩层 - 使用mask实现毛玻璃强度渐变 */}
-          <div className="absolute inset-x-0 bottom-0 h-2/5 backdrop-blur-2xl bg-white/40 transition-all duration-500 group-hover:backdrop-blur-3xl group-hover:bg-white/50"
+          <div className="absolute inset-x-0 bottom-0 h-2/3 backdrop-blur-2xl bg-white/40 transition-all duration-500 group-hover:backdrop-blur-3xl group-hover:bg-white/50"
                style={{
-                 maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 40%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)',
-                 WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 40%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)'
+                 maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
+                 WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)'
                }}>
           </div>
           
           {/* 文字叠加区域 */}
-          <div className="absolute inset-x-0 bottom-0 p-5 pb-4">
-            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2 transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
+          <div className="absolute inset-x-0 bottom-0 p-4 pb-5 flex items-end">
+            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2 transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
               {displayName || title}
             </h3>
           </div>

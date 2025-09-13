@@ -5,18 +5,18 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: '充电宝性能展示 - ChargeBaby',
-  description: '专业的充电宝性能测试和对比平台，帮您选择最适合的充电宝产品',
-  keywords: ['充电宝', '移动电源', '性能测试', '产品对比', '快充'],
+  title: '移动电源数据库 - ChargeBaby',
+  description: '测试数据收集与量化评分的移动电源数据库',
+  keywords: ['充电宝', '移动电源', '性能测试', '产品对比', '快充', '评分', '数据库'],
   authors: [{ name: 'ChargeBaby Team' }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
   openGraph: {
-    title: '充电宝性能展示 - ChargeBaby',
-    description: '专业的充电宝性能测试和对比平台',
+    title: '移动电源数据库 - ChargeBaby',
+    description: '测试数据收集与量化评分的移动电源数据库',
     type: 'website',
     locale: 'zh_CN',
     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
@@ -24,8 +24,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '充电宝性能展示 - ChargeBaby',
-    description: '专业的充电宝性能测试和对比平台',
+    title: '移动电源数据库 - ChargeBaby',
+    description: '测试数据收集与量化评分的移动电源数据库',
   },
   robots: {
     index: true,
