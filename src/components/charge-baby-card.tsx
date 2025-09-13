@@ -59,8 +59,10 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
     >
       <div 
         className={cn(
-          'group relative bg-white/70 backdrop-blur-2xl rounded-2xl overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-500 ease-out transform hover:scale-[1.02] cursor-pointer shadow-lg shadow-black/5 hover:shadow-2xl hover:shadow-black/10',
-          'before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500',
+          'group relative bg-white/70 backdrop-blur-2xl rounded-2xl overflow-hidden border border-white/20 transition-all duration-200 ease-out transform cursor-pointer shadow-lg shadow-black/5',
+          'md:hover:border-white/30 md:hover:scale-[1.02] md:hover:shadow-2xl md:hover:shadow-black/10',
+          'before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:opacity-0 md:hover:before:opacity-100 before:transition-opacity before:duration-200',
+          'active:scale-[0.98] active:transition-transform active:duration-100',
           className
         )}
         style={{ 
@@ -72,10 +74,10 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
         {/* 图片容器 */}
         <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-100/80 backdrop-blur-sm">
           {/* 背景装饰 */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"></div>
           
           {/* 网格背景纹理 */}
-          <div className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-700"
+          <div className="absolute inset-0 opacity-[0.02] md:group-hover:opacity-[0.05] transition-opacity duration-200"
                style={{
                  backgroundImage: `radial-gradient(circle at 1px 1px, rgba(0,0,0,0.3) 1px, transparent 0)`,
                  backgroundSize: '20px 20px'
@@ -104,7 +106,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
               src={imageUrl}
               alt={title}
               fill
-              className="object-contain px-2 pb-2 -mt-4 transition-all duration-500 ease-out group-hover:scale-110 group-hover:drop-shadow-lg filter"
+              className="object-contain px-2 pb-2 -mt-4 transition-all duration-200 ease-out md:group-hover:scale-110 md:group-hover:drop-shadow-lg filter"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
               priority={index < 6}
               loading={index < 6 ? "eager" : "lazy"}
@@ -113,12 +115,12 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Battery className="w-16 h-16 text-gray-400/60 transition-all duration-500 group-hover:text-gray-500 group-hover:scale-110 filter drop-shadow-sm" />
+              <Battery className="w-16 h-16 text-gray-400/60 transition-all duration-200 md:group-hover:text-gray-500 md:group-hover:scale-110 filter drop-shadow-sm" />
             </div>
           )}
           
           {/* 渐变毛玻璃遮罩层 - 使用mask实现毛玻璃强度渐变 */}
-          <div className="absolute inset-x-0 bottom-0 h-2/3 backdrop-blur-2xl bg-white/40 transition-all duration-500 group-hover:backdrop-blur-3xl group-hover:bg-white/50"
+          <div className="absolute inset-x-0 bottom-0 h-2/3 backdrop-blur-2xl bg-white/40 transition-all duration-200 md:group-hover:backdrop-blur-3xl md:group-hover:bg-white/50"
                style={{
                  maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
                  WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)'
@@ -127,13 +129,13 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
           
           {/* 文字叠加区域 */}
           <div className="absolute inset-x-0 bottom-0 p-4 pb-5 flex items-end">
-            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2 transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
+            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2 transition-all duration-200 md:group-hover:scale-[1.02] transform-gpu drop-shadow-md">
               {displayName || title}
             </h3>
           </div>
           
           {/* 光效 */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
         </div>
       </div>
     </Link>
