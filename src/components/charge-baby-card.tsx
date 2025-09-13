@@ -104,7 +104,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
               src={imageUrl}
               alt={title}
               fill
-              className="object-contain p-3 pt-1 transition-all duration-500 ease-out group-hover:scale-110 group-hover:drop-shadow-lg filter"
+              className="object-contain px-2 pb-2 -mt-4 transition-all duration-500 ease-out group-hover:scale-110 group-hover:drop-shadow-lg filter"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
               priority={index < 6}
               loading={index < 6 ? "eager" : "lazy"}
