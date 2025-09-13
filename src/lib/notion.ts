@@ -518,74 +518,74 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
 function parseDetailData(props: any): DetailData {
   return {
     // 物理尺寸
-    length: getNumberProperty(props['长度（cm）']) || 0,
-    width: getNumberProperty(props['宽度（cm）']) || 0,
-    thickness: getNumberProperty(props['厚度（cm）']) || getNumberProperty(props['厚度']) || 0,
-    volume: getNumberProperty(props['体积（cm3）']) || 0,
-    weight: getNumberProperty(props['重量（g）']) || 0,
+    length: formatNumber(getNumberProperty(props['长度（cm）'])),
+    width: formatNumber(getNumberProperty(props['宽度（cm）'])),
+    thickness: formatNumber(getNumberProperty(props['厚度（cm）']) || getNumberProperty(props['厚度'])),
+    volume: formatNumber(getNumberProperty(props['体积（cm3）'])),
+    weight: formatNumber(getNumberProperty(props['重量（g）'])),
     
     // 容量相关
-    capacityLevel: getNumberProperty(props['容量级别（mAh）']) || 0,
-    maxDischargeCapacity: getNumberProperty(props['最大放电容量（Wh）']) || 0,
-    selfChargingEnergy: getNumberProperty(props['自充能量（Wh）']) || 0,
-    capacityWeightRatio: getNumberProperty(props['容量重量比（Wh/g）']) || 0,
-    capacityVolumeRatio: getNumberProperty(props['容量体积比（Wh/cm3）']) || 0,
-    energyWeightRatio: getNumberProperty(props['能量重量比']) || 0,
-    energyVolumeRatio: getNumberProperty(props['能量体积比']) || 0,
-    energyAchievementRate: getNumberProperty(props['能量达成率']) || 0,
-    dischargeCapacityAchievementRate: getNumberProperty(props['放电容量达成率']) || 0,
+    capacityLevel: formatNumber(getNumberProperty(props['容量级别（mAh）'])),
+    maxDischargeCapacity: formatNumber(getNumberProperty(props['最大放电能量（Wh）'])),
+    selfChargingEnergy: formatNumber(getNumberProperty(props['自充能量（Wh）'])),
+    capacityWeightRatio: formatNumber(getNumberProperty(props['能量重量比（Wh/g）'])),
+    capacityVolumeRatio: formatNumber(getNumberProperty(props['能量体积比（Wh/cm3）'])),
+    energyWeightRatio: formatNumber(getNumberProperty(props['能量重量比'])),
+    energyVolumeRatio: formatNumber(getNumberProperty(props['能量体积比'])),
+    energyAchievementRate: formatNumber(getNumberProperty(props['能量达成率'])),
+    dischargeCapacityAchievementRate: formatNumber(getNumberProperty(props['放电能量达成率'])),
     
     // 充电性能
-    selfChargingTime: getNumberProperty(props['自充时间（min）']) || 0,
-    avgSelfChargingPower: getNumberProperty(props['平均自充功率（W）']) || getNumberProperty(props['平均自充功率']) || 0,
-    maxSelfChargingPower: getNumberProperty(props['最大自充电功率']) || getNumberProperty(props['最大自充电功率（W）']) || 0,
-    energy20min: getNumberProperty(props['20分钟充入能量']) || getNumberProperty(props['20分钟充入能量（Wh）']) || 0,
+    selfChargingTime: formatNumber(getNumberProperty(props['自充时间（min）'])),
+    avgSelfChargingPower: formatNumber(getNumberProperty(props['平均自充功率（W）']) || getNumberProperty(props['平均自充功率'])),
+    maxSelfChargingPower: formatNumber(getNumberProperty(props['最大自充电功率']) || getNumberProperty(props['最大自充电功率（W）'])),
+    energy20min: formatNumber(getNumberProperty(props['20分钟充入能量']) || getNumberProperty(props['20分钟充入能量（Wh）'])),
     
     // 输出性能
-    maxContinuousOutputPower: getNumberProperty(props['最大持续输出平均功率（W）']) || 0,
-    maxOutputPower: getNumberProperty(props['最大输出功率']) || getNumberProperty(props['最大输出功率（W）']) || 0,
-    maxDischargeCapability: getNumberProperty(props['最大放电能力']) || 0,
-    maxEnergyConversionRate: getNumberProperty(props['最大能量转换率']) || 0,
-    conversionRate: getNumberProperty(props['转换率']) || 0,
+    maxContinuousOutputPower: formatNumber(getNumberProperty(props['最大持续输出平均功率（W）'])),
+    maxOutputPower: formatNumber(getNumberProperty(props['最大输出功率']) || getNumberProperty(props['最大输出功率（W）'])),
+    maxDischargeCapability: formatNumber(getNumberProperty(props['最大放电能力'])),
+    maxEnergyConversionRate: formatNumber(getNumberProperty(props['最大能量转换率'])),
+    conversionRate: formatNumber(getNumberProperty(props['转换率'])),
     
     // 充电协议支持
-    pdSupport: getNumberProperty(props['PD']) || 0,
-    qcSupport: getNumberProperty(props['QC']) || 0,
-    ppsSupport: getNumberProperty(props['PPS']) || 0,
-    ufcsSupport: getNumberProperty(props['UFCS']) || 0,
-    privateProtocol: getNumberProperty(props['私有协议']) || 0,
-    protocolCompatibility: getNumberProperty(props['协议相互兼容']) || 0,
+    pdSupport: formatNumber(getNumberProperty(props['PD'])),
+    qcSupport: formatNumber(getNumberProperty(props['QC'])),
+    ppsSupport: formatNumber(getNumberProperty(props['PPS'])),
+    ufcsSupport: formatNumber(getNumberProperty(props['UFCS'])),
+    privateProtocol: formatNumber(getNumberProperty(props['私有协议'])),
+    protocolCompatibility: formatNumber(getNumberProperty(props['协议相互兼容'])),
     
     // 多接口功能
-    dualPortOutput: getNumberProperty(props['双接口同时输出']) || 0,
-    hotSwap: getNumberProperty(props['多口插拔不断联']) || 0,
-    passThrough: getNumberProperty(props['边冲边放']) || 0,
-    customDirection: getNumberProperty(props['输入输出方向自定义']) || 0,
+    dualPortOutput: formatNumber(getNumberProperty(props['双接口同时输出'])),
+    hotSwap: formatNumber(getNumberProperty(props['多口插拔不断联'])),
+    passThrough: formatNumber(getNumberProperty(props['边冲边放'])),
+    customDirection: formatNumber(getNumberProperty(props['输入输出方向自定义'])),
     
     // 温度控制
-    temperature: getNumberProperty(props['温度']) || 0,
-    maxTemperature: getNumberProperty(props['最高温度']) || 0,
-    temperatureUniformity: getNumberProperty(props['温度均匀度']) || 0,
-    temperatureControlStrategy: getNumberProperty(props['温控策略']) || getNumberProperty(props['温控策略 1']) || 0,
+    temperature: formatNumber(getNumberProperty(props['温度'])),
+    maxTemperature: formatNumber(getNumberProperty(props['最高温度'])),
+    temperatureUniformity: formatNumber(getNumberProperty(props['温度均匀度'])),
+    temperatureControlStrategy: formatNumber(getNumberProperty(props['温控策略']) || getNumberProperty(props['温控策略 1'])),
     
     // 显示功能
-    display: getNumberProperty(props['显示']) || 0,
-    displayContent: getNumberProperty(props['显示内容']) || 0,
-    displayCarrier: getNumberProperty(props['显示载体']) || 0,
-    displayAdjustment: getNumberProperty(props['显示调节']) || 0,
-    brightness: getNumberProperty(props['亮度']) || 0,
+    display: formatNumber(getNumberProperty(props['显示'])),
+    displayContent: formatNumber(getNumberProperty(props['显示内容'])),
+    displayCarrier: formatNumber(getNumberProperty(props['显示载体'])),
+    displayAdjustment: formatNumber(getNumberProperty(props['显示调节'])),
+    brightness: formatNumber(getNumberProperty(props['亮度'])),
     
     // 线缆相关
-    cableLength: getNumberProperty(props['线缆长度']) || 0,
-    cableSoftness: getNumberProperty(props['线缆柔软度']) || 0,
+    cableLength: formatNumber(getNumberProperty(props['线缆长度'])),
+    cableSoftness: formatNumber(getNumberProperty(props['线缆柔软度'])),
     
     // 电源质量
-    ripple: getNumberProperty(props['纹波']) || getNumberProperty(props['纹波 1']) || 0,
+    ripple: formatNumber(getNumberProperty(props['纹波']) || getNumberProperty(props['纹波 1'])),
     
     // 特殊功能
-    iotCapability: getNumberProperty(props['IoT能力']) || 0,
-    customizationCapability: getNumberProperty(props['自定义能力']) || 0,
-    acInputCapability: getNumberProperty(props['AC输入能力']) || 0,
+    iotCapability: formatNumber(getNumberProperty(props['IoT能力'])),
+    customizationCapability: formatNumber(getNumberProperty(props['自定义能力'])),
+    acInputCapability: formatNumber(getNumberProperty(props['AC输入能力'])),
     
     // 数据来源
     dataSource: getRichTextProperty(props['数据来源']) || '',
@@ -606,7 +606,17 @@ function getMultiSelectProperty(property: any): string[] {
 }
 
 function getNumberProperty(property: any): number {
-  return property?.number || 0;
+  // 处理普通数字字段
+  if (property?.number !== null && property?.number !== undefined) {
+    return property.number;
+  }
+  
+  // 处理计算字段 (formula)
+  if (property?.formula?.type === 'number' && property?.formula?.number !== null && property?.formula?.number !== undefined) {
+    return property.formula.number;
+  }
+  
+  return 0;
 }
 
 function getDateProperty(property: any): string {
@@ -631,4 +641,12 @@ function parseListProperty(text: string): string[] {
     .filter(item => item.length > 0);
   
   return items;
+}
+
+/**
+ * 格式化数字，保留最多两位小数
+ */
+function formatNumber(num: number): number {
+  if (num === 0 || !num) return 0;
+  return Math.round(num * 100) / 100;
 }
