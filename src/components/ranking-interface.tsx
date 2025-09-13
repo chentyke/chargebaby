@@ -108,11 +108,11 @@ export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
       <div className="text-center py-8 relative">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4">
           <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-            充电宝排行榜
+            移动电源评分排行榜
           </span>
         </h1>
         <p className="text-lg text-gray-600">
-          基于专业测试数据的权威排行
+          基于实际测试数据进行量化评分
         </p>
       </div>
 

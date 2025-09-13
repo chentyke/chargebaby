@@ -15,6 +15,7 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredByFilter, setFilteredByFilter] = useState<ChargeBaby[]>(chargeBabies);
   const [currentSortBy, setCurrentSortBy] = useState<SortOption>('updatedAt');
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   // 启用智能图片预加载
   useImagePreloader(chargeBabies, true);
@@ -47,9 +48,10 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
     setSearchQuery(query);
   };
 
-  const handleFilterChange = useCallback((filteredBabies: ChargeBaby[], sortBy: SortOption) => {
+  const handleFilterChange = useCallback((filteredBabies: ChargeBaby[], sortBy: SortOption, hasFilters: boolean) => {
     setFilteredByFilter(filteredBabies);
     setCurrentSortBy(sortBy);
+    setHasActiveFilters(hasFilters);
   }, []);
 
   // 当chargeBabies变化时更新筛选状态
@@ -90,6 +92,7 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
               chargeBaby={chargeBaby}
               index={index}
               sortBy={currentSortBy}
+              hasActiveFilters={hasActiveFilters}
             />
           ))}
         </div>

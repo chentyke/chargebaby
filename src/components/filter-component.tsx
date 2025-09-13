@@ -6,7 +6,7 @@ import { ChargeBaby, FilterOptions, PRODUCT_FEATURES, SORT_OPTIONS, SortOption }
 
 interface FilterComponentProps {
   chargeBabies: ChargeBaby[];
-  onFilterChange: (filteredBabies: ChargeBaby[], sortBy: SortOption) => void;
+  onFilterChange: (filteredBabies: ChargeBaby[], sortBy: SortOption, hasFilters: boolean) => void;
   isMobile?: boolean;
   className?: string;
 }
@@ -48,10 +48,21 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     max: powerData.length > 0 ? Math.max(...powerData) : 1000
   };
 
+  // 检查是否有激活的筛选条件
+  const hasActiveFilters = 
+    filters.capacityRange.min > capacityRange.min ||
+    filters.capacityRange.max < capacityRange.max ||
+    filters.powerRange.min > powerRange.min ||
+    filters.powerRange.max < powerRange.max ||
+    filters.brands.length > 0 ||
+    filters.features.length > 0 ||
+    filters.sortBy !== 'updatedAt' ||
+    filters.sortOrder !== 'desc';
+
   // 应用筛选
   useEffect(() => {
     if (!chargeBabies || chargeBabies.length === 0) {
-      onFilterChange([], filters.sortBy);
+      onFilterChange([], filters.sortBy, false);
       return;
     }
 
@@ -138,8 +149,8 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       }
     });
 
-    onFilterChange(filtered, filters.sortBy);
-  }, [filters, chargeBabies, onFilterChange, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max]);
+    onFilterChange(filtered, filters.sortBy, hasActiveFilters);
+  }, [filters, chargeBabies, onFilterChange, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, hasActiveFilters]);
 
   const resetFilters = useCallback(() => {
     setFilters({
@@ -151,16 +162,6 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       sortOrder: 'desc'
     });
   }, [capacityRange.min, capacityRange.max, powerRange.min, powerRange.max]);
-
-  const hasActiveFilters = 
-    filters.capacityRange.min > capacityRange.min ||
-    filters.capacityRange.max < capacityRange.max ||
-    filters.powerRange.min > powerRange.min ||
-    filters.powerRange.max < powerRange.max ||
-    filters.brands.length > 0 ||
-    filters.features.length > 0 ||
-    filters.sortBy !== 'updatedAt' ||
-    filters.sortOrder !== 'desc';
 
   return (
     <div className={`relative ${className}`}>

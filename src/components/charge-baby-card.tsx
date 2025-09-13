@@ -9,9 +9,10 @@ interface ChargeBabyCardProps {
   className?: string;
   index?: number;
   sortBy?: SortOption;
+  hasActiveFilters?: boolean;
 }
 
-export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: ChargeBabyCardProps) {
+export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasActiveFilters = false }: ChargeBabyCardProps) {
   const {
     id,
     brand,
@@ -82,14 +83,14 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: Cha
           </div>
           
           {/* 高级标签设计 - 左上角 */}
-          {(sortValue || model) && (
+          {hasActiveFilters && sortValue && (
             <div className="absolute top-3 left-3 z-10">
               <div className="relative">
                 {/* 背景渐变层 */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/8 to-indigo-500/10 rounded-full blur-sm"></div>
                 {/* 主体 */}
-                <div className="relative bg-gradient-to-r from-white/95 via-white/90 to-white/95 backdrop-blur-lg rounded-full px-3 py-1.5 border border-white/30 shadow-lg shadow-black/5 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-blue-500/10 group-hover:border-blue-200/40">
-                  <span className="text-xs font-semibold bg-gradient-to-r from-gray-700 via-gray-800 to-gray-700 bg-clip-text text-transparent">
+                <div className="relative bg-gradient-to-r from-white/95 via-white/90 to-white/95 backdrop-blur-lg rounded-full px-2 py-1 sm:px-3 sm:py-1.5 border border-white/30 shadow-lg shadow-black/5 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-blue-500/10 group-hover:border-blue-200/40">
+                  <span className="text-[10px] sm:text-xs font-semibold bg-gradient-to-r from-gray-700 via-gray-800 to-gray-700 bg-clip-text text-transparent">
                     {sortValue || model}
                   </span>
                 </div>
@@ -126,7 +127,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy }: Cha
           
           {/* 文字叠加区域 */}
           <div className="absolute inset-x-0 bottom-0 p-5 pb-4">
-            <h3 className="font-semibold text-gray-900 text-base leading-tight truncate transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
+            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight truncate transition-all duration-300 group-hover:scale-[1.02] transform-gpu drop-shadow-md">
               {displayName || title}
             </h3>
           </div>

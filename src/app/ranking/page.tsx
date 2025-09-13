@@ -5,8 +5,8 @@ import { getChargeBabies } from '@/lib/notion';
 import { Loading } from '@/components/ui/loading';
 
 export const metadata = {
-  title: '充电宝排行榜 - ChargeBaby',
-  description: '专业充电宝排行榜，包含综合、性能和体验三个排行榜',
+  title: '移动电源评分排行榜 - ChargeBaby',
+  description: '基于实际测试数据进行量化评分的移动电源排行榜，包含综合、性能和体验三个排行榜',
 };
 
 export default function RankingPage() {

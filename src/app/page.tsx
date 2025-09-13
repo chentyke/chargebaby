@@ -26,11 +26,11 @@ export default function HomePage() {
             <div className="text-center mb-8">
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-3 leading-tight">
                 <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-                  充电宝图鉴
+                  移动电源数据库
                 </span>
               </h1>
               <p className="text-lg text-gray-600/90">
-                专业充电宝性能测试与评测
+                测试数据收集与量化评分
               </p>
             </div>
             
