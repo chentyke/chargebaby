@@ -227,7 +227,7 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
         y: touch.clientY - dragStart.y
       });
     }
-  }, [touchState, isDragging, scale, dragStart]);
+  }, [touchState, isDragging, scale, dragStart, minScale, maxScale]);
 
   const handleTouchEnd = useCallback(() => {
     setTouchState({
