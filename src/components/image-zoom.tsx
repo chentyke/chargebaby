@@ -122,7 +122,7 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
   }, []);
 
   // Touch handlers for mobile
-  const getTouchDistance = (touches: TouchList) => {
+  const getTouchDistance = (touches: React.TouchList) => {
     const touch1 = touches[0];
     const touch2 = touches[1];
     return Math.sqrt(
@@ -131,7 +131,7 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
     );
   };
 
-  const getTouchCenter = (touches: TouchList) => {
+  const getTouchCenter = (touches: React.TouchList) => {
     const touch1 = touches[0];
     const touch2 = touches[1];
     return {
@@ -332,6 +332,7 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
             cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imageRef}
             src={src}

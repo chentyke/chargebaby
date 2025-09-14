@@ -136,11 +136,15 @@ export function NotionImage({
       const originalImageUrl = isNotionImage ? generateImageUrl('original') : src;
       return (
         <ImageZoom key={key} src={originalImageUrl} alt={alt} className={props.className}>
-          <img {...imgProps} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt={alt} {...imgProps} />
         </ImageZoom>
       );
     }
-    return <img key={key} {...imgProps} />;
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img key={key} alt={alt} {...imgProps} />
+    );
   };
 
   // 如果是Notion图片且使用代理
