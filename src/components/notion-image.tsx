@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { ImageZoom } from './image-zoom';
 
 interface NotionImageProps {
   src: string;
@@ -18,6 +19,7 @@ interface NotionImageProps {
   size?: 'thumbnail' | 'small' | 'medium' | 'large' | 'original';
   quality?: number;
   responsive?: boolean;
+  enableZoom?: boolean;
 }
 
 export function NotionImage({ 
@@ -26,6 +28,7 @@ export function NotionImage({
   size = 'medium',
   quality = 85,
   responsive = false,
+  enableZoom = false,
   ...props 
 }: NotionImageProps) {
   const [imageError, setImageError] = useState(false);
@@ -107,21 +110,37 @@ export function NotionImage({
     
     if (targetSize && targetSize !== 'original') {
       params.set('size', targetSize);
+    } else if (targetSize === 'original') {
+      params.set('size', 'original');
     }
     
-    if (quality !== 85) {
+    if (quality !== 85 && targetSize !== 'original') {
       params.set('q', quality.toString());
     }
     
     // 如果指定了自定义宽高，优先使用
-    if (props.width && !props.fill) {
+    if (props.width && !props.fill && targetSize !== 'original') {
       params.set('w', props.width.toString());
     }
-    if (props.height && !props.fill) {
+    if (props.height && !props.fill && targetSize !== 'original') {
       params.set('h', props.height.toString());
     }
     
     return `/api/image-proxy?${params.toString()}`;
+  };
+
+  // 创建图片组件的函数
+  const createImageComponent = (imgProps: any, key?: string) => {
+    if (enableZoom) {
+      // 为放大功能提供原图URL
+      const originalImageUrl = isNotionImage ? generateImageUrl('original') : src;
+      return (
+        <ImageZoom key={key} src={originalImageUrl} alt={alt} className={props.className}>
+          <img {...imgProps} />
+        </ImageZoom>
+      );
+    }
+    return <img key={key} {...imgProps} />;
   };
 
   // 如果是Notion图片且使用代理
@@ -136,65 +155,62 @@ export function NotionImage({
       
       const defaultSizes = props.sizes || '(max-width: 640px) 320px, (max-width: 1024px) 640px, 1024px';
       
-      return (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={generateImageUrl(size)}
-          srcSet={srcSet}
-          sizes={defaultSizes}
-          alt={alt}
-          className={props.className || ''}
-          style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
-            width: props.width,
-            height: props.height
-          }}
-          onError={handleError}
-          loading={props.loading}
-          key={`${generateImageUrl(size)}-${retryCount}`}
-        />
-      );
+      const imageKey = `${generateImageUrl(size)}-${retryCount}`;
+      const imgProps = {
+        src: generateImageUrl(size),
+        srcSet: srcSet,
+        sizes: defaultSizes,
+        alt: alt,
+        className: props.className || '',
+        style: props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+          width: props.width,
+          height: props.height
+        },
+        onError: handleError,
+        loading: props.loading
+      };
+      
+      return createImageComponent(imgProps, imageKey);
     }
     
     // 非响应式图片
     const imageUrl = generateImageUrl(size);
+    const imageKey = `${imageUrl}-${retryCount}`;
     
-    return (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        src={imageUrl}
-        alt={alt}
-        className={props.className || ''}
-        style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
-          width: props.width,
-          height: props.height
-        }}
-        onError={handleError}
-        loading={props.loading}
-        key={`${imageUrl}-${retryCount}`}
-      />
-    );
+    const imgProps = {
+      src: imageUrl,
+      alt: alt,
+      className: props.className || '',
+      style: props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+        width: props.width,
+        height: props.height
+      },
+      onError: handleError,
+      loading: props.loading
+    };
+    
+    return createImageComponent(imgProps, imageKey);
   }
 
   // 对于所有其他情况，也要确保Notion图片使用代理
   if (isNotionImage) {
     // 如果是Notion图片但没有使用代理，强制使用代理
     const imageUrl = generateImageUrl(size);
+    const imageKey = `${imageUrl}-${retryCount}`;
     
-    return (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        src={imageUrl}
-        alt={alt}
-        className={props.className || ''}
-        style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
-          width: props.width,
-          height: props.height
-        }}
-        onError={handleError}
-        loading={props.loading}
-        key={`${imageUrl}-${retryCount}`}
-      />
-    );
+    const imgProps = {
+      src: imageUrl,
+      alt: alt,
+      className: props.className || '',
+      style: props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+        width: props.width,
+        height: props.height
+      },
+      onError: handleError,
+      loading: props.loading
+    };
+    
+    return createImageComponent(imgProps, imageKey);
   }
 
   // 只有非Notion图片才使用Next.js Image组件

@@ -125,6 +125,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                   className="object-contain animate-fade-in"
                   sizes="320px"
                   priority
+                  enableZoom
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center animate-fade-in">
@@ -326,6 +327,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                     className="object-contain animate-fade-in"
                     sizes="50vw"
                     priority
+                    enableZoom
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center animate-fade-in">

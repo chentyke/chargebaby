@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     console.log(`🌐 Fetching ${size} image from Notion: ${imageUrl.substring(0, 50)}...`);
 
     // 创建新的请求 Promise
-    const fetchPromise = fetchImageWithRetry(imageUrl, resolutionConfig);
+    const fetchPromise = fetchImageWithRetry(imageUrl, resolutionConfig, size);
     pendingRequests.set(cacheKey, fetchPromise);
 
     try {
@@ -92,7 +92,8 @@ export async function GET(request: NextRequest) {
 // 提取图片获取逻辑为独立函数
 async function fetchImageWithRetry(
   imageUrl: string, 
-  resolutionConfig: { width?: number | null; height?: number | null; quality?: number } | null
+  resolutionConfig: { width?: number | null; height?: number | null; quality?: number } | null,
+  size: keyof typeof RESOLUTION_PRESETS
 ): Promise<NextResponse> {
   try {
 
@@ -181,8 +182,11 @@ async function fetchImageWithRetry(
     let processedBuffer = originalBuffer;
     let outputContentType = contentType;
 
-    // 如果需要压缩或调整尺寸
-    if (resolutionConfig && (resolutionConfig.width || resolutionConfig.height || resolutionConfig.quality)) {
+    // 如果需要压缩或调整尺寸（original尺寸时跳过处理）
+    const shouldProcess = size !== 'original' && resolutionConfig && 
+      (resolutionConfig.width || resolutionConfig.height || resolutionConfig.quality);
+    
+    if (shouldProcess) {
       try {
         let sharpInstance = sharp(Buffer.from(originalBuffer));
         

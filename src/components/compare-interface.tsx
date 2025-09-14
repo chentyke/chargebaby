@@ -239,6 +239,7 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
             width={isMobile ? 200 : 300}
             height={isMobile ? 200 : 300}
             className="object-contain w-full h-full"
+            enableZoom
           />
         ) : (
           <Battery className={`text-gray-300 ${isMobile ? 'w-16 h-16' : 'w-20 h-20 sm:w-24 sm:h-24'}`} />

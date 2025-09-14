@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { ReactNode } from 'react';
+import { ImageZoom } from './image-zoom';
 
 interface MarkdownRendererProps {
   content: string;
@@ -94,23 +95,37 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               </pre>
             );
           },
-          img: ({ src, alt, ...props }: any) => (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={alt || ''}
-                className="w-full rounded-lg shadow-sm border border-gray-200 mb-2"
-                loading="lazy"
-                {...props}
-              />
-              {alt && (
-                <span className="block text-center text-sm text-gray-500 mb-4 italic">
-                  {alt}
-                </span>
-              )}
-            </>
-          ),
+          img: ({ src, alt, ...props }: any) => {
+            // 检查是否是Notion图片，如果是则提供原图URL给放大功能
+            const isNotionImage = src && (
+              src.includes('prod-files-secure.s3.') || 
+              src.includes('www.notion.so') ||
+              src.includes('notion.so')
+            );
+            
+            const originalSrc = isNotionImage ? `/api/image-proxy?url=${encodeURIComponent(src)}&size=original` : src;
+            const displaySrc = isNotionImage ? `/api/image-proxy?url=${encodeURIComponent(src)}&size=large` : src;
+            
+            return (
+              <>
+                <ImageZoom src={originalSrc} alt={alt || ''} className="mb-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={displaySrc}
+                    alt={alt || ''}
+                    className="w-full rounded-lg shadow-sm border border-gray-200"
+                    loading="lazy"
+                    {...props}
+                  />
+                </ImageZoom>
+                {alt && (
+                  <span className="block text-center text-sm text-gray-500 mb-4 italic">
+                    {alt}
+                  </span>
+                )}
+              </>
+            );
+          },
           table: ({ children, ...props }: any) => (
             <div className="overflow-x-auto mb-6 rounded-lg border border-gray-200 shadow-sm">
               <table className="min-w-full" {...props}>

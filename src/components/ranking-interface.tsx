@@ -172,9 +172,9 @@ export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
 
           {/* 前三名特殊展示 - 仅桌面端 */}
           {!isMobile && currentRanking.length >= 3 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-12 items-end">
               {/* 第二名 */}
-              <div className="md:order-1 relative">
+              <div className="md:order-1">
                 <TopProduct 
                   product={currentRanking[1]} 
                   rank={2} 
@@ -184,7 +184,7 @@ export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
               </div>
               
               {/* 第一名 */}
-              <div className="md:order-2 relative md:-mt-6">
+              <div className="md:order-2 md:transform md:scale-105">
                 <TopProduct 
                   product={currentRanking[0]} 
                   rank={1} 
@@ -195,7 +195,7 @@ export function RankingInterface({ chargeBabies }: RankingInterfaceProps) {
               </div>
               
               {/* 第三名 */}
-              <div className="md:order-3 relative">
+              <div className="md:order-3">
                 <TopProduct 
                   product={currentRanking[2]} 
                   rank={3} 
