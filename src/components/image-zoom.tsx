@@ -31,6 +31,8 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
   const [isLoading, setIsLoading] = useState(false);
+  const [initialImageSize, setInitialImageSize] = useState<{width: number, height: number} | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const [touchState, setTouchState] = useState<TouchState>({
     isPinching: false,
     lastDistance: 0,
@@ -41,12 +43,23 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const originalImageRef = useRef<HTMLSpanElement>(null);
 
-  const minScale = 0.5;
-  const maxScale = 5;
-  const zoomStep = 0.5;
+  const minScale = isMobile ? 0.1 : 0.5;
+  const maxScale = isMobile ? 3 : 5;
+  const zoomStep = isMobile ? 0.25 : 0.5;
 
   useEffect(() => {
     setMounted(true);
+    // 检测移动端
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
   }, []);
 
   useEffect(() => {
@@ -65,6 +78,32 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
     };
   }, [isOpen]);
 
+  // 图片加载完成后计算初始适配
+  const handleImageLoad = useCallback(() => {
+    if (imageRef.current && containerRef.current) {
+      const img = imageRef.current;
+      const container = containerRef.current;
+      
+      const containerRect = container.getBoundingClientRect();
+      const containerWidth = containerRect.width - (isMobile ? 32 : 128); // 减去padding
+      const containerHeight = containerRect.height - (isMobile ? 32 : 128);
+      
+      const imageNaturalWidth = img.naturalWidth;
+      const imageNaturalHeight = img.naturalHeight;
+      
+      setInitialImageSize({ width: imageNaturalWidth, height: imageNaturalHeight });
+      
+      // 计算初始缩放比例，确保图片完全显示在容器内
+      const scaleX = containerWidth / imageNaturalWidth;
+      const scaleY = containerHeight / imageNaturalHeight;
+      const initialScale = Math.min(scaleX, scaleY, 1); // 不放大，只缩小
+      
+      if (initialScale < 1) {
+        setScale(initialScale);
+      }
+    }
+  }, [isMobile]);
+
   const handleOpen = () => {
     setIsOpen(true);
   };
@@ -77,13 +116,29 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
   }, []);
 
   const resetView = useCallback(() => {
-    setScale(1);
+    if (isMobile && imageRef.current && containerRef.current) {
+      // 移动端重置到适配尺寸
+      const img = imageRef.current;
+      const container = containerRef.current;
+      
+      const containerRect = container.getBoundingClientRect();
+      const containerWidth = containerRect.width - 32;
+      const containerHeight = containerRect.height - 32;
+      
+      const scaleX = containerWidth / img.naturalWidth;
+      const scaleY = containerHeight / img.naturalHeight;
+      const initialScale = Math.min(scaleX, scaleY, 1);
+      
+      setScale(initialScale);
+    } else {
+      setScale(1);
+    }
     setPosition({ x: 0, y: 0 });
-  }, []);
+  }, [isMobile]);
 
   const handleZoomIn = useCallback(() => {
     setScale(prev => Math.min(prev + zoomStep, maxScale));
-  }, []);
+  }, [zoomStep, maxScale]);
 
   const handleZoomOut = useCallback(() => {
     setScale(prev => {
@@ -93,13 +148,13 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
       }
       return newScale;
     });
-  }, []);
+  }, [zoomStep, minScale]);
 
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.2 : 0.2;
     setScale(prev => Math.min(Math.max(prev + delta, minScale), maxScale));
-  }, []);
+  }, [minScale, maxScale]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (scale > 1) {
@@ -315,7 +370,7 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
 
         {/* 图片容器 */}
         <div
-          className={`relative w-full h-full flex items-center justify-center p-16 transform transition-all duration-300 ease-out ${
+          className={`relative w-full h-full flex items-center justify-center ${isMobile ? 'p-4' : 'p-16'} transform transition-all duration-300 ease-out ${
             isAnimating
               ? 'scale-100 opacity-100 translate-y-0'
               : 'scale-95 opacity-0 translate-y-4'
@@ -337,12 +392,15 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
             ref={imageRef}
             src={src}
             alt={alt}
-            className="max-w-none transition-transform duration-200 ease-out select-none"
+            className={`transition-transform duration-200 ease-out select-none ${
+              isMobile ? 'max-w-full max-h-full' : 'max-w-none'
+            }`}
             style={{
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
               filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3))'
             }}
             draggable={false}
+            onLoad={handleImageLoad}
           />
         </div>
 
