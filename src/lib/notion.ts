@@ -1,4 +1,4 @@
-import { ChargeBaby, NotionDatabase, NotionPage, DetailData, WishlistProduct, WishlistComment } from '@/types/chargebaby';
+import { ChargeBaby, NotionDatabase, NotionPage, DetailData, WishlistProduct } from '@/types/chargebaby';
 import { serverCache, CACHE_KEYS } from './cache';
 
 const notionApiBase = 'https://api.notion.com/v1';

@@ -299,8 +299,9 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
       document.body.style.overflow = 'hidden';
       document.addEventListener('keydown', handleKeyDown);
       
-      if (containerRef.current) {
-        containerRef.current.addEventListener('wheel', handleWheel, { passive: false });
+      const container = containerRef.current;
+      if (container) {
+        container.addEventListener('wheel', handleWheel, { passive: false });
       }
     } else {
       document.body.style.overflow = 'unset';
@@ -309,8 +310,9 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
     return () => {
       document.body.style.overflow = 'unset';
       document.removeEventListener('keydown', handleKeyDown);
-      if (containerRef.current) {
-        containerRef.current.removeEventListener('wheel', handleWheel);
+      const container = containerRef.current;
+      if (container) {
+        container.removeEventListener('wheel', handleWheel);
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
