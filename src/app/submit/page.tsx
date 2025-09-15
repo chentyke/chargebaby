@@ -1,11 +1,10 @@
-import { Suspense } from 'react';
-import { SubmissionForm } from '@/components/submission-form';
-import { Loading } from '@/components/ui/loading';
+import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
+import { TestTube, Eye, FileText, Users } from 'lucide-react';
 
 export const metadata = {
   title: '产品投稿 - ChargeBaby',
-  description: '提交充电宝产品信息，帮助完善我们的数据库',
+  description: '提交充电宝产品信息或申请测试，帮助完善我们的数据库',
 };
 
 export default function SubmitPage() {
@@ -30,31 +29,55 @@ export default function SubmitPage() {
             </span>
           </h1>
           <p className="text-lg text-gray-600/90 max-w-2xl mx-auto">
-            分享你的充电宝测试数据，帮助更多用户做出更好的选择
+            分享你的充电宝测试数据或申请产品测试
           </p>
         </div>
 
-        {/* 投稿表单 */}
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl shadow-black/5 overflow-hidden">
-            <Suspense fallback={<Loading text="加载表单..." />}>
-              <SubmissionForm />
-            </Suspense>
-          </div>
+        {/* 投稿选项 */}
+        <div className="max-w-4xl mx-auto space-y-4 mb-8">
+          {/* 选项1: 我拥有此产品并进行测试 */}
+          <Link href="https://docs.qq.com/form/page/DT1ZzRXZyZEZRTFJU" target="_blank" rel="noopener noreferrer">
+            <div className="group bg-white/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg shadow-black/5 p-6 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 cursor-pointer active:scale-[0.98]">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                  <TestTube className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">我拥有此产品并进行测试</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    分享测试数据和使用体验
+                  </p>
+                  <div className="inline-flex items-center gap-1 text-blue-600 text-xs font-medium mt-2 group-hover:text-blue-700">
+                    <FileText className="w-3 h-3" />
+                    填写测试数据表单
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* 选项2: 我想看此产品的数据 */}
+          <Link href="/wishlist">
+            <div className="group bg-white/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg shadow-black/5 p-6 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 cursor-pointer active:scale-[0.98]">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                  <Eye className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">我想看此产品的数据</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    申请测试感兴趣的充电宝产品
+                  </p>
+                  <div className="inline-flex items-center gap-1 text-purple-600 text-xs font-medium mt-2 group-hover:text-purple-700">
+                    <Users className="w-3 h-3" />
+                    查看待测排行榜
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
 
-        {/* 提示信息 */}
-        <div className="max-w-4xl mx-auto mt-8">
-          <div className="bg-blue-50/50 backdrop-blur-sm rounded-2xl border border-blue-100/50 p-6">
-            <h3 className="text-base font-semibold text-blue-900 mb-2">投稿须知</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• 请确保提供的数据真实准确</li>
-              <li>• 测试数据应基于实际测试环境</li>
-              <li>• 图片请使用清晰的产品照片</li>
-              <li>• 提交后我们会进行审核，通过后将显示在网站上</li>
-            </ul>
-          </div>
-        </div>
       </div>
     </div>
   );

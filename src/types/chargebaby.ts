@@ -181,3 +181,29 @@ export const PRODUCT_FEATURES = [
 ] as const;
 
 export type ProductFeature = typeof PRODUCT_FEATURES[number];
+
+// 待测产品类型定义（简化版）
+export interface WishlistProduct {
+  id: string;
+  name: string; // 产品名称
+  voteCount: number; // 投票数
+  status: 'requested' | 'planned' | 'testing' | 'completed'; // 测试状态
+  submittedAt: string; // 提交时间
+  updatedAt: string; // 更新时间
+}
+
+// 测试状态标签
+export const WISHLIST_STATUS_LABELS: Record<WishlistProduct['status'], string> = {
+  requested: '等待测试',
+  planned: '计划测试',
+  testing: '测试中',
+  completed: '已完成'
+};
+
+// 测试状态颜色
+export const WISHLIST_STATUS_COLORS: Record<WishlistProduct['status'], string> = {
+  requested: 'bg-gray-100 text-gray-700',
+  planned: 'bg-blue-100 text-blue-700',
+  testing: 'bg-yellow-100 text-yellow-700',
+  completed: 'bg-green-100 text-green-700'
+};

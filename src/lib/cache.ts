@@ -31,14 +31,14 @@ class ServerCache {
   /**
    * 获取缓存项
    */
-  get<T>(key: string): T | null {
+  get<T>(key: string, allowStale: boolean = false): T | null {
     const item = this.cache.get(key);
     if (!item) return null;
 
     const now = Date.now();
     const isExpired = now - item.timestamp > item.ttl;
 
-    if (isExpired) {
+    if (isExpired && !allowStale) {
       this.cache.delete(key);
       return null;
     }
@@ -155,4 +155,6 @@ export const serverCache = new ServerCache();
 export const CACHE_KEYS = {
   CHARGE_BABIES: 'charge-babies',
   CHARGE_BABY_BY_ID: (id: string) => `charge-baby-${id}`,
+  WISHLIST_PRODUCTS: 'wishlist-products',
+  WISHLIST_PRODUCT_BY_ID: (id: string) => `wishlist-product-${id}`,
 } as const;

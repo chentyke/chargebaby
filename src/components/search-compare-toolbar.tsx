@@ -80,7 +80,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         </Link>
 
         {/* 投稿按钮 */}
-        <Link href="https://docs.qq.com/form/page/DT1ZzRXZyZEZRTFJU" target="_blank" rel="noopener noreferrer">
+        <Link href="/submit">
           <div className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300">
             <Plus className="w-5 h-5" />
           </div>
@@ -161,7 +161,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
           </Link>
 
           {/* 投稿按钮 */}
-          <Link href="https://docs.qq.com/form/page/DT1ZzRXZyZEZRTFJU" target="_blank" rel="noopener noreferrer">
+          <Link href="/submit">
             <div className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300 group">
               <Plus className="w-5 h-5" />
               <span className="text-sm font-medium whitespace-nowrap">投稿</span>

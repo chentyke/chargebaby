@@ -1,10 +1,11 @@
-import { ChargeBaby, NotionDatabase, NotionPage, DetailData } from '@/types/chargebaby';
+import { ChargeBaby, NotionDatabase, NotionPage, DetailData, WishlistProduct, WishlistComment } from '@/types/chargebaby';
 import { serverCache, CACHE_KEYS } from './cache';
 
 const notionApiBase = 'https://api.notion.com/v1';
 const notionVersion = process.env.NOTION_VERSION || '2022-06-28';
 const notionApiKey = process.env.NOTION_API_KEY;
 const databaseId = process.env.NOTION_DATABASE_ID!;
+const wishlistDatabaseId = process.env.NOTION_WISHLIST_DATABASE_ID!;
 
 async function notionFetch<T>(path: string, init?: RequestInit, retries = 3): Promise<T> {
   if (!notionApiKey) throw new Error('NOTION_API_KEY is not set');
@@ -649,4 +650,189 @@ function parseListProperty(text: string): string[] {
 function formatNumber(num: number): number {
   if (num === 0 || !num) return 0;
   return Math.round(num * 100) / 100;
+}
+
+// ========== 待测产品相关函数 ==========
+
+/**
+ * 从 Notion API 获取待测产品数据（不使用缓存）
+ */
+async function fetchWishlistProductsFromNotion(): Promise<WishlistProduct[]> {
+  // 检查必要的环境变量
+  if (!wishlistDatabaseId) {
+    console.warn('⚠️  NOTION_WISHLIST_DATABASE_ID not configured, returning empty array');
+    return [];
+  }
+
+  const response = await notionFetch<NotionDatabase>(`/databases/${wishlistDatabaseId}/query`, {
+    method: 'POST',
+    body: JSON.stringify({
+      sorts: [
+        {
+          property: 'VoteCount',
+          direction: 'descending',
+        },
+        {
+          property: 'UpdatedAt',
+          direction: 'descending',
+        },
+      ],
+    }),
+  });
+
+  return response.results.map(parseNotionPageToWishlistProduct);
+}
+
+/**
+ * 获取所有待测产品数据（带缓存）
+ */
+export async function getWishlistProducts(): Promise<WishlistProduct[]> {
+  try {
+    // 尝试从缓存获取
+    const cached = serverCache.get<WishlistProduct[]>(CACHE_KEYS.WISHLIST_PRODUCTS);
+    if (cached) {
+      console.log('📦 Serving wishlist products from cache');
+      return cached;
+    }
+
+    console.log('🌐 Fetching wishlist products from Notion API');
+    const data = await fetchWishlistProductsFromNotion();
+    
+    // 设置缓存，120秒过期，自动刷新
+    serverCache.setWithAutoRefresh(
+      CACHE_KEYS.WISHLIST_PRODUCTS,
+      data,
+      120, // 120秒
+      fetchWishlistProductsFromNotion
+    );
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching wishlist products:', error);
+    
+    // 如果发生错误，尝试返回缓存的数据（即使过期）
+    const staleData = serverCache.get<WishlistProduct[]>(CACHE_KEYS.WISHLIST_PRODUCTS, true);
+    if (staleData) {
+      console.log('⚠️  Using stale wishlist products data due to error');
+      return staleData;
+    }
+    
+    return [];
+  }
+}
+
+/**
+ * 根据 ID 获取特定待测产品
+ */
+export async function getWishlistProductById(id: string): Promise<WishlistProduct | null> {
+  try {
+    const products = await getWishlistProducts();
+    return products.find(product => product.id === id) || null;
+  } catch (error) {
+    console.error('Error fetching wishlist product by id:', error);
+    return null;
+  }
+}
+
+/**
+ * 为待测产品投票
+ */
+export async function voteForWishlistProduct(productId: string): Promise<boolean> {
+  try {
+    if (!wishlistDatabaseId) {
+      console.warn('⚠️  NOTION_WISHLIST_DATABASE_ID not configured');
+      return false;
+    }
+
+    // 首先获取当前的投票数
+    const response = await notionFetch<NotionPage>(`/pages/${productId}`);
+    const currentVotes = getNumberProperty(response.properties.VoteCount) || 0;
+    
+    // 更新投票数
+    await notionFetch(`/pages/${productId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        properties: {
+          VoteCount: {
+            number: currentVotes + 1
+          },
+          UpdatedAt: {
+            date: {
+              start: new Date().toISOString()
+            }
+          }
+        }
+      }),
+    });
+
+    // 清除缓存以强制刷新
+    serverCache.delete(CACHE_KEYS.WISHLIST_PRODUCTS);
+    
+    return true;
+  } catch (error) {
+    console.error('Error voting for wishlist product:', error);
+    return false;
+  }
+}
+
+/**
+ * 添加新的待测产品请求（简化版）
+ */
+export async function addWishlistProduct(productName: string): Promise<boolean> {
+  try {
+    if (!wishlistDatabaseId) {
+      console.warn('⚠️  NOTION_WISHLIST_DATABASE_ID not configured');
+      return false;
+    }
+
+    const now = new Date().toISOString();
+    
+    await notionFetch(`/pages`, {
+      method: 'POST',
+      body: JSON.stringify({
+        parent: { database_id: wishlistDatabaseId },
+        properties: {
+          Name: {
+            title: [{ text: { content: productName } }]
+          },
+          VoteCount: {
+            number: 1 // 提交者默认投票
+          },
+          Status: {
+            select: { name: 'requested' } // 默认状态为"等待测试"
+          },
+          SubmittedAt: {
+            date: { start: now }
+          },
+          UpdatedAt: {
+            date: { start: now }
+          }
+        }
+      }),
+    });
+
+    // 清除缓存以强制刷新
+    serverCache.delete(CACHE_KEYS.WISHLIST_PRODUCTS);
+    
+    return true;
+  } catch (error) {
+    console.error('Error adding wishlist product:', error);
+    return false;
+  }
+}
+
+/**
+ * 将 Notion 页面数据解析为 WishlistProduct 对象（简化版）
+ */
+function parseNotionPageToWishlistProduct(page: NotionPage): WishlistProduct {
+  const props = page.properties;
+
+  return {
+    id: page.id,
+    name: getTextProperty(props.Name) || '',
+    voteCount: getNumberProperty(props.VoteCount) || 0,
+    status: (getSelectProperty(props.Status) as WishlistProduct['status']) || 'requested',
+    submittedAt: getDateProperty(props.SubmittedAt) || new Date().toISOString(),
+    updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
+  };
 }
