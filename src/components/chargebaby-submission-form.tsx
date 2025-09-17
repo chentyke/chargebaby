@@ -131,6 +131,18 @@ const TEMPERATURE_BASE_OPTIONS = TEMPERATURE_OPTIONS.filter(option => option !==
 const TEMPERATURE_UNIFORMITY_BASE_OPTIONS = TEMPERATURE_UNIFORMITY_OPTIONS.filter(option => option !== ESTIMATION_LABEL);
 const RIPPLE_BASE_OPTIONS = RIPPLE_OPTIONS.filter(option => option !== ESTIMATION_LABEL);
 
+const DISPLAY_CUSTOMIZATION_OPTIONS = [
+  '不具有任何显示载体，或不具备任何下列自定义调节能力',
+  '可以手动/自动关闭显示载体（只要可以在使用过程中处于屏幕关闭状态，即勾选）',
+  '显示载体为TFT显示屏，且支持常亮显示（只要可以在使用过程中长期处于屏幕开启状态，即勾选）',
+  '显示载体为TFT显示屏，且支持自定义是否开启常亮显示，或设置亮屏时长'
+];
+
+const PORT_DIRECTION_OPTIONS = [
+  '不具有自定义特定接口输入输出方向的能力',
+  '可以自定义特定接口输入输出方向（例如下图所示）'
+];
+
 export function ChargeBabySubmissionForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -243,6 +255,40 @@ export function ChargeBabySubmissionForm() {
       return {
         ...prev,
         [field]: newArray
+      };
+    });
+  };
+
+  const toggleOptionWithExclusive = (
+    field: keyof ChargeBabySubmissionData,
+    value: string,
+    exclusiveValue: string
+  ) => {
+    setFormData(prev => {
+      const current = (prev[field] as string[]) || [];
+      const hasValue = current.includes(value);
+
+      if (value === exclusiveValue) {
+        if (hasValue) {
+          return {
+            ...prev,
+            [field]: current.filter(item => item !== value),
+          };
+        }
+        return {
+          ...prev,
+          [field]: [exclusiveValue],
+        };
+      }
+
+      const withoutExclusive = current.filter(item => item !== exclusiveValue);
+      const next = hasValue
+        ? withoutExclusive.filter(item => item !== value)
+        : [...withoutExclusive, value];
+
+      return {
+        ...prev,
+        [field]: next,
       };
     });
   };
@@ -908,7 +954,7 @@ IoT能力: ${formatList(formData.iotCapabilities)}
                     <Checkbox
                       id={`pd-fixed-${option}`}
                       checked={formData.pdFixedVoltageSupport.includes(option)}
-                      onCheckedChange={() => toggleArrayValue('pdFixedVoltageSupport', option)}
+                      onCheckedChange={() => toggleOptionWithExclusive('pdFixedVoltageSupport', option, '不支持PD协议')}
                     />
                     <Label 
                       htmlFor={`pd-fixed-${option}`} 
@@ -1008,7 +1054,7 @@ IoT能力: ${formatList(formData.iotCapabilities)}
                     <Checkbox
                       id={`qc-${option}`}
                       checked={formData.qcSupport.includes(option)}
-                      onCheckedChange={() => toggleArrayValue('qcSupport', option)}
+                      onCheckedChange={() => toggleOptionWithExclusive('qcSupport', option, '不支持QC协议')}
                     />
                     <Label 
                       htmlFor={`qc-${option}`} 
@@ -1305,7 +1351,7 @@ IoT能力: ${formatList(formData.iotCapabilities)}
                     <Checkbox
                       id={`display-content-${option}`}
                       checked={formData.displayContent.includes(option)}
-                      onCheckedChange={() => toggleArrayValue('displayContent', option)}
+                      onCheckedChange={() => toggleOptionWithExclusive('displayContent', option, '不具有以下内容的显示能力')}
                     />
                     <Label 
                       htmlFor={`display-content-${option}`} 
@@ -1378,6 +1424,54 @@ IoT能力: ${formatList(formData.iotCapabilities)}
 
             <div className="space-y-4">
               <div>
+                <Label className="text-sm font-medium text-gray-900">显示自定义能力</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源在信息显示方面的自定义调节功能。（可进行多选）</p>
+              </div>
+              <div className="grid gap-3">
+                {DISPLAY_CUSTOMIZATION_OPTIONS.map((option, index) => (
+                  <div key={option} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`display-customization-${index}`}
+                      checked={formData.displayCustomization.includes(option)}
+                      onCheckedChange={() => toggleOptionWithExclusive('displayCustomization', option, '不具有任何显示载体，或不具备任何下列自定义调节能力')}
+                    />
+                    <Label 
+                      htmlFor={`display-customization-${index}`} 
+                      className="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">接口方向自定义</Label>
+                <p className="text-xs text-muted-foreground mt-1">对某些接口指定输入或输出方向的能力。</p>
+              </div>
+              <RadioGroup
+                value={formData.portDirectionCustomization}
+                onValueChange={(value) => updateFormData('portDirectionCustomization', value)}
+                className="grid gap-3"
+              >
+                {PORT_DIRECTION_OPTIONS.map((option, index) => (
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`port-direction-${index}`} />
+                    <Label 
+                      htmlFor={`port-direction-${index}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-4">
+              <div>
                 <Label className="text-sm font-medium text-gray-900">IoT能力</Label>
                 <p className="text-xs text-muted-foreground mt-1">移动电源的物联网接入能力，及其远程控制功能。</p>
               </div>
@@ -1395,7 +1489,7 @@ IoT能力: ${formatList(formData.iotCapabilities)}
                     <Checkbox
                       id={`iot-${option}`}
                       checked={formData.iotCapabilities.includes(option)}
-                      onCheckedChange={() => toggleArrayValue('iotCapabilities', option)}
+                      onCheckedChange={() => toggleOptionWithExclusive('iotCapabilities', option, '不支持IoT接入（蓝牙、Wi-Fi等）能力，或不具备任何下列功能')}
                     />
                     <Label 
                       htmlFor={`iot-${option}`} 
