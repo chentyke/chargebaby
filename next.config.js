@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    rules: {
+      'react/no-unescaped-entities': 'off', // 关闭中文引号警告
+    },
+  },
   images: {
     remotePatterns: [
       {

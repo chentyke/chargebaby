@@ -106,7 +106,7 @@ export default function SubmitPage() {
                     className="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <span className="text-gray-700 text-sm">
-                    我同意《数据收集与使用协议》，并确认我拥有提交数据的合法权利，同意将测试数据的使用权授予本数据库用于产品比较和分析目的。
+                    您在本网站提交的所有测试数据，版权仍归您本人所有。您同意授予本站在全球范围内的免费、非独占、可长期使用的权利，用于存储、展示、整理及分析这些数据。本站在使用过程中会注明数据来源，不会将您的个人信息公开或用于商业用途。
                   </span>
                 </label>
               </div>

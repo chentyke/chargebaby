@@ -2,6 +2,14 @@
 
 import { useState } from 'react';
 import { Send, Plus, Minus, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 // 基于设计草稿的完整数据结构
 interface ChargeBabySubmissionData {
@@ -286,7 +294,8 @@ export function ChargeBabySubmissionForm() {
         disadvantages: [formData.disadvantages],
         
         submitterName: formData.submitterName,
-        submitterEmail: formData.submitterContact || 'no-email@provided.com',
+        submitterEmail: 'no-email@provided.com', // 联系方式不是邮箱字段
+        submitterContact: formData.submitterContact,
         submitterNote: `
 详细测试数据：
 线缆长度: ${formData.cableLength}
@@ -357,69 +366,72 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">产品基础信息</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <Label htmlFor="productName" className="text-sm font-medium text-gray-900">
                 移动电源的名称 *
-              </label>
-              <p className="text-xs text-gray-500 mb-2">一般以产品外壳标识为准</p>
-              <input
+              </Label>
+              <p className="text-xs text-muted-foreground">一般以产品外壳标识为准</p>
+              <Input
+                id="productName"
                 type="text"
                 value={formData.productName}
                 onChange={(e) => updateFormData('productName', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.productName ? 'border-red-300' : 'border-gray-200'
-                }`}
+                className={cn(
+                  errors.productName && "border-destructive focus-visible:ring-destructive"
+                )}
                 placeholder="例：小米自带线充电宝 10000 67W"
               />
               {errors.productName && (
-                <p className="text-red-500 text-xs mt-1">{errors.productName}</p>
+                <p className="text-destructive text-xs">{errors.productName}</p>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">品牌 *</label>
-                <p className="text-xs text-gray-500 mb-2">如无品牌，可填入制造商名称</p>
-                <input
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="brand" className="text-sm font-medium text-gray-900">品牌 *</Label>
+                <p className="text-xs text-muted-foreground">如无品牌，可填入制造商名称</p>
+                <Input
+                  id="brand"
                   type="text"
                   value={formData.brand}
                   onChange={(e) => updateFormData('brand', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.brand ? 'border-red-300' : 'border-gray-200'
-                  }`}
+                  className={cn(
+                    errors.brand && "border-destructive focus-visible:ring-destructive"
+                  )}
                   placeholder="例：小米"
                 />
                 {errors.brand && (
-                  <p className="text-red-500 text-xs mt-1">{errors.brand}</p>
+                  <p className="text-destructive text-xs">{errors.brand}</p>
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">型号</label>
-                <p className="text-xs text-gray-500 mb-2">以产品外壳标识为准</p>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="model" className="text-sm font-medium text-gray-900">型号</Label>
+                <p className="text-xs text-muted-foreground">以产品外壳标识为准</p>
+                <Input
+                  id="model"
                   type="text"
                   value={formData.model}
                   onChange={(e) => updateFormData('model', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="例：PB1067"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">容量级别 (mAh) *</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="capacityLevel" className="text-sm font-medium text-gray-900">容量级别 (mAh) *</Label>
+              <Input
+                id="capacityLevel"
                 type="number"
                 value={formData.capacityLevel || ''}
                 onChange={(e) => updateFormData('capacityLevel', parseFloat(e.target.value) || 0)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.capacityLevel ? 'border-red-300' : 'border-gray-200'
-                }`}
+                className={cn(
+                  errors.capacityLevel && "border-destructive focus-visible:ring-destructive"
+                )}
                 placeholder="例：10000"
               />
               {errors.capacityLevel && (
-                <p className="text-red-500 text-xs mt-1">{errors.capacityLevel}</p>
+                <p className="text-destructive text-xs">{errors.capacityLevel}</p>
               )}
             </div>
           </div>
@@ -430,97 +442,105 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">物理规格</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">长度 (cm)</label>
-                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
-                <input
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="length" className="text-sm font-medium text-gray-900">长度 (cm)</Label>
+                <p className="text-xs text-muted-foreground">以实际测量为准，亦可填入官方数据</p>
+                <Input
+                  id="length"
                   type="number"
                   step="0.1"
                   value={formData.length || ''}
                   onChange={(e) => updateFormData('length', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="11.5"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">宽度 (cm)</label>
-                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="width" className="text-sm font-medium text-gray-900">宽度 (cm)</Label>
+                <p className="text-xs text-muted-foreground">以实际测量为准，亦可填入官方数据</p>
+                <Input
+                  id="width"
                   type="number"
                   step="0.1"
                   value={formData.width || ''}
                   onChange={(e) => updateFormData('width', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="6.6"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">厚度 (cm)</label>
-                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="thickness" className="text-sm font-medium text-gray-900">厚度 (cm)</Label>
+                <p className="text-xs text-muted-foreground">以实际测量为准，亦可填入官方数据</p>
+                <Input
+                  id="thickness"
                   type="number"
                   step="0.1"
                   value={formData.thickness || ''}
                   onChange={(e) => updateFormData('thickness', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="2.6"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">重量 (g)</label>
-                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="weight" className="text-sm font-medium text-gray-900">重量 (g)</Label>
+                <p className="text-xs text-muted-foreground">以实际测量为准，亦可填入官方数据</p>
+                <Input
+                  id="weight"
                   type="number"
                   value={formData.weight || ''}
                   onChange={(e) => updateFormData('weight', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="247"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">线缆长度 (cm)</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源附带的不可拆卸线缆长度。如有多根线缆，请勾选其他然后分别进行描述。</p>
-              <div className="space-y-2">
-                {CABLE_LENGTH_OPTIONS.map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="cableLength"
-                      value={option}
-                      checked={formData.cableLength === option}
-                      onChange={(e) => updateFormData('cableLength', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
-                ))}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">线缆长度 (cm)</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源附带的不可拆卸线缆长度。如有多根线缆，请勾选其他然后分别进行描述。</p>
               </div>
+              <RadioGroup
+                value={formData.cableLength}
+                onValueChange={(value) => updateFormData('cableLength', value)}
+                className="grid gap-3"
+              >
+                {CABLE_LENGTH_OPTIONS.map(option => (
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`cable-length-${option}`} />
+                    <Label 
+                      htmlFor={`cable-length-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">线缆柔软度</label>
-              <p className="text-xs text-gray-500 mb-2">对移动电源附带的不可拆卸线缆柔软程度的主观感受。</p>
-              <div className="space-y-2">
-                {CABLE_FLEXIBILITY_OPTIONS.map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="cableFlexibility"
-                      value={option}
-                      checked={formData.cableFlexibility === option}
-                      onChange={(e) => updateFormData('cableFlexibility', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
-                ))}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">线缆柔软度</Label>
+                <p className="text-xs text-muted-foreground mt-1">对移动电源附带的不可拆卸线缆柔软程度的主观感受。</p>
               </div>
+              <RadioGroup
+                value={formData.cableFlexibility}
+                onValueChange={(value) => updateFormData('cableFlexibility', value)}
+                className="grid gap-3"
+              >
+                {CABLE_FLEXIBILITY_OPTIONS.map(option => (
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`cable-flex-${option}`} />
+                    <Label 
+                      htmlFor={`cable-flex-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
           </div>
         );
@@ -530,40 +550,40 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">性能数据：自充电</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">自充电时长 (min)</label>
-              <p className="text-xs text-gray-500 mb-2">在自然散热条件下，从"完全放电（0%）"状态充电至"完全充满"（100%，且输入功率小于1W）状态所需的时间。</p>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="selfChargingTime" className="text-sm font-medium text-gray-900">自充电时长 (min)</Label>
+              <p className="text-xs text-muted-foreground">在自然散热条件下，从"完全放电（0%）"状态充电至"完全充满"（100%，且输入功率小于1W）状态所需的时间。</p>
+              <Input
+                id="selfChargingTime"
                 type="number"
                 value={formData.selfChargingTime || ''}
                 onChange={(e) => updateFormData('selfChargingTime', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="75"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">自充能量 (Wh)</label>
-              <p className="text-xs text-gray-500 mb-2">从"完全放电（0%）"状态充电至"完全充满"状态所充入的能量。请勿使用mAh数据。</p>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="selfChargingEnergy" className="text-sm font-medium text-gray-900">自充能量 (Wh)</Label>
+              <p className="text-xs text-muted-foreground">从"完全放电（0%）"状态充电至"完全充满"状态所充入的能量。请勿使用mAh数据。</p>
+              <Input
+                id="selfChargingEnergy"
                 type="number"
                 step="0.01"
                 value={formData.selfChargingEnergy || ''}
                 onChange={(e) => updateFormData('selfChargingEnergy', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="43.99"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">20分钟充入能量 (Wh)</label>
-              <p className="text-xs text-gray-500 mb-2">从"完全放电（0%）"状态充电，前20分钟所充入的能量。</p>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="energy20min" className="text-sm font-medium text-gray-900">20分钟充入能量 (Wh)</Label>
+              <p className="text-xs text-muted-foreground">从"完全放电（0%）"状态充电，前20分钟所充入的能量。</p>
+              <Input
+                id="energy20min"
                 type="number"
                 step="0.01"
                 value={formData.energy20min || ''}
                 onChange={(e) => updateFormData('energy20min', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="18.48"
               />
             </div>
@@ -575,27 +595,27 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">性能数据：输出</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">最大持续输出平均功率 (W)</label>
-              <p className="text-xs text-gray-500 mb-2">在自然散热条件下，从"完全充满"状态开始连续最大功率放电，直至达到"完全放电"状态的平均功率。</p>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="maxContinuousOutputPower" className="text-sm font-medium text-gray-900">最大持续输出平均功率 (W)</Label>
+              <p className="text-xs text-muted-foreground">在自然散热条件下，从"完全充满"状态开始连续最大功率放电，直至达到"完全放电"状态的平均功率。</p>
+              <Input
+                id="maxContinuousOutputPower"
                 type="number"
                 value={formData.maxContinuousOutputPower || ''}
                 onChange={(e) => updateFormData('maxContinuousOutputPower', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="39"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">最大放电容量 (Wh)</label>
-              <p className="text-xs text-gray-500 mb-2">在任意条件下使用任意功率从"完全充满"状态开始放电直到"完全放电"状态时的最大放电容量。</p>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="maxDischargeCapacity" className="text-sm font-medium text-gray-900">最大放电容量 (Wh)</Label>
+              <p className="text-xs text-muted-foreground">在任意条件下使用任意功率从"完全充满"状态开始放电直到"完全放电"状态时的最大放电容量。</p>
+              <Input
+                id="maxDischargeCapacity"
                 type="number"
                 step="0.01"
                 value={formData.maxDischargeCapacity || ''}
                 onChange={(e) => updateFormData('maxDischargeCapacity', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="37.62"
               />
             </div>
@@ -607,82 +627,100 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">性能数据：温度与纹波</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">表面最高温度 (℃)</label>
-              <p className="text-xs text-gray-500 mb-2">在自充电或高负载输出场景下，移动电源表面出现的最高温度。</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">表面最高温度 (℃)</Label>
+                <p className="text-xs text-muted-foreground mt-1">在自充电或高负载输出场景下，移动电源表面出现的最高温度。</p>
+              </div>
+              <RadioGroup
+                value={formData.maxSurfaceTemperature}
+                onValueChange={(value) => updateFormData('maxSurfaceTemperature', value)}
+                className="grid gap-3"
+              >
                 {TEMPERATURE_OPTIONS.map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="maxSurfaceTemperature"
-                      value={option}
-                      checked={formData.maxSurfaceTemperature === option}
-                      onChange={(e) => updateFormData('maxSurfaceTemperature', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`temp-${option}`} />
+                    <Label 
+                      htmlFor={`temp-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">温度均匀性</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源表面温度分布情况的主观感受。</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">温度均匀性</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源表面温度分布情况的主观感受。</p>
+              </div>
+              <RadioGroup
+                value={formData.temperatureUniformity}
+                onValueChange={(value) => updateFormData('temperatureUniformity', value)}
+                className="grid gap-3"
+              >
                 {TEMPERATURE_UNIFORMITY_OPTIONS.map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="temperatureUniformity"
-                      value={option}
-                      checked={formData.temperatureUniformity === option}
-                      onChange={(e) => updateFormData('temperatureUniformity', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`temp-uniformity-${option}`} />
+                    <Label 
+                      htmlFor={`temp-uniformity-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">温控策略</label>
-              <p className="text-xs text-gray-500 mb-2">在所有自充电/输出场景下的温控策略。（该选项为多选）</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">温控策略</Label>
+                <p className="text-xs text-muted-foreground mt-1">在所有自充电/输出场景下的温控策略。（该选项为多选）</p>
+              </div>
+              <div className="grid gap-3">
                 {THERMAL_CONTROL_OPTIONS.map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="checkbox"
+                  <div key={option} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`thermal-${option}`}
                       checked={formData.thermalControlStrategy.includes(option)}
-                      onChange={() => toggleArrayValue('thermalControlStrategy', option)}
-                      className="mr-2"
+                      onCheckedChange={() => toggleArrayValue('thermalControlStrategy', option)}
                     />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                    <Label 
+                      htmlFor={`thermal-${option}`} 
+                      className="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">最大纹波 (mV)</label>
-              <p className="text-xs text-gray-500 mb-2">任意输出工况下纹波的最大值。</p>
-              <div className="space-y-2">
-                {RIPPLE_OPTIONS.map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="maxRipple"
-                      value={option}
-                      checked={formData.maxRipple === option}
-                      onChange={(e) => updateFormData('maxRipple', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
-                ))}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">最大纹波 (mV)</Label>
+                <p className="text-xs text-muted-foreground mt-1">任意输出工况下纹波的最大值。</p>
               </div>
+              <RadioGroup
+                value={formData.maxRipple}
+                onValueChange={(value) => updateFormData('maxRipple', value)}
+                className="grid gap-3"
+              >
+                {RIPPLE_OPTIONS.map(option => (
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`ripple-${option}`} />
+                    <Label 
+                      htmlFor={`ripple-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
           </div>
         );
@@ -692,42 +730,51 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">协议支持性</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">PD固定档支持性</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源任意接口对PD协议的支持性中，有关固定电压档位的部分。（可进行多选）</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">PD固定档支持性</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源任意接口对PD协议的支持性中，有关固定电压档位的部分。（可进行多选）</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {['不支持PD协议', '5V', '9V', '12V', '15V', '20V', '28V'].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="checkbox"
+                  <div key={option} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`pd-fixed-${option}`}
                       checked={formData.pdFixedVoltageSupport.includes(option)}
-                      onChange={() => toggleArrayValue('pdFixedVoltageSupport', option)}
-                      className="mr-2"
+                      onCheckedChange={() => toggleArrayValue('pdFixedVoltageSupport', option)}
                     />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                    <Label 
+                      htmlFor={`pd-fixed-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">PD PPS支持性</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源任意接口对PD协议的支持性中，有关PPS的部分。</p>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">PD PPS支持性</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源任意接口对PD协议的支持性中，有关PPS的部分。</p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="pd-pps-none"
                     checked={formData.pdPpsSupport.includes('不支持PPS')}
-                    onChange={() => toggleArrayValue('pdPpsSupport', '不支持PPS')}
-                    className="mr-2"
+                    onCheckedChange={() => toggleArrayValue('pdPpsSupport', '不支持PPS')}
                   />
-                  <span className="text-sm">不支持PPS</span>
-                </label>
+                  <Label htmlFor="pd-pps-none" className="text-sm font-normal cursor-pointer">
+                    不支持PPS
+                  </Label>
+                </div>
                 <div className="flex items-center gap-2">
-                  <input
+                  <Input
                     type="text"
                     placeholder="例：5-11V 6.1A"
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         const value = e.currentTarget.value;
@@ -741,34 +788,42 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {formData.pdPpsSupport.filter(item => item !== '不支持PPS').map((item, index) => (
-                    <span key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                    <span key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
                       {item}
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => toggleArrayValue('pdPpsSupport', item)}
-                        className="text-blue-500 hover:text-blue-700"
+                        className="h-auto p-0 text-primary/70 hover:text-primary"
                       >
                         <Minus className="w-3 h-3" />
-                      </button>
+                      </Button>
                     </span>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">QC支持性</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源任意接口对QC协议的支持性。仅包括对QC2.0、QC3.0的支持。</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">QC支持性</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源任意接口对QC协议的支持性。仅包括对QC2.0、QC3.0的支持。</p>
+              </div>
+              <div className="grid gap-3">
                 {['不支持QC协议', 'QC2.0', 'QC3.0'].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="checkbox"
+                  <div key={option} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`qc-${option}`}
                       checked={formData.qcSupport.includes(option)}
-                      onChange={() => toggleArrayValue('qcSupport', option)}
-                      className="mr-2"
+                      onCheckedChange={() => toggleArrayValue('qcSupport', option)}
                     />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                    <Label 
+                      htmlFor={`qc-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -780,9 +835,15 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">多接口使用</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">双接口同时输出能力</label>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">双接口同时输出能力</Label>
+              </div>
+              <RadioGroup
+                value={formData.dualPortOutputCapability}
+                onValueChange={(value) => updateFormData('dualPortOutputCapability', value)}
+                className="grid gap-3"
+              >
                 {[
                   '仅具有一个输出接口，或无法双接口同时输出',
                   '双接口同时输出总功率小于单口最大输出功率的20%，或同时输出总功率小于20W',
@@ -792,25 +853,29 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   '双接口同时输出总功率大于单口最大输出功率的100%，小于150%',
                   '双接口同时输出总功率大于单口最大输出功率的150%'
                 ].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="dualPortOutputCapability"
-                      value={option}
-                      checked={formData.dualPortOutputCapability === option}
-                      onChange={(e) => updateFormData('dualPortOutputCapability', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`dual-output-${option}`} />
+                    <Label 
+                      htmlFor={`dual-output-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">双接口边冲边放</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源在自充电的同时进行输出的能力。</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">双接口边冲边放</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源在自充电的同时进行输出的能力。</p>
+              </div>
+              <RadioGroup
+                value={formData.dualPortPassthrough}
+                onValueChange={(value) => updateFormData('dualPortPassthrough', value)}
+                className="grid gap-3"
+              >
                 {[
                   '仅具有一个输出输出接口，或无法双接口边冲边放',
                   '在任意条件下，充电功率等于输出功率。或输入/输出功率均小于15W',
@@ -818,40 +883,44 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   '充电功率大于输出功率，且输入能达到仅输入模式的50%以上，输出能达到仅输出模式的50%以上',
                   '输入功率与输出功率相互独立，均能达到或超过单接口使用时的最大值'
                 ].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="dualPortPassthrough"
-                      value={option}
-                      checked={formData.dualPortPassthrough === option}
-                      onChange={(e) => updateFormData('dualPortPassthrough', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`dual-passthrough-${option}`} />
+                    <Label 
+                      htmlFor={`dual-passthrough-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">双接口使用时的"不断联"能力</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源在双接口同时输出或边冲边放场景下的插拔不断联能力。（可进行多选）</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">双接口使用时的"不断联"能力</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源在双接口同时输出或边冲边放场景下的插拔不断联能力。（可进行多选）</p>
+              </div>
+              <div className="grid gap-3">
                 {[
                   '仅具有一个输出输出接口，或无法双接口同时使用/边冲边放',
                   '具有双接口同时输出或边冲边放能力，但任意条件下插拔接口均会造成断联',
                   '同时输出时，接口插拔不断联',
                   '边冲边放时，接口插拔不断联'
                 ].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="checkbox"
+                  <div key={option} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`dual-disconnect-${option}`}
                       checked={formData.dualPortNoDisconnect.includes(option)}
-                      onChange={() => toggleArrayValue('dualPortNoDisconnect', option)}
-                      className="mr-2"
+                      onCheckedChange={() => toggleArrayValue('dualPortNoDisconnect', option)}
                     />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                    <Label 
+                      htmlFor={`dual-disconnect-${option}`} 
+                      className="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -863,10 +932,12 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">信息显示与其他功能</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">显示内容</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源的信息显示种类。（可进行多选）</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">显示内容</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源的信息显示种类。（可进行多选）</p>
+              </div>
+              <div className="grid gap-3">
                 {[
                   '不具有以下内容的显示能力',
                   '支持显示电量百分比（精确到1%或更高）',
@@ -874,23 +945,33 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   '支持电池信息显示（包括温度、电池健康等任一数据即可）',
                   '支持显示预估的剩余输入/输出时间，且预估较为精准（偏差值在30%以内）'
                 ].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="checkbox"
+                  <div key={option} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`display-content-${option}`}
                       checked={formData.displayContent.includes(option)}
-                      onChange={() => toggleArrayValue('displayContent', option)}
-                      className="mr-2"
+                      onCheckedChange={() => toggleArrayValue('displayContent', option)}
                     />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                    <Label 
+                      htmlFor={`display-content-${option}`} 
+                      className="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">显示载体</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源的主要信息显示载体。</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">显示载体</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源的主要信息显示载体。</p>
+              </div>
+              <RadioGroup
+                value={formData.displayCarrier}
+                onValueChange={(value) => updateFormData('displayCarrier', value)}
+                className="grid gap-3"
+              >
                 {[
                   '不具有任何显示载体',
                   '单个LED指示灯',
@@ -898,49 +979,53 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   '数码管',
                   'TFT显示屏'
                 ].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="displayCarrier"
-                      value={option}
-                      checked={formData.displayCarrier === option}
-                      onChange={(e) => updateFormData('displayCarrier', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`display-carrier-${option}`} />
+                    <Label 
+                      htmlFor={`display-carrier-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">显示亮度</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源的主要信息显示载体在户外强光环境下的可视性。</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">显示亮度</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源的主要信息显示载体在户外强光环境下的可视性。</p>
+              </div>
+              <RadioGroup
+                value={formData.displayBrightness}
+                onValueChange={(value) => updateFormData('displayBrightness', value)}
+                className="grid gap-3"
+              >
                 {[
                   '不具有任何显示载体',
                   '可视性差（无法看清）',
                   '可视性好'
                 ].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="displayBrightness"
-                      value={option}
-                      checked={formData.displayBrightness === option}
-                      onChange={(e) => updateFormData('displayBrightness', e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                  <div key={option} className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`display-brightness-${option}`} />
+                    <Label 
+                      htmlFor={`display-brightness-${option}`} 
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">IoT能力</label>
-              <p className="text-xs text-gray-500 mb-2">移动电源的物联网接入能力，及其远程控制功能。</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">IoT能力</Label>
+                <p className="text-xs text-muted-foreground mt-1">移动电源的物联网接入能力，及其远程控制功能。</p>
+              </div>
+              <div className="grid gap-3">
                 {[
                   '不支持IoT接入（蓝牙、Wi-Fi等）能力，或不具备任何下列功能',
                   '支持异地远程控制（支持Wi-Fi）',
@@ -950,15 +1035,19 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   '支持蓝牙查找（配备蜂鸣器）',
                   '支持接入查找网络（Apple Find My、华为"查找"网络等）'
                 ].map(option => (
-                  <label key={option} className="flex items-center">
-                    <input
-                      type="checkbox"
+                  <div key={option} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`iot-${option}`}
                       checked={formData.iotCapabilities.includes(option)}
-                      onChange={() => toggleArrayValue('iotCapabilities', option)}
-                      className="mr-2"
+                      onCheckedChange={() => toggleArrayValue('iotCapabilities', option)}
                     />
-                    <span className="text-sm">{option}</span>
-                  </label>
+                    <Label 
+                      htmlFor={`iot-${option}`} 
+                      className="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option}
+                    </Label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -970,73 +1059,74 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6">您的产品评价与个人信息</h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">您认为该产品具有哪些优点</label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="advantages" className="text-sm font-medium text-gray-900">您认为该产品具有哪些优点</Label>
+              <Textarea
+                id="advantages"
                 value={formData.advantages}
                 onChange={(e) => updateFormData('advantages', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={4}
                 placeholder="请描述产品的优点..."
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">您认为该产品具有哪些缺点</label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="disadvantages" className="text-sm font-medium text-gray-900">您认为该产品具有哪些缺点</Label>
+              <Textarea
+                id="disadvantages"
                 value={formData.disadvantages}
                 onChange={(e) => updateFormData('disadvantages', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={4}
                 placeholder="请描述产品的缺点..."
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">您的昵称 *</label>
-              <p className="text-xs text-gray-500 mb-2">用于在使用您提供的相关数据时注明来源。</p>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="submitterName" className="text-sm font-medium text-gray-900">您的昵称 *</Label>
+              <p className="text-xs text-muted-foreground">用于在使用您提供的相关数据时注明来源。</p>
+              <Input
+                id="submitterName"
                 type="text"
                 value={formData.submitterName}
                 onChange={(e) => updateFormData('submitterName', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.submitterName ? 'border-red-300' : 'border-gray-200'
-                }`}
+                className={cn(
+                  errors.submitterName && "border-destructive focus-visible:ring-destructive"
+                )}
                 placeholder="您的昵称"
               />
               {errors.submitterName && (
-                <p className="text-red-500 text-xs mt-1">{errors.submitterName}</p>
+                <p className="text-destructive text-xs">{errors.submitterName}</p>
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">您的联系方式</label>
-              <p className="text-xs text-gray-500 mb-2">（可选）用于参与随机抽奖活动。（建议使用"QQ 1234567"、"手机 18712341234"格式）</p>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="submitterContact" className="text-sm font-medium text-gray-900">您的联系方式</Label>
+              <p className="text-xs text-muted-foreground">（可选）用于参与随机抽奖活动。（建议使用"QQ 1234567"、"手机 18712341234"格式）</p>
+              <Input
+                id="submitterContact"
                 type="text"
                 value={formData.submitterContact}
                 onChange={(e) => updateFormData('submitterContact', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="QQ 1234567 或 手机 18712341234"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">其他任意问题或建议</label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="additionalNotes" className="text-sm font-medium text-gray-900">其他任意问题或建议</Label>
+              <Textarea
+                id="additionalNotes"
                 value={formData.additionalNotes}
                 onChange={(e) => updateFormData('additionalNotes', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={4}
                 placeholder="任何其他补充信息..."
               />
             </div>
 
             {submitStatus === 'error' && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-4 bg-destructive/15 border border-destructive/20 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  <p className="text-red-800">{submitError || '提交失败，请检查网络连接或稍后重试。'}</p>
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  <p className="text-destructive">{submitError || '提交失败，请检查网络连接或稍后重试。'}</p>
                 </div>
               </div>
             )}
@@ -1111,29 +1201,30 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
       {/* 导航按钮 */}
       {currentStep < 10 && (
         <div className="flex justify-between items-center">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="px-6 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-2"
           >
             上一步
-          </button>
+          </Button>
 
           {currentStep < 9 ? (
-            <button
+            <Button
               type="button"
               onClick={nextStep}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-2"
             >
               下一步
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting || !formData.submitterName}
-              className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? (
                 <>
@@ -1146,7 +1237,7 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   提交数据
                 </>
               )}
-            </button>
+            </Button>
           )}
         </div>
       )}
