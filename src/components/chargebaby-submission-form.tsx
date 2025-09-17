@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Send, Plus, Minus, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -876,6 +877,32 @@ IoT能力: ${formatList(formData.iotCapabilities)}
                   {ESTIMATION_LABEL}
                 </Label>
               </div>
+              <div className="grid gap-4 sm:grid-cols-3 mt-4">
+                {[
+                  {
+                    src: '/images/submission/temperature-uniformity/extremely-uneven.png',
+                    alt: '温度极不均匀示例',
+                    caption: '极不均匀示例'
+                  },
+                  {
+                    src: '/images/submission/temperature-uniformity/moderately-even.png',
+                    alt: '温度较均匀示例',
+                    caption: '较均匀示例'
+                  },
+                  {
+                    src: '/images/submission/temperature-uniformity/highly-even.png',
+                    alt: '温度很均匀示例',
+                    caption: '很均匀示例'
+                  }
+                ].map(({ src, alt, caption }) => (
+                  <figure key={src} className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-md">
+                      <Image src={src} alt={alt} fill className="object-cover" sizes="(min-width: 1024px) 200px, 33vw" />
+                    </div>
+                    <figcaption className="mt-2 text-center text-xs text-gray-600">{caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -1468,6 +1495,20 @@ IoT能力: ${formatList(formData.iotCapabilities)}
                   </div>
                 ))}
               </RadioGroup>
+              <figure className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+                <div className="relative aspect-video overflow-hidden rounded-md">
+                  <Image
+                    src="/images/submission/port-direction/port-direction-example.jpeg"
+                    alt="接口输入输出方向自定义示例"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 400px, 80vw"
+                  />
+                </div>
+                <figcaption className="mt-2 text-center text-xs text-gray-600">
+                  接口方向自定义示例图
+                </figcaption>
+              </figure>
             </div>
 
             <div className="space-y-4">
