@@ -83,6 +83,7 @@ export interface ChargeBaby {
   subtitle: string; // 副标题
   displayName?: string; // 外部展示名称（列表/分享）
   tags: string[]; // 标签
+  protocols: string[]; // 充电协议 (来自数据库协议字段)
   price: number; // 定价
   releaseDate: string; // 发售时间
   overallRating: number; // 综合评分 (1-100)
@@ -168,6 +169,7 @@ export interface FilterOptions {
   };
   brands: string[];
   features: string[];
+  protocols: string[];
   sortBy: SortOption;
   sortOrder: 'asc' | 'desc';
 }
@@ -181,6 +183,8 @@ export const PRODUCT_FEATURES = [
 ] as const;
 
 export type ProductFeature = typeof PRODUCT_FEATURES[number];
+
+// 充电协议类型现在从数据中动态获取，不再使用硬编码常量
 
 // 待测产品类型定义（简化版）
 export interface WishlistProduct {

@@ -26,6 +26,8 @@ interface ChargeBabySubmissionData {
   weight: number;
   cableLength: string;
   cableFlexibility: string;
+  cableLengthOther: string;
+  cableFlexibilityOther: string;
   
   // 性能数据：自充电
   selfChargingTime: number;
@@ -41,6 +43,9 @@ interface ChargeBabySubmissionData {
   temperatureUniformity: string;
   thermalControlStrategy: string[];
   maxRipple: string;
+  temperatureEstimated: boolean;
+  temperatureUniformityEstimated: boolean;
+  maxRippleEstimated: boolean;
   
   // 协议支持性
   pdFixedVoltageSupport: string[];
@@ -121,6 +126,11 @@ const RIPPLE_OPTIONS = [
   '本项结果由估测得到'
 ];
 
+const ESTIMATION_LABEL = '本项结果由估测得到';
+const TEMPERATURE_BASE_OPTIONS = TEMPERATURE_OPTIONS.filter(option => option !== ESTIMATION_LABEL);
+const TEMPERATURE_UNIFORMITY_BASE_OPTIONS = TEMPERATURE_UNIFORMITY_OPTIONS.filter(option => option !== ESTIMATION_LABEL);
+const RIPPLE_BASE_OPTIONS = RIPPLE_OPTIONS.filter(option => option !== ESTIMATION_LABEL);
+
 export function ChargeBabySubmissionForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,6 +152,8 @@ export function ChargeBabySubmissionForm() {
     weight: 0,
     cableLength: '',
     cableFlexibility: '',
+    cableLengthOther: '',
+    cableFlexibilityOther: '',
     
     // 性能数据：自充电
     selfChargingTime: 0,
@@ -157,6 +169,9 @@ export function ChargeBabySubmissionForm() {
     temperatureUniformity: '',
     thermalControlStrategy: [],
     maxRipple: '',
+    temperatureEstimated: false,
+    temperatureUniformityEstimated: false,
+    maxRippleEstimated: false,
     
     // 协议支持性
     pdFixedVoltageSupport: [],
@@ -188,6 +203,10 @@ export function ChargeBabySubmissionForm() {
     additionalNotes: '',
   });
 
+  const [pdPpsInput, setPdPpsInput] = useState('');
+  const [ufcsInput, setUfcsInput] = useState('');
+  const [privateProtocolInput, setPrivateProtocolInput] = useState('');
+
   const steps = [
     { id: 1, title: '欢迎页', description: '产品基础信息' },
     { id: 2, title: '物理规格', description: '尺寸重量规格' },
@@ -208,6 +227,13 @@ export function ChargeBabySubmissionForm() {
     }));
   };
 
+  const setArrayField = (field: keyof ChargeBabySubmissionData, values: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: values,
+    }));
+  };
+
   const toggleArrayValue = (field: keyof ChargeBabySubmissionData, value: string) => {
     setFormData(prev => {
       const currentArray = prev[field] as string[];
@@ -219,6 +245,40 @@ export function ChargeBabySubmissionForm() {
         [field]: newArray
       };
     });
+  };
+
+  const addCustomValue = (field: keyof ChargeBabySubmissionData, value: string, noneLabel?: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    setFormData(prev => {
+      const currentArray = (prev[field] as string[]) || [];
+      const filtered = noneLabel ? currentArray.filter(item => item !== noneLabel) : currentArray;
+      if (filtered.includes(trimmed)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [field]: [...filtered, trimmed],
+      };
+    });
+  };
+
+  const handleAddPdPps = () => {
+    if (!pdPpsInput.trim()) return;
+    addCustomValue('pdPpsSupport', pdPpsInput, '不支持PPS');
+    setPdPpsInput('');
+  };
+
+  const handleAddUfcs = () => {
+    if (!ufcsInput.trim()) return;
+    addCustomValue('ufcsSupport', ufcsInput, '不支持UFCS');
+    setUfcsInput('');
+  };
+
+  const handleAddPrivateProtocol = () => {
+    if (!privateProtocolInput.trim()) return;
+    addCustomValue('privateProtocolSupport', privateProtocolInput, '不支持私有协议');
+    setPrivateProtocolInput('');
   };
 
   const validateStep = (step: number): boolean => {
@@ -247,6 +307,36 @@ export function ChargeBabySubmissionForm() {
     setSubmitError('');
 
     try {
+      const formatOtherOption = (selected: string, custom: string) => {
+        if (selected === '其他') {
+          const trimmed = custom.trim();
+          return trimmed || '未填写';
+        }
+        return selected?.trim() || '未填写';
+      };
+
+      const formatEstimated = (value: string, estimated: boolean) => {
+        const trimmed = value.trim();
+        if (!trimmed) {
+          return estimated ? '未填写（估测）' : '未填写';
+        }
+        return estimated ? `${trimmed}（估测）` : trimmed;
+      };
+
+      const formatList = (values: string[]) => {
+        const filtered = (values || [])
+          .map(item => item.trim())
+          .filter(item => item.length > 0);
+        return filtered.length ? filtered.join(', ') : '未填写';
+      };
+
+      const cableLengthValue = formatOtherOption(formData.cableLength, formData.cableLengthOther);
+      const cableFlexibilityValue = formatOtherOption(formData.cableFlexibility, formData.cableFlexibilityOther);
+      const maxTemperatureValue = formatEstimated(formData.maxSurfaceTemperature, formData.temperatureEstimated);
+      const temperatureUniformityValue = formatEstimated(formData.temperatureUniformity, formData.temperatureUniformityEstimated);
+      const maxRippleValue = formatEstimated(formData.maxRipple, formData.maxRippleEstimated);
+      const protocolConflictValue = formData.potentialProtocolConflicts.trim() || '不存在潜在冲突';
+
       // 转换数据格式以适配现有API
       const submissionData = {
         brand: formData.brand,
@@ -294,22 +384,31 @@ export function ChargeBabySubmissionForm() {
         disadvantages: [formData.disadvantages],
         
         submitterName: formData.submitterName,
-        submitterEmail: 'no-email@provided.com', // 联系方式不是邮箱字段
+        submitterEmail: '',
         submitterContact: formData.submitterContact,
         submitterNote: `
 详细测试数据：
-线缆长度: ${formData.cableLength}
-线缆柔软度: ${formData.cableFlexibility}
-最高温度: ${formData.maxSurfaceTemperature}
-温度均匀性: ${formData.temperatureUniformity}
-温控策略: ${formData.thermalControlStrategy.join(', ')}
-最大纹波: ${formData.maxRipple}
-PD固定档支持: ${formData.pdFixedVoltageSupport.join(', ')}
-PD PPS支持: ${formData.pdPpsSupport.join(', ')}
-双接口输出能力: ${formData.dualPortOutputCapability}
-显示内容: ${formData.displayContent.join(', ')}
-显示载体: ${formData.displayCarrier}
-IoT能力: ${formData.iotCapabilities.join(', ')}
+线缆长度: ${cableLengthValue}
+线缆柔软度: ${cableFlexibilityValue}
+最高温度: ${maxTemperatureValue}
+温度均匀性: ${temperatureUniformityValue}
+温控策略: ${formatList(formData.thermalControlStrategy)}
+最大纹波: ${maxRippleValue}
+PD固定档支持: ${formatList(formData.pdFixedVoltageSupport)}
+PD PPS支持: ${formatList(formData.pdPpsSupport)}
+QC支持: ${formatList(formData.qcSupport)}
+UFCS支持: ${formatList(formData.ufcsSupport)}
+私有协议支持: ${formatList(formData.privateProtocolSupport)}
+潜在协议冲突: ${protocolConflictValue}
+双接口边冲边放: ${formData.dualPortPassthrough || '未填写'}
+双接口输出能力: ${formData.dualPortOutputCapability || '未填写'}
+双接口不断联能力: ${formatList(formData.dualPortNoDisconnect)}
+显示内容: ${formatList(formData.displayContent)}
+显示载体: ${formData.displayCarrier || '未填写'}
+显示亮度: ${formData.displayBrightness || '未填写'}
+显示自定义能力: ${formatList(formData.displayCustomization)}
+接口方向自定义: ${formData.portDirectionCustomization || '未填写'}
+IoT能力: ${formatList(formData.iotCapabilities)}
 其他备注: ${formData.additionalNotes}
         `.trim(),
       };
@@ -502,20 +601,39 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
               </div>
               <RadioGroup
                 value={formData.cableLength}
-                onValueChange={(value) => updateFormData('cableLength', value)}
+                onValueChange={(value) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    cableLength: value,
+                    cableLengthOther: value === '其他' ? prev.cableLengthOther : '',
+                  }));
+                }}
                 className="grid gap-3"
               >
-                {CABLE_LENGTH_OPTIONS.map(option => (
-                  <div key={option} className="flex items-center space-x-3">
-                    <RadioGroupItem value={option} id={`cable-length-${option}`} />
-                    <Label 
-                      htmlFor={`cable-length-${option}`} 
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {option}
-                    </Label>
-                  </div>
-                ))}
+                {CABLE_LENGTH_OPTIONS.map(option => {
+                  const isOther = option === '其他';
+                  const isSelected = formData.cableLength === option;
+                  return (
+                    <div key={option} className="space-y-2">
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value={option} id={`cable-length-${option}`} />
+                        <Label 
+                          htmlFor={`cable-length-${option}`} 
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {option}
+                        </Label>
+                      </div>
+                      {isOther && isSelected && (
+                        <Input
+                          value={formData.cableLengthOther}
+                          onChange={(e) => updateFormData('cableLengthOther', e.target.value)}
+                          placeholder="请描述线缆长度，如 35cm"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </RadioGroup>
             </div>
 
@@ -526,20 +644,39 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
               </div>
               <RadioGroup
                 value={formData.cableFlexibility}
-                onValueChange={(value) => updateFormData('cableFlexibility', value)}
+                onValueChange={(value) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    cableFlexibility: value,
+                    cableFlexibilityOther: value === '其他' ? prev.cableFlexibilityOther : '',
+                  }));
+                }}
                 className="grid gap-3"
               >
-                {CABLE_FLEXIBILITY_OPTIONS.map(option => (
-                  <div key={option} className="flex items-center space-x-3">
-                    <RadioGroupItem value={option} id={`cable-flex-${option}`} />
-                    <Label 
-                      htmlFor={`cable-flex-${option}`} 
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {option}
-                    </Label>
-                  </div>
-                ))}
+                {CABLE_FLEXIBILITY_OPTIONS.map(option => {
+                  const isOther = option === '其他';
+                  const isSelected = formData.cableFlexibility === option;
+                  return (
+                    <div key={option} className="space-y-2">
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value={option} id={`cable-flex-${option}`} />
+                        <Label 
+                          htmlFor={`cable-flex-${option}`} 
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {option}
+                        </Label>
+                      </div>
+                      {isOther && isSelected && (
+                        <Input
+                          value={formData.cableFlexibilityOther}
+                          onChange={(e) => updateFormData('cableFlexibilityOther', e.target.value)}
+                          placeholder="请描述线缆柔软度"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </RadioGroup>
             </div>
           </div>
@@ -637,7 +774,7 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                 onValueChange={(value) => updateFormData('maxSurfaceTemperature', value)}
                 className="grid gap-3"
               >
-                {TEMPERATURE_OPTIONS.map(option => (
+                {TEMPERATURE_BASE_OPTIONS.map(option => (
                   <div key={option} className="flex items-center space-x-3">
                     <RadioGroupItem value={option} id={`temp-${option}`} />
                     <Label 
@@ -649,6 +786,16 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   </div>
                 ))}
               </RadioGroup>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="max-temp-estimated"
+                  checked={formData.temperatureEstimated}
+                  onCheckedChange={(checked) => updateFormData('temperatureEstimated', checked === true)}
+                />
+                <Label htmlFor="max-temp-estimated" className="text-sm font-normal cursor-pointer">
+                  {ESTIMATION_LABEL}
+                </Label>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -661,7 +808,7 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                 onValueChange={(value) => updateFormData('temperatureUniformity', value)}
                 className="grid gap-3"
               >
-                {TEMPERATURE_UNIFORMITY_OPTIONS.map(option => (
+                {TEMPERATURE_UNIFORMITY_BASE_OPTIONS.map(option => (
                   <div key={option} className="flex items-center space-x-3">
                     <RadioGroupItem value={option} id={`temp-uniformity-${option}`} />
                     <Label 
@@ -673,6 +820,16 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   </div>
                 ))}
               </RadioGroup>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="temp-uniformity-estimated"
+                  checked={formData.temperatureUniformityEstimated}
+                  onCheckedChange={(checked) => updateFormData('temperatureUniformityEstimated', checked === true)}
+                />
+                <Label htmlFor="temp-uniformity-estimated" className="text-sm font-normal cursor-pointer">
+                  {ESTIMATION_LABEL}
+                </Label>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -709,7 +866,7 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                 onValueChange={(value) => updateFormData('maxRipple', value)}
                 className="grid gap-3"
               >
-                {RIPPLE_OPTIONS.map(option => (
+                {RIPPLE_BASE_OPTIONS.map(option => (
                   <div key={option} className="flex items-center space-x-3">
                     <RadioGroupItem value={option} id={`ripple-${option}`} />
                     <Label 
@@ -721,6 +878,16 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   </div>
                 ))}
               </RadioGroup>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="ripple-estimated"
+                  checked={formData.maxRippleEstimated}
+                  onCheckedChange={(checked) => updateFormData('maxRippleEstimated', checked === true)}
+                />
+                <Label htmlFor="ripple-estimated" className="text-sm font-normal cursor-pointer">
+                  {ESTIMATION_LABEL}
+                </Label>
+              </div>
             </div>
           </div>
         );
@@ -764,27 +931,53 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   <Checkbox
                     id="pd-pps-none"
                     checked={formData.pdPpsSupport.includes('不支持PPS')}
-                    onCheckedChange={() => toggleArrayValue('pdPpsSupport', '不支持PPS')}
+                    onCheckedChange={(checked) => {
+                      setFormData(prev => {
+                        const current = prev.pdPpsSupport || [];
+                        if (checked) {
+                          return {
+                            ...prev,
+                            pdPpsSupport: ['不支持PPS'],
+                          };
+                        }
+                        return {
+                          ...prev,
+                          pdPpsSupport: current.filter(item => item !== '不支持PPS'),
+                        };
+                      });
+                      if (checked) {
+                        setPdPpsInput('');
+                      }
+                    }}
                   />
                   <Label htmlFor="pd-pps-none" className="text-sm font-normal cursor-pointer">
                     不支持PPS
                   </Label>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <Input
                     type="text"
                     placeholder="例：5-11V 6.1A"
-                    className="flex-1"
-                    onKeyPress={(e) => {
+                    className="sm:flex-1"
+                    value={pdPpsInput}
+                    onChange={(e) => setPdPpsInput(e.target.value)}
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        const value = e.currentTarget.value;
-                        if (value && !formData.pdPpsSupport.includes(value)) {
-                          toggleArrayValue('pdPpsSupport', value);
-                          e.currentTarget.value = '';
-                        }
+                        e.preventDefault();
+                        handleAddPdPps();
                       }
                     }}
+                    disabled={formData.pdPpsSupport.includes('不支持PPS')}
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddPdPps}
+                    disabled={formData.pdPpsSupport.includes('不支持PPS')}
+                  >
+                    <Plus className="w-4 h-4 mr-1" /> 添加档位
+                  </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {formData.pdPpsSupport.filter(item => item !== '不支持PPS').map((item, index) => (
@@ -826,6 +1019,169 @@ IoT能力: ${formData.iotCapabilities.join(', ')}
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">UFCS支持性</Label>
+                <p className="text-xs text-muted-foreground mt-1">如支持UFCS，请填写具体档位或功率信息，可输入多组。</p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="ufcs-none"
+                    checked={formData.ufcsSupport.includes('不支持UFCS')}
+                    onCheckedChange={(checked) => {
+                      setFormData(prev => {
+                        const current = prev.ufcsSupport || [];
+                        if (checked) {
+                          return {
+                            ...prev,
+                            ufcsSupport: ['不支持UFCS'],
+                          };
+                        }
+                        return {
+                          ...prev,
+                          ufcsSupport: current.filter(item => item !== '不支持UFCS'),
+                        };
+                      });
+                      if (checked) {
+                        setUfcsInput('');
+                      }
+                    }}
+                  />
+                  <Label htmlFor="ufcs-none" className="text-sm font-normal cursor-pointer">
+                    不支持UFCS
+                  </Label>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    type="text"
+                    placeholder="例：UFCS 40W"
+                    className="sm:flex-1"
+                    value={ufcsInput}
+                    onChange={(e) => setUfcsInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddUfcs();
+                      }
+                    }}
+                    disabled={formData.ufcsSupport.includes('不支持UFCS')}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddUfcs}
+                    disabled={formData.ufcsSupport.includes('不支持UFCS')}
+                  >
+                    <Plus className="w-4 h-4 mr-1" /> 添加档位
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.ufcsSupport.filter(item => item !== '不支持UFCS').map((item, index) => (
+                    <span key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
+                      {item}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleArrayValue('ufcsSupport', item)}
+                        className="h-auto p-0 text-primary/70 hover:text-primary"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900">私有协议支持性</Label>
+                <p className="text-xs text-muted-foreground mt-1">请填写支持的私有协议名称及功率，可输入多组。</p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="private-protocol-none"
+                    checked={formData.privateProtocolSupport.includes('不支持私有协议')}
+                    onCheckedChange={(checked) => {
+                      setFormData(prev => {
+                        const current = prev.privateProtocolSupport || [];
+                        if (checked) {
+                          return {
+                            ...prev,
+                            privateProtocolSupport: ['不支持私有协议'],
+                          };
+                        }
+                        return {
+                          ...prev,
+                          privateProtocolSupport: current.filter(item => item !== '不支持私有协议'),
+                        };
+                      });
+                      if (checked) {
+                        setPrivateProtocolInput('');
+                      }
+                    }}
+                  />
+                  <Label htmlFor="private-protocol-none" className="text-sm font-normal cursor-pointer">
+                    不支持私有协议
+                  </Label>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    type="text"
+                    placeholder="例：SuperVOOC 100W"
+                    className="sm:flex-1"
+                    value={privateProtocolInput}
+                    onChange={(e) => setPrivateProtocolInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddPrivateProtocol();
+                      }
+                    }}
+                    disabled={formData.privateProtocolSupport.includes('不支持私有协议')}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddPrivateProtocol}
+                    disabled={formData.privateProtocolSupport.includes('不支持私有协议')}
+                  >
+                    <Plus className="w-4 h-4 mr-1" /> 添加协议
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.privateProtocolSupport.filter(item => item !== '不支持私有协议').map((item, index) => (
+                    <span key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
+                      {item}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleArrayValue('privateProtocolSupport', item)}
+                        className="h-auto p-0 text-primary/70 hover:text-primary"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-900">潜在协议冲突</Label>
+              <p className="text-xs text-muted-foreground">如果不同协议之间存在冲突或互斥，请在此描述；若无冲突可留空或填入“不存在潜在冲突”。</p>
+              <Input
+                type="text"
+                value={formData.potentialProtocolConflicts}
+                onChange={(e) => updateFormData('potentialProtocolConflicts', e.target.value)}
+                placeholder="例：C1接口同时具有PPS与UFCS协议"
+              />
             </div>
           </div>
         );

@@ -56,7 +56,8 @@ interface SubmissionData {
   
   // 投稿人信息
   submitterName: string;
-  submitterEmail: string;
+  submitterEmail?: string | null;
+  submitterContact?: string | null;
   submitterNote: string;
 }
 
@@ -113,30 +114,67 @@ function createNotionProperties(data: SubmissionData) {
     }
   };
 
+  const ensureText = (value?: string | null) => {
+    if (value === null || value === undefined) {
+      return '未填写';
+    }
+    const trimmed = String(value).trim();
+    return trimmed === '' ? '未填写' : trimmed;
+  };
+
+  const ensureFirstOption = (value?: string | null) => {
+    if (!value) {
+      return '未填写';
+    }
+    const first = value
+      .split(',')
+      .map(item => item.trim())
+      .find(Boolean);
+    return ensureText(first ?? '');
+  };
+
+  const normalizeArrayText = (value?: string | string[]) => {
+    if (Array.isArray(value)) {
+      const filtered = value
+        .map(item => (item ?? '').toString().trim())
+        .filter(Boolean);
+      return filtered.join('\n');
+    }
+    return (value ?? '').toString();
+  };
+
   // 从submitterNote中提取详细信息
   const submitterNote = data.submitterNote || '';
   const noteLines = submitterNote.split('\n');
   let extractedData: any = {};
   
-  noteLines.forEach(line => {
-    if (line.includes('线缆长度:')) extractedData.cableLength = line.split(':')[1]?.trim();
-    if (line.includes('线缆柔软度:')) extractedData.cableFlexibility = line.split(':')[1]?.trim();
-    if (line.includes('最高温度:')) extractedData.maxTemp = line.split(':')[1]?.trim();
-    if (line.includes('温度均匀性:')) extractedData.tempUniformity = line.split(':')[1]?.trim();
-    if (line.includes('温控策略:')) extractedData.thermalControl = line.split(':')[1]?.trim();
-    if (line.includes('最大纹波:')) extractedData.ripple = line.split(':')[1]?.trim();
-    if (line.includes('PD固定档支持:')) extractedData.pdSupport = line.split(':')[1]?.trim();
-    if (line.includes('PD PPS支持:')) extractedData.ppsSupport = line.split(':')[1]?.trim();
-    if (line.includes('QC支持:')) extractedData.qcSupport = line.split(':')[1]?.trim();
-    if (line.includes('UFCS支持:')) extractedData.ufcsSupport = line.split(':')[1]?.trim();
-    if (line.includes('私有协议支持:')) extractedData.privateProtocol = line.split(':')[1]?.trim();
-    if (line.includes('双接口输出能力:')) extractedData.dualOutput = line.split(':')[1]?.trim();
-    if (line.includes('双接口边冲边放:')) extractedData.dualPassthrough = line.split(':')[1]?.trim();
-    if (line.includes('显示内容:')) extractedData.displayContent = line.split(':')[1]?.trim();
-    if (line.includes('显示载体:')) extractedData.displayCarrier = line.split(':')[1]?.trim();
-    if (line.includes('显示亮度:')) extractedData.displayBrightness = line.split(':')[1]?.trim();
-    if (line.includes('IoT能力:')) extractedData.iot = line.split(':')[1]?.trim();
-    if (line.includes('其他备注:')) extractedData.additionalNotes = line.split(':')[1]?.trim();
+  const extractValue = (line: string) => line.split(':').slice(1).join(':').trim();
+  
+  noteLines.forEach(rawLine => {
+    const line = rawLine.trim();
+    if (!line.includes(':')) return;
+    if (line.startsWith('线缆长度:')) extractedData.cableLength = extractValue(line);
+    if (line.startsWith('线缆柔软度:')) extractedData.cableFlexibility = extractValue(line);
+    if (line.startsWith('最高温度:')) extractedData.maxTemp = extractValue(line);
+    if (line.startsWith('温度均匀性:')) extractedData.tempUniformity = extractValue(line);
+    if (line.startsWith('温控策略:')) extractedData.thermalControl = extractValue(line);
+    if (line.startsWith('最大纹波:')) extractedData.ripple = extractValue(line);
+    if (line.startsWith('PD固定档支持:')) extractedData.pdSupport = extractValue(line);
+    if (line.startsWith('PD PPS支持:')) extractedData.ppsSupport = extractValue(line);
+    if (line.startsWith('QC支持:')) extractedData.qcSupport = extractValue(line);
+    if (line.startsWith('UFCS支持:')) extractedData.ufcsSupport = extractValue(line);
+    if (line.startsWith('私有协议支持:')) extractedData.privateProtocol = extractValue(line);
+    if (line.startsWith('潜在协议冲突:')) extractedData.potentialConflicts = extractValue(line);
+    if (line.startsWith('双接口边冲边放:')) extractedData.dualPassthrough = extractValue(line);
+    if (line.startsWith('双接口输出能力:')) extractedData.dualOutput = extractValue(line);
+    if (line.startsWith('双接口不断联能力:')) extractedData.dualNoDisconnect = extractValue(line);
+    if (line.startsWith('显示内容:')) extractedData.displayContent = extractValue(line);
+    if (line.startsWith('显示载体:')) extractedData.displayCarrier = extractValue(line);
+    if (line.startsWith('显示亮度:')) extractedData.displayBrightness = extractValue(line);
+    if (line.startsWith('显示自定义能力:')) extractedData.displayCustomization = extractValue(line);
+    if (line.startsWith('接口方向自定义:')) extractedData.portDirectionCustomization = extractValue(line);
+    if (line.startsWith('IoT能力:')) extractedData.iot = extractValue(line);
+    if (line.startsWith('其他备注:')) extractedData.additionalNotes = extractValue(line);
   });
 
   // 基本信息字段
@@ -149,8 +187,8 @@ function createNotionProperties(data: SubmissionData) {
   safeAddProperty('宽度（cm）', 'number', data.detailData.width);
   safeAddProperty('厚度（cm）', 'number', data.detailData.thickness);
   safeAddProperty('重量（g）', 'number', data.detailData.weight);
-  safeAddProperty('线缆长度', 'rich_text', extractedData.cableLength || '没有附带不可拆卸的线缆');
-  safeAddProperty('线缆柔软度', 'rich_text', extractedData.cableFlexibility || '没有附带不可拆卸的线缆');
+  safeAddProperty('线缆长度', 'rich_text', ensureText(extractedData.cableLength));
+  safeAddProperty('线缆柔软度', 'rich_text', ensureText(extractedData.cableFlexibility));
 
   // 性能数据字段
   safeAddProperty('自充时间（min）', 'number', data.detailData.selfChargingTime);
@@ -160,39 +198,39 @@ function createNotionProperties(data: SubmissionData) {
   safeAddProperty('最大放电容量（Wh）', 'number', data.detailData.maxDischargeCapacity);
 
   // 温度与纹波字段
-  safeAddProperty('表面最高温度', 'rich_text', extractedData.maxTemp || '<44℃');
-  safeAddProperty('温度均匀性', 'rich_text', extractedData.tempUniformity || '较均匀');
-  safeAddProperty('温控策略', 'rich_text', extractedData.thermalControl || '仅根据温度限制自充/输出功率');
-  safeAddProperty('最大纹波', 'rich_text', extractedData.ripple || '<50mV');
+  safeAddProperty('表面最高温度', 'rich_text', ensureText(extractedData.maxTemp));
+  safeAddProperty('温度均匀性', 'rich_text', ensureText(extractedData.tempUniformity));
+  safeAddProperty('温控策略', 'rich_text', ensureText(extractedData.thermalControl));
+  safeAddProperty('最大纹波', 'rich_text', ensureText(extractedData.ripple));
 
   // 协议支持字段
-  safeAddProperty('PD固定档支持', 'select', extractedData.pdSupport?.split(',')[0]?.trim() || '不支持PD协议');
-  safeAddProperty('PD_PPS支持', 'rich_text', extractedData.ppsSupport || '不支持PPS');
-  safeAddProperty('QC支持', 'select', extractedData.qcSupport?.split(',')[0]?.trim() || '不支持QC协议');
-  safeAddProperty('UFCS支持', 'select', extractedData.ufcsSupport || '不支持UFCS');
-  safeAddProperty('私有协议支持', 'rich_text', extractedData.privateProtocol || '不支持私有协议');
-  safeAddProperty('潜在协议冲突', 'select', '不存在潜在冲突');
+  safeAddProperty('PD固定档支持', 'select', ensureFirstOption(extractedData.pdSupport));
+  safeAddProperty('PD_PPS支持', 'rich_text', ensureText(extractedData.ppsSupport));
+  safeAddProperty('QC支持', 'select', ensureFirstOption(extractedData.qcSupport));
+  safeAddProperty('UFCS支持', 'select', ensureFirstOption(extractedData.ufcsSupport));
+  safeAddProperty('私有协议支持', 'rich_text', ensureText(extractedData.privateProtocol));
+  safeAddProperty('潜在协议冲突', 'select', ensureFirstOption(extractedData.potentialConflicts));
 
   // 多接口使用字段
-  safeAddProperty('双接口输出能力', 'rich_text', extractedData.dualOutput || '仅具有一个输出接口，或无法双接口同时输出');
-  safeAddProperty('双接口边冲边放', 'rich_text', extractedData.dualPassthrough || '仅具有一个输出接口，或无法双接口边冲边放');
-  safeAddProperty('双接口不断联能力', 'rich_text', '仅具有一个输出接口，或无法双接口同时使用');
+  safeAddProperty('双接口输出能力', 'rich_text', ensureText(extractedData.dualOutput));
+  safeAddProperty('双接口边冲边放', 'rich_text', ensureText(extractedData.dualPassthrough));
+  safeAddProperty('双接口不断联能力', 'rich_text', ensureText(extractedData.dualNoDisconnect));
 
   // 显示与功能字段
-  safeAddProperty('显示内容', 'rich_text', extractedData.displayContent || '不具有以下内容的显示能力');
-  safeAddProperty('显示载体', 'rich_text', extractedData.displayCarrier || '不具有任何显示载体');
-  safeAddProperty('显示亮度', 'select', extractedData.displayBrightness || '不具有任何显示载体');
-  safeAddProperty('显示自定义能力', 'rich_text', '不具备任何自定义调节能力');
-  safeAddProperty('接口方向自定义', 'select', '不具有自定义特定接口输入输出方向的能力');
-  safeAddProperty('IoT能力', 'rich_text', extractedData.iot || '不支持IoT接入');
+  safeAddProperty('显示内容', 'rich_text', ensureText(extractedData.displayContent));
+  safeAddProperty('显示载体', 'rich_text', ensureText(extractedData.displayCarrier));
+  safeAddProperty('显示亮度', 'select', ensureFirstOption(extractedData.displayBrightness));
+  safeAddProperty('显示自定义能力', 'rich_text', ensureText(extractedData.displayCustomization));
+  safeAddProperty('接口方向自定义', 'select', ensureFirstOption(extractedData.portDirectionCustomization));
+  safeAddProperty('IoT能力', 'rich_text', ensureText(extractedData.iot));
 
   // 评价与投稿信息字段
-  safeAddProperty('产品优点', 'rich_text', Array.isArray(data.advantages) ? data.advantages.join('\n') : String(data.advantages || ''));
-  safeAddProperty('产品缺点', 'rich_text', Array.isArray(data.disadvantages) ? data.disadvantages.join('\n') : String(data.disadvantages || ''));
-  safeAddProperty('投稿人昵称', 'rich_text', data.submitterName);
-  safeAddProperty('联系方式', 'rich_text', data.submitterEmail || '未提供');
-  safeAddProperty('测试环境说明', 'rich_text', '室内常温环境');
-  safeAddProperty('其他备注', 'rich_text', extractedData.additionalNotes || data.submitterNote || '无');
+  safeAddProperty('产品优点', 'rich_text', ensureText(normalizeArrayText(data.advantages)));
+  safeAddProperty('产品缺点', 'rich_text', ensureText(normalizeArrayText(data.disadvantages)));
+  safeAddProperty('投稿人昵称', 'rich_text', ensureText(data.submitterName));
+  safeAddProperty('联系方式', 'rich_text', ensureText(data.submitterContact));
+  safeAddProperty('测试环境说明', 'rich_text', '未填写');
+  safeAddProperty('其他备注', 'rich_text', ensureText(extractedData.additionalNotes));
   safeAddProperty('数据来源', 'select', '用户测试');
   
   // 时间戳
@@ -231,9 +269,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 邮箱格式验证（如果提供了邮箱）
-    if (data.submitterEmail && data.submitterEmail !== 'no-email@provided.com') {
+    const email = data.submitterEmail?.trim();
+    if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(data.submitterEmail)) {
+      if (!emailRegex.test(email)) {
         return NextResponse.json(
           { error: '邮箱格式不正确' },
           { status: 400 }

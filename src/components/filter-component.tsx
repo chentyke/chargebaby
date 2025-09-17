@@ -18,6 +18,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     powerRange: { min: 0, max: 1000 },
     brands: [],
     features: [],
+    protocols: [],
     sortBy: 'updatedAt',
     sortOrder: 'desc'
   });
@@ -27,6 +28,14 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     (chargeBabies || [])
       .filter(baby => baby.brand)
       .map(baby => baby.brand)
+      .filter(Boolean)
+  )).sort();
+
+  // 动态获取所有可用的协议
+  const availableProtocols = Array.from(new Set(
+    (chargeBabies || [])
+      .filter(baby => baby.protocols && baby.protocols.length > 0)
+      .flatMap(baby => baby.protocols)
       .filter(Boolean)
   )).sort();
 
@@ -56,6 +65,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     filters.powerRange.max < powerRange.max ||
     filters.brands.length > 0 ||
     filters.features.length > 0 ||
+    filters.protocols.length > 0 ||
     filters.sortBy !== 'updatedAt' ||
     filters.sortOrder !== 'desc';
 
@@ -100,6 +110,18 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
         // 暂时使用标签进行筛选
         return filters.features.some(feature => 
           baby.tags?.some(tag => tag.includes(feature))
+        );
+      });
+    }
+
+    // 协议筛选 - 基于真实数据库的协议字段
+    if (filters.protocols.length > 0) {
+      filtered = filtered.filter(baby => {
+        if (!baby.protocols || baby.protocols.length === 0) return false;
+        
+        // 检查产品的协议列表是否包含用户选择的任一协议
+        return filters.protocols.some(selectedProtocol => 
+          baby.protocols.includes(selectedProtocol)
         );
       });
     }
@@ -158,6 +180,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       powerRange: { min: powerRange.min, max: powerRange.max },
       brands: [],
       features: [],
+      protocols: [],
       sortBy: 'updatedAt',
       sortOrder: 'desc'
     });
@@ -396,6 +419,44 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                     </label>
                   )) : (
                     <div className="text-sm text-gray-400 text-center py-2">暂无品牌数据</div>
+                  )}
+                </div>
+              </div>
+
+              {/* 充电协议筛选 */}
+              <div>
+                <label className={`block font-medium text-gray-700 mb-3 ${isMobile ? 'text-sm' : 'text-sm'}`}>充电协议</label>
+                <div className={`space-y-2 overflow-y-auto border border-gray-100 rounded-lg p-3 ${
+                  isMobile ? 'max-h-40' : 'max-h-36'
+                }`}>
+                  {availableProtocols.length > 0 ? availableProtocols.map(protocol => (
+                    <label key={protocol} className={`flex items-center hover:bg-gray-50 -mx-1 px-1 rounded cursor-pointer ${
+                      isMobile ? 'py-2' : 'py-1'
+                    }`}>
+                      <input
+                        type="checkbox"
+                        checked={filters.protocols.includes(protocol)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFilters(prev => ({
+                              ...prev,
+                              protocols: [...prev.protocols, protocol]
+                            }));
+                          } else {
+                            setFilters(prev => ({
+                              ...prev,
+                              protocols: prev.protocols.filter(p => p !== protocol)
+                            }));
+                          }
+                        }}
+                        className={`rounded text-blue-600 focus:ring-blue-500 ${
+                          isMobile ? 'mr-3 w-4 h-4' : 'mr-3'
+                        }`}
+                      />
+                      <span className="text-sm text-gray-700 flex-1">{protocol}</span>
+                    </label>
+                  )) : (
+                    <div className="text-sm text-gray-400 text-center py-2">暂无协议数据</div>
                   )}
                 </div>
               </div>

@@ -485,6 +485,7 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
     displayName: getTextProperty(props.DisplayName) || getTextProperty(props.ExternalName) || '',
     subtitle: getTextProperty(props.Subtitle) || '',
     tags: getMultiSelectProperty(props.Tags) || [],
+    protocols: getMultiSelectProperty(props['协议']) || [],
     price: getNumberProperty(props.Price) || 0,
     releaseDate: getDateProperty(props.ReleaseDate) || new Date().toISOString(),
     overallRating: getNumberProperty(props.OverallRating) || 0,
