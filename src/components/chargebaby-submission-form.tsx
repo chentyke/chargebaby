@@ -1,0 +1,1155 @@
+'use client';
+
+import { useState } from 'react';
+import { Send, Plus, Minus, CheckCircle, AlertTriangle } from 'lucide-react';
+
+// 基于设计草稿的完整数据结构
+interface ChargeBabySubmissionData {
+  // 基础信息
+  productName: string;
+  brand: string;
+  model: string;
+  capacityLevel: number;
+  
+  // 物理规格
+  length: number;
+  width: number;
+  thickness: number;
+  weight: number;
+  cableLength: string;
+  cableFlexibility: string;
+  
+  // 性能数据：自充电
+  selfChargingTime: number;
+  selfChargingEnergy: number;
+  energy20min: number;
+  
+  // 性能数据：输出
+  maxContinuousOutputPower: number;
+  maxDischargeCapacity: number;
+  
+  // 温度与纹波
+  maxSurfaceTemperature: string;
+  temperatureUniformity: string;
+  thermalControlStrategy: string[];
+  maxRipple: string;
+  
+  // 协议支持性
+  pdFixedVoltageSupport: string[];
+  pdPpsSupport: string[];
+  pdAvsSupport: string[];
+  qcSupport: string[];
+  ufcsSupport: string[];
+  privateProtocolSupport: string[];
+  potentialProtocolConflicts: string;
+  
+  // 多接口使用
+  dualPortOutputCapability: string;
+  dualPortPassthrough: string;
+  dualPortNoDisconnect: string[];
+  
+  // 信息显示与其他功能
+  displayContent: string[];
+  displayCarrier: string;
+  displayBrightness: string;
+  displayCustomization: string[];
+  portDirectionCustomization: string;
+  iotCapabilities: string[];
+  
+  // 产品评价与个人信息
+  advantages: string;
+  disadvantages: string;
+  submitterName: string;
+  submitterContact: string;
+  additionalNotes: string;
+}
+
+const CABLE_LENGTH_OPTIONS = [
+  '没有附带不可拆卸的线缆',
+  '<10cm',
+  '10-25cm',
+  '25-50cm',
+  '>50cm',
+  '其他'
+];
+
+const CABLE_FLEXIBILITY_OPTIONS = [
+  '没有附带不可拆卸的线缆',
+  '较硬',
+  '中等',
+  '柔软',
+  '其他'
+];
+
+const TEMPERATURE_OPTIONS = [
+  '<44℃',
+  '44℃～48℃',
+  '48℃～54℃',
+  '>54℃',
+  '本项结果由估测得到'
+];
+
+const TEMPERATURE_UNIFORMITY_OPTIONS = [
+  '极不均匀（出现个别点位温度很高，其余部分温度较低的现象）',
+  '较均匀（没有出现点状高温，但电路部分与电芯部分仍存在一定的温度分布不均匀）',
+  '很均匀（电路部分与电芯部分温度接近）',
+  '本项结果由估测得到'
+];
+
+const THERMAL_CONTROL_OPTIONS = [
+  '仅根据温度限制自充/输出功率，不存在"定时器"机制',
+  '存在"定时器"机制，且最短定时器小于5分钟',
+  '存在"定时器"机制，且最短定时器大于5分钟，小于10分钟',
+  '存在"定时器"机制，且最短定时器大于10分钟，小于30分钟',
+  '存在"定时器"机制，且最短定时器大于30分钟',
+  '定时器可以通过按键重置（无需插拔接口）'
+];
+
+const RIPPLE_OPTIONS = [
+  '<50mV',
+  '50-100mV',
+  '100-200mV',
+  '>200mV',
+  '本项结果由估测得到'
+];
+
+export function ChargeBabySubmissionForm() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState('');
+  
+  const [formData, setFormData] = useState<ChargeBabySubmissionData>({
+    // 基础信息
+    productName: '',
+    brand: '',
+    model: '',
+    capacityLevel: 0,
+    
+    // 物理规格
+    length: 0,
+    width: 0,
+    thickness: 0,
+    weight: 0,
+    cableLength: '',
+    cableFlexibility: '',
+    
+    // 性能数据：自充电
+    selfChargingTime: 0,
+    selfChargingEnergy: 0,
+    energy20min: 0,
+    
+    // 性能数据：输出
+    maxContinuousOutputPower: 0,
+    maxDischargeCapacity: 0,
+    
+    // 温度与纹波
+    maxSurfaceTemperature: '',
+    temperatureUniformity: '',
+    thermalControlStrategy: [],
+    maxRipple: '',
+    
+    // 协议支持性
+    pdFixedVoltageSupport: [],
+    pdPpsSupport: [],
+    pdAvsSupport: [],
+    qcSupport: [],
+    ufcsSupport: [],
+    privateProtocolSupport: [],
+    potentialProtocolConflicts: '',
+    
+    // 多接口使用
+    dualPortOutputCapability: '',
+    dualPortPassthrough: '',
+    dualPortNoDisconnect: [],
+    
+    // 信息显示与其他功能
+    displayContent: [],
+    displayCarrier: '',
+    displayBrightness: '',
+    displayCustomization: [],
+    portDirectionCustomization: '',
+    iotCapabilities: [],
+    
+    // 产品评价与个人信息
+    advantages: '',
+    disadvantages: '',
+    submitterName: '',
+    submitterContact: '',
+    additionalNotes: '',
+  });
+
+  const steps = [
+    { id: 1, title: '欢迎页', description: '产品基础信息' },
+    { id: 2, title: '物理规格', description: '尺寸重量规格' },
+    { id: 3, title: '自充电性能', description: '充电时间和能量' },
+    { id: 4, title: '输出性能', description: '输出功率和容量' },
+    { id: 5, title: '温度与纹波', description: '温控和纹波测试' },
+    { id: 6, title: '协议支持', description: '充电协议兼容性' },
+    { id: 7, title: '多接口功能', description: '多端口使用能力' },
+    { id: 8, title: '显示功能', description: '信息显示和IoT功能' },
+    { id: 9, title: '产品评价', description: '优缺点和个人信息' },
+    { id: 10, title: '完成', description: '提交确认' },
+  ];
+
+  const updateFormData = (field: keyof ChargeBabySubmissionData, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const toggleArrayValue = (field: keyof ChargeBabySubmissionData, value: string) => {
+    setFormData(prev => {
+      const currentArray = prev[field] as string[];
+      const newArray = currentArray.includes(value)
+        ? currentArray.filter(item => item !== value)
+        : [...currentArray, value];
+      return {
+        ...prev,
+        [field]: newArray
+      };
+    });
+  };
+
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    switch (step) {
+      case 1: // 基础信息
+        if (!formData.productName.trim()) newErrors.productName = '产品名称不能为空';
+        if (!formData.brand.trim()) newErrors.brand = '品牌不能为空';
+        if (formData.capacityLevel <= 0) newErrors.capacityLevel = '容量级别必须大于0';
+        break;
+      case 9: // 个人信息
+        if (!formData.submitterName.trim()) newErrors.submitterName = '姓名不能为空';
+        break;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep(9)) return;
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setSubmitError('');
+
+    try {
+      // 转换数据格式以适配现有API
+      const submissionData = {
+        brand: formData.brand,
+        model: formData.model,
+        title: formData.productName,
+        subtitle: `${formData.capacityLevel}mAh 充电宝`,
+        tags: ['用户提交'],
+        price: 0,
+        releaseDate: '',
+        imageUrl: '',
+        
+        overallRating: 0,
+        performanceRating: 0,
+        experienceRating: 0,
+        selfChargingCapability: 0,
+        outputCapability: 0,
+        energy: 0,
+        portability: 0,
+        chargingProtocols: 0,
+        multiPortUsage: 0,
+        
+        detailData: {
+          length: formData.length,
+          width: formData.width,
+          thickness: formData.thickness,
+          weight: formData.weight,
+          volume: formData.length * formData.width * formData.thickness,
+          energyWeightRatio: formData.weight > 0 ? formData.selfChargingEnergy / formData.weight : 0,
+          energyVolumeRatio: 0,
+          capacityLevel: formData.capacityLevel,
+          maxDischargeCapacity: formData.maxDischargeCapacity,
+          selfChargingEnergy: formData.selfChargingEnergy,
+          dischargeCapacityAchievementRate: 0,
+          maxEnergyConversionRate: 0,
+          maxSelfChargingPower: 0,
+          selfChargingTime: formData.selfChargingTime,
+          avgSelfChargingPower: formData.selfChargingTime > 0 ? (formData.selfChargingEnergy * 60) / formData.selfChargingTime : 0,
+          energy20min: formData.energy20min,
+          maxOutputPower: 0,
+          maxContinuousOutputPower: formData.maxContinuousOutputPower,
+          dataSource: formData.submitterName,
+        },
+        
+        advantages: [formData.advantages],
+        disadvantages: [formData.disadvantages],
+        
+        submitterName: formData.submitterName,
+        submitterEmail: formData.submitterContact || 'no-email@provided.com',
+        submitterNote: `
+详细测试数据：
+线缆长度: ${formData.cableLength}
+线缆柔软度: ${formData.cableFlexibility}
+最高温度: ${formData.maxSurfaceTemperature}
+温度均匀性: ${formData.temperatureUniformity}
+温控策略: ${formData.thermalControlStrategy.join(', ')}
+最大纹波: ${formData.maxRipple}
+PD固定档支持: ${formData.pdFixedVoltageSupport.join(', ')}
+PD PPS支持: ${formData.pdPpsSupport.join(', ')}
+双接口输出能力: ${formData.dualPortOutputCapability}
+显示内容: ${formData.displayContent.join(', ')}
+显示载体: ${formData.displayCarrier}
+IoT能力: ${formData.iotCapabilities.join(', ')}
+其他备注: ${formData.additionalNotes}
+        `.trim(),
+      };
+
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setCurrentStep(10); // 跳转到完成页
+      } else {
+        setSubmitStatus('error');
+        setSubmitError(result.error || '提交失败，请稍后重试');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      setSubmitError('网络错误，请检查网络连接后重试');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const nextStep = () => {
+    const needsValidation = [1, 9];
+    if (needsValidation.includes(currentStep) && !validateStep(currentStep)) {
+      return;
+    }
+
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+      setSubmitError('');
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      setErrors({});
+      setSubmitError('');
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">产品基础信息</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                移动电源的名称 *
+              </label>
+              <p className="text-xs text-gray-500 mb-2">一般以产品外壳标识为准</p>
+              <input
+                type="text"
+                value={formData.productName}
+                onChange={(e) => updateFormData('productName', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.productName ? 'border-red-300' : 'border-gray-200'
+                }`}
+                placeholder="例：小米自带线充电宝 10000 67W"
+              />
+              {errors.productName && (
+                <p className="text-red-500 text-xs mt-1">{errors.productName}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">品牌 *</label>
+                <p className="text-xs text-gray-500 mb-2">如无品牌，可填入制造商名称</p>
+                <input
+                  type="text"
+                  value={formData.brand}
+                  onChange={(e) => updateFormData('brand', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.brand ? 'border-red-300' : 'border-gray-200'
+                  }`}
+                  placeholder="例：小米"
+                />
+                {errors.brand && (
+                  <p className="text-red-500 text-xs mt-1">{errors.brand}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">型号</label>
+                <p className="text-xs text-gray-500 mb-2">以产品外壳标识为准</p>
+                <input
+                  type="text"
+                  value={formData.model}
+                  onChange={(e) => updateFormData('model', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例：PB1067"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">容量级别 (mAh) *</label>
+              <input
+                type="number"
+                value={formData.capacityLevel || ''}
+                onChange={(e) => updateFormData('capacityLevel', parseFloat(e.target.value) || 0)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.capacityLevel ? 'border-red-300' : 'border-gray-200'
+                }`}
+                placeholder="例：10000"
+              />
+              {errors.capacityLevel && (
+                <p className="text-red-500 text-xs mt-1">{errors.capacityLevel}</p>
+              )}
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">物理规格</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">长度 (cm)</label>
+                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={formData.length || ''}
+                  onChange={(e) => updateFormData('length', parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="11.5"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">宽度 (cm)</label>
+                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={formData.width || ''}
+                  onChange={(e) => updateFormData('width', parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="6.6"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">厚度 (cm)</label>
+                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={formData.thickness || ''}
+                  onChange={(e) => updateFormData('thickness', parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="2.6"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">重量 (g)</label>
+                <p className="text-xs text-gray-500 mb-2">以实际测量为准，亦可填入官方数据</p>
+                <input
+                  type="number"
+                  value={formData.weight || ''}
+                  onChange={(e) => updateFormData('weight', parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="247"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">线缆长度 (cm)</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源附带的不可拆卸线缆长度。如有多根线缆，请勾选其他然后分别进行描述。</p>
+              <div className="space-y-2">
+                {CABLE_LENGTH_OPTIONS.map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="cableLength"
+                      value={option}
+                      checked={formData.cableLength === option}
+                      onChange={(e) => updateFormData('cableLength', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">线缆柔软度</label>
+              <p className="text-xs text-gray-500 mb-2">对移动电源附带的不可拆卸线缆柔软程度的主观感受。</p>
+              <div className="space-y-2">
+                {CABLE_FLEXIBILITY_OPTIONS.map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="cableFlexibility"
+                      value={option}
+                      checked={formData.cableFlexibility === option}
+                      onChange={(e) => updateFormData('cableFlexibility', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">性能数据：自充电</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">自充电时长 (min)</label>
+              <p className="text-xs text-gray-500 mb-2">在自然散热条件下，从"完全放电（0%）"状态充电至"完全充满"（100%，且输入功率小于1W）状态所需的时间。</p>
+              <input
+                type="number"
+                value={formData.selfChargingTime || ''}
+                onChange={(e) => updateFormData('selfChargingTime', parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="75"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">自充能量 (Wh)</label>
+              <p className="text-xs text-gray-500 mb-2">从"完全放电（0%）"状态充电至"完全充满"状态所充入的能量。请勿使用mAh数据。</p>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.selfChargingEnergy || ''}
+                onChange={(e) => updateFormData('selfChargingEnergy', parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="43.99"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">20分钟充入能量 (Wh)</label>
+              <p className="text-xs text-gray-500 mb-2">从"完全放电（0%）"状态充电，前20分钟所充入的能量。</p>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.energy20min || ''}
+                onChange={(e) => updateFormData('energy20min', parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="18.48"
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">性能数据：输出</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">最大持续输出平均功率 (W)</label>
+              <p className="text-xs text-gray-500 mb-2">在自然散热条件下，从"完全充满"状态开始连续最大功率放电，直至达到"完全放电"状态的平均功率。</p>
+              <input
+                type="number"
+                value={formData.maxContinuousOutputPower || ''}
+                onChange={(e) => updateFormData('maxContinuousOutputPower', parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="39"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">最大放电容量 (Wh)</label>
+              <p className="text-xs text-gray-500 mb-2">在任意条件下使用任意功率从"完全充满"状态开始放电直到"完全放电"状态时的最大放电容量。</p>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.maxDischargeCapacity || ''}
+                onChange={(e) => updateFormData('maxDischargeCapacity', parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="37.62"
+              />
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">性能数据：温度与纹波</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">表面最高温度 (℃)</label>
+              <p className="text-xs text-gray-500 mb-2">在自充电或高负载输出场景下，移动电源表面出现的最高温度。</p>
+              <div className="space-y-2">
+                {TEMPERATURE_OPTIONS.map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="maxSurfaceTemperature"
+                      value={option}
+                      checked={formData.maxSurfaceTemperature === option}
+                      onChange={(e) => updateFormData('maxSurfaceTemperature', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">温度均匀性</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源表面温度分布情况的主观感受。</p>
+              <div className="space-y-2">
+                {TEMPERATURE_UNIFORMITY_OPTIONS.map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="temperatureUniformity"
+                      value={option}
+                      checked={formData.temperatureUniformity === option}
+                      onChange={(e) => updateFormData('temperatureUniformity', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">温控策略</label>
+              <p className="text-xs text-gray-500 mb-2">在所有自充电/输出场景下的温控策略。（该选项为多选）</p>
+              <div className="space-y-2">
+                {THERMAL_CONTROL_OPTIONS.map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.thermalControlStrategy.includes(option)}
+                      onChange={() => toggleArrayValue('thermalControlStrategy', option)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">最大纹波 (mV)</label>
+              <p className="text-xs text-gray-500 mb-2">任意输出工况下纹波的最大值。</p>
+              <div className="space-y-2">
+                {RIPPLE_OPTIONS.map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="maxRipple"
+                      value={option}
+                      checked={formData.maxRipple === option}
+                      onChange={(e) => updateFormData('maxRipple', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">协议支持性</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">PD固定档支持性</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源任意接口对PD协议的支持性中，有关固定电压档位的部分。（可进行多选）</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {['不支持PD协议', '5V', '9V', '12V', '15V', '20V', '28V'].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.pdFixedVoltageSupport.includes(option)}
+                      onChange={() => toggleArrayValue('pdFixedVoltageSupport', option)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">PD PPS支持性</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源任意接口对PD协议的支持性中，有关PPS的部分。</p>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.pdPpsSupport.includes('不支持PPS')}
+                    onChange={() => toggleArrayValue('pdPpsSupport', '不支持PPS')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">不支持PPS</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="例：5-11V 6.1A"
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = e.currentTarget.value;
+                        if (value && !formData.pdPpsSupport.includes(value)) {
+                          toggleArrayValue('pdPpsSupport', value);
+                          e.currentTarget.value = '';
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.pdPpsSupport.filter(item => item !== '不支持PPS').map((item, index) => (
+                    <span key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                      {item}
+                      <button
+                        onClick={() => toggleArrayValue('pdPpsSupport', item)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">QC支持性</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源任意接口对QC协议的支持性。仅包括对QC2.0、QC3.0的支持。</p>
+              <div className="space-y-2">
+                {['不支持QC协议', 'QC2.0', 'QC3.0'].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.qcSupport.includes(option)}
+                      onChange={() => toggleArrayValue('qcSupport', option)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">多接口使用</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">双接口同时输出能力</label>
+              <div className="space-y-2">
+                {[
+                  '仅具有一个输出接口，或无法双接口同时输出',
+                  '双接口同时输出总功率小于单口最大输出功率的20%，或同时输出总功率小于20W',
+                  '双接口同时输出总功率大于单口最大输出功率的40%，小于60%',
+                  '双接口同时输出总功率大于单口最大输出功率的60%，小于80%',
+                  '双接口同时输出总功率大于单口最大输出功率的80%，小于100%',
+                  '双接口同时输出总功率大于单口最大输出功率的100%，小于150%',
+                  '双接口同时输出总功率大于单口最大输出功率的150%'
+                ].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="dualPortOutputCapability"
+                      value={option}
+                      checked={formData.dualPortOutputCapability === option}
+                      onChange={(e) => updateFormData('dualPortOutputCapability', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">双接口边冲边放</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源在自充电的同时进行输出的能力。</p>
+              <div className="space-y-2">
+                {[
+                  '仅具有一个输出输出接口，或无法双接口边冲边放',
+                  '在任意条件下，充电功率等于输出功率。或输入/输出功率均小于15W',
+                  '充电功率大于输出功率，且输入能达到仅输入模式的30%以上，输出能达到仅输出模式的30%以上',
+                  '充电功率大于输出功率，且输入能达到仅输入模式的50%以上，输出能达到仅输出模式的50%以上',
+                  '输入功率与输出功率相互独立，均能达到或超过单接口使用时的最大值'
+                ].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="dualPortPassthrough"
+                      value={option}
+                      checked={formData.dualPortPassthrough === option}
+                      onChange={(e) => updateFormData('dualPortPassthrough', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">双接口使用时的"不断联"能力</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源在双接口同时输出或边冲边放场景下的插拔不断联能力。（可进行多选）</p>
+              <div className="space-y-2">
+                {[
+                  '仅具有一个输出输出接口，或无法双接口同时使用/边冲边放',
+                  '具有双接口同时输出或边冲边放能力，但任意条件下插拔接口均会造成断联',
+                  '同时输出时，接口插拔不断联',
+                  '边冲边放时，接口插拔不断联'
+                ].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.dualPortNoDisconnect.includes(option)}
+                      onChange={() => toggleArrayValue('dualPortNoDisconnect', option)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 8:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">信息显示与其他功能</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">显示内容</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源的信息显示种类。（可进行多选）</p>
+              <div className="space-y-2">
+                {[
+                  '不具有以下内容的显示能力',
+                  '支持显示电量百分比（精确到1%或更高）',
+                  '支持功率显示',
+                  '支持电池信息显示（包括温度、电池健康等任一数据即可）',
+                  '支持显示预估的剩余输入/输出时间，且预估较为精准（偏差值在30%以内）'
+                ].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.displayContent.includes(option)}
+                      onChange={() => toggleArrayValue('displayContent', option)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">显示载体</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源的主要信息显示载体。</p>
+              <div className="space-y-2">
+                {[
+                  '不具有任何显示载体',
+                  '单个LED指示灯',
+                  '多个LED指示灯',
+                  '数码管',
+                  'TFT显示屏'
+                ].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="displayCarrier"
+                      value={option}
+                      checked={formData.displayCarrier === option}
+                      onChange={(e) => updateFormData('displayCarrier', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">显示亮度</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源的主要信息显示载体在户外强光环境下的可视性。</p>
+              <div className="space-y-2">
+                {[
+                  '不具有任何显示载体',
+                  '可视性差（无法看清）',
+                  '可视性好'
+                ].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="displayBrightness"
+                      value={option}
+                      checked={formData.displayBrightness === option}
+                      onChange={(e) => updateFormData('displayBrightness', e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">IoT能力</label>
+              <p className="text-xs text-gray-500 mb-2">移动电源的物联网接入能力，及其远程控制功能。</p>
+              <div className="space-y-2">
+                {[
+                  '不支持IoT接入（蓝牙、Wi-Fi等）能力，或不具备任何下列功能',
+                  '支持异地远程控制（支持Wi-Fi）',
+                  '支持电量查看',
+                  '支持功率查看',
+                  '支持电池健康查看或电池健康保护功能',
+                  '支持蓝牙查找（配备蜂鸣器）',
+                  '支持接入查找网络（Apple Find My、华为"查找"网络等）'
+                ].map(option => (
+                  <label key={option} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.iotCapabilities.includes(option)}
+                      onChange={() => toggleArrayValue('iotCapabilities', option)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 9:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">您的产品评价与个人信息</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">您认为该产品具有哪些优点</label>
+              <textarea
+                value={formData.advantages}
+                onChange={(e) => updateFormData('advantages', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
+                placeholder="请描述产品的优点..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">您认为该产品具有哪些缺点</label>
+              <textarea
+                value={formData.disadvantages}
+                onChange={(e) => updateFormData('disadvantages', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
+                placeholder="请描述产品的缺点..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">您的昵称 *</label>
+              <p className="text-xs text-gray-500 mb-2">用于在使用您提供的相关数据时注明来源。</p>
+              <input
+                type="text"
+                value={formData.submitterName}
+                onChange={(e) => updateFormData('submitterName', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.submitterName ? 'border-red-300' : 'border-gray-200'
+                }`}
+                placeholder="您的昵称"
+              />
+              {errors.submitterName && (
+                <p className="text-red-500 text-xs mt-1">{errors.submitterName}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">您的联系方式</label>
+              <p className="text-xs text-gray-500 mb-2">（可选）用于参与随机抽奖活动。（建议使用"QQ 1234567"、"手机 18712341234"格式）</p>
+              <input
+                type="text"
+                value={formData.submitterContact}
+                onChange={(e) => updateFormData('submitterContact', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="QQ 1234567 或 手机 18712341234"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">其他任意问题或建议</label>
+              <textarea
+                value={formData.additionalNotes}
+                onChange={(e) => updateFormData('additionalNotes', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
+                placeholder="任何其他补充信息..."
+              />
+            </div>
+
+            {submitStatus === 'error' && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  <p className="text-red-800">{submitError || '提交失败，请检查网络连接或稍后重试。'}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 10:
+        return (
+          <div className="text-center py-12">
+            <div className="mb-8">
+              <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">提交成功！</h3>
+              <p className="text-gray-600">
+                我们已经收到了您提交的数据，非常感谢您的耐心参与！
+              </p>
+            </div>
+            
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-md mx-auto">
+              <p className="text-green-800 text-sm">
+                您的数据将在审核后添加到我们的数据库中，这有助于其他用户更好地了解和比较充电宝产品。
+              </p>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* 页面标题 */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">充电宝产品数据提交</h1>
+        <p className="text-gray-600">请按照以下步骤填写详细的产品测试数据</p>
+      </div>
+
+      {/* 进度指示器 */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm text-gray-500">
+            步骤 {currentStep} / {steps.length}
+          </span>
+          <span className="text-sm text-gray-500">
+            {Math.round((currentStep / steps.length) * 100)}% 完成
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(currentStep / steps.length) * 100}%` }}
+          ></div>
+        </div>
+        <div className="mt-2">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {steps[currentStep - 1]?.title}
+          </h2>
+          <p className="text-sm text-gray-600">
+            {steps[currentStep - 1]?.description}
+          </p>
+        </div>
+      </div>
+
+      {/* 表单内容 */}
+      <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg shadow-black/5 p-6 sm:p-8 mb-8">
+        <div className="min-h-[400px]">
+          {renderStepContent()}
+        </div>
+      </div>
+
+      {/* 导航按钮 */}
+      {currentStep < 10 && (
+        <div className="flex justify-between items-center">
+          <button
+            type="button"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+            className="px-6 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            上一步
+          </button>
+
+          {currentStep < 9 ? (
+            <button
+              type="button"
+              onClick={nextStep}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              下一步
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !formData.submitterName}
+              className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  提交中...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  提交数据
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

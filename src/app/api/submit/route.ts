@@ -82,11 +82,11 @@ async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function createNotionProperties(data: SubmissionData) {
-  // 基础属性，使用与主数据库类似的结构
+  // 基础属性，使用实际数据库字段结构
   const properties: any = {
-    // 基本信息 - 使用 Model 作为标题字段（从数据库结构看出这是title类型）
-    'Model': {
-      title: [{ text: { content: data.model || '未命名产品' } }]
+    // 基本信息 - 使用 名称 作为标题字段（title类型）
+    '名称': {
+      title: [{ text: { content: data.title || data.brand + ' ' + data.model || '未命名产品' } }]
     }
   };
 
@@ -98,11 +98,9 @@ function createNotionProperties(data: SubmissionData) {
           properties[name] = { rich_text: [{ text: { content: String(value) } }] };
           break;
         case 'number':
-          properties[name] = { number: Number(value) || 0 };
-          break;
-        case 'multi_select':
-          if (Array.isArray(value) && value.length > 0) {
-            properties[name] = { multi_select: value.map(v => ({ name: String(v) })) };
+          const numValue = Number(value);
+          if (!isNaN(numValue)) {
+            properties[name] = { number: numValue };
           }
           break;
         case 'select':
@@ -111,72 +109,94 @@ function createNotionProperties(data: SubmissionData) {
         case 'date':
           properties[name] = { date: { start: String(value) } };
           break;
-        case 'files':
-          if (typeof value === 'string' && value.startsWith('http')) {
-            properties[name] = { files: [{ external: { url: value } }] };
-          }
-          break;
-        case 'url':
-          if (typeof value === 'string' && value.startsWith('http')) {
-            properties[name] = { url: value };
-          }
-          break;
       }
     }
   };
 
-  // 基本信息 - 使用实际存在的属性名
-  safeAddProperty('品牌', 'rich_text', data.brand);
-  safeAddProperty('Title', 'rich_text', data.title);
-  safeAddProperty('Subtitle', 'rich_text', data.subtitle);
-  safeAddProperty('Tags', 'multi_select', data.tags);
-  safeAddProperty('Price', 'number', data.price);
-  safeAddProperty('ReleaseDate', 'date', data.releaseDate);
+  // 从submitterNote中提取详细信息
+  const submitterNote = data.submitterNote || '';
+  const noteLines = submitterNote.split('\n');
+  let extractedData: any = {};
   
-  // 图片 - 尝试不同的属性名和类型
-  if (data.imageUrl) {
-    safeAddProperty('图片', 'files', data.imageUrl);
-    safeAddProperty('Image', 'files', data.imageUrl);
-    safeAddProperty('产品图片', 'files', data.imageUrl);
-  }
+  noteLines.forEach(line => {
+    if (line.includes('线缆长度:')) extractedData.cableLength = line.split(':')[1]?.trim();
+    if (line.includes('线缆柔软度:')) extractedData.cableFlexibility = line.split(':')[1]?.trim();
+    if (line.includes('最高温度:')) extractedData.maxTemp = line.split(':')[1]?.trim();
+    if (line.includes('温度均匀性:')) extractedData.tempUniformity = line.split(':')[1]?.trim();
+    if (line.includes('温控策略:')) extractedData.thermalControl = line.split(':')[1]?.trim();
+    if (line.includes('最大纹波:')) extractedData.ripple = line.split(':')[1]?.trim();
+    if (line.includes('PD固定档支持:')) extractedData.pdSupport = line.split(':')[1]?.trim();
+    if (line.includes('PD PPS支持:')) extractedData.ppsSupport = line.split(':')[1]?.trim();
+    if (line.includes('QC支持:')) extractedData.qcSupport = line.split(':')[1]?.trim();
+    if (line.includes('UFCS支持:')) extractedData.ufcsSupport = line.split(':')[1]?.trim();
+    if (line.includes('私有协议支持:')) extractedData.privateProtocol = line.split(':')[1]?.trim();
+    if (line.includes('双接口输出能力:')) extractedData.dualOutput = line.split(':')[1]?.trim();
+    if (line.includes('双接口边冲边放:')) extractedData.dualPassthrough = line.split(':')[1]?.trim();
+    if (line.includes('显示内容:')) extractedData.displayContent = line.split(':')[1]?.trim();
+    if (line.includes('显示载体:')) extractedData.displayCarrier = line.split(':')[1]?.trim();
+    if (line.includes('显示亮度:')) extractedData.displayBrightness = line.split(':')[1]?.trim();
+    if (line.includes('IoT能力:')) extractedData.iot = line.split(':')[1]?.trim();
+    if (line.includes('其他备注:')) extractedData.additionalNotes = line.split(':')[1]?.trim();
+  });
 
-  // 评分数据 - 使用实际存在的属性名
-  safeAddProperty('OverallRating', 'number', data.overallRating);
-  safeAddProperty('PerformanceRating', 'number', data.performanceRating);
-  safeAddProperty('ExperienceRating', 'number', data.experienceRating);
-  safeAddProperty('SelfChargingCapability', 'number', data.selfChargingCapability);
-  safeAddProperty('OutputCapability', 'number', data.outputCapability);
-  safeAddProperty('Energy', 'number', data.energy);
-  safeAddProperty('Portability', 'number', data.portability);
-  safeAddProperty('ChargingProtocols', 'number', data.chargingProtocols);
-  safeAddProperty('MultiPortUsage', 'number', data.multiPortUsage);
+  // 基本信息字段
+  safeAddProperty('品牌', 'rich_text', data.brand);
+  safeAddProperty('型号', 'rich_text', data.model);
+  safeAddProperty('容量级别（mAh）', 'number', data.detailData.capacityLevel);
 
-  // 技术参数
+  // 物理规格字段
   safeAddProperty('长度（cm）', 'number', data.detailData.length);
   safeAddProperty('宽度（cm）', 'number', data.detailData.width);
   safeAddProperty('厚度（cm）', 'number', data.detailData.thickness);
   safeAddProperty('重量（g）', 'number', data.detailData.weight);
-  safeAddProperty('体积（cm3）', 'number', data.detailData.volume);
-  safeAddProperty('容量级别（mAh）', 'number', data.detailData.capacityLevel);
-  safeAddProperty('最大放电容量（Wh）', 'number', data.detailData.maxDischargeCapacity);
-  safeAddProperty('自充能量（Wh）', 'number', data.detailData.selfChargingEnergy);
-  safeAddProperty('最大自充电功率', 'number', data.detailData.maxSelfChargingPower);
-  safeAddProperty('最大输出功率', 'number', data.detailData.maxOutputPower);
+  safeAddProperty('线缆长度', 'rich_text', extractedData.cableLength || '没有附带不可拆卸的线缆');
+  safeAddProperty('线缆柔软度', 'rich_text', extractedData.cableFlexibility || '没有附带不可拆卸的线缆');
+
+  // 性能数据字段
   safeAddProperty('自充时间（min）', 'number', data.detailData.selfChargingTime);
-  safeAddProperty('平均自充功率（W）', 'number', data.detailData.avgSelfChargingPower);
+  safeAddProperty('自充能量（Wh）', 'number', data.detailData.selfChargingEnergy);
   safeAddProperty('20分钟充入能量（Wh）', 'number', data.detailData.energy20min);
   safeAddProperty('最大持续输出平均功率（W）', 'number', data.detailData.maxContinuousOutputPower);
+  safeAddProperty('最大放电容量（Wh）', 'number', data.detailData.maxDischargeCapacity);
 
-  // 优劣势 - 使用实际存在的属性名
-  safeAddProperty('Advantages', 'rich_text', data.advantages.join('\n'));
-  safeAddProperty('Disadvantages', 'rich_text', data.disadvantages.join('\n'));
+  // 温度与纹波字段
+  safeAddProperty('表面最高温度', 'rich_text', extractedData.maxTemp || '<44℃');
+  safeAddProperty('温度均匀性', 'rich_text', extractedData.tempUniformity || '较均匀');
+  safeAddProperty('温控策略', 'rich_text', extractedData.thermalControl || '仅根据温度限制自充/输出功率');
+  safeAddProperty('最大纹波', 'rich_text', extractedData.ripple || '<50mV');
 
-  // 投稿人信息 - 在数据来源字段包含所有信息
-  const submitterInfo = `${data.detailData.dataSource || data.submitterName}\n投稿人: ${data.submitterName}\n邮箱: ${data.submitterEmail}\n备注: ${data.submitterNote}`;
-  safeAddProperty('数据来源', 'rich_text', submitterInfo);
+  // 协议支持字段
+  safeAddProperty('PD固定档支持', 'select', extractedData.pdSupport?.split(',')[0]?.trim() || '不支持PD协议');
+  safeAddProperty('PD_PPS支持', 'rich_text', extractedData.ppsSupport || '不支持PPS');
+  safeAddProperty('QC支持', 'select', extractedData.qcSupport?.split(',')[0]?.trim() || '不支持QC协议');
+  safeAddProperty('UFCS支持', 'select', extractedData.ufcsSupport || '不支持UFCS');
+  safeAddProperty('私有协议支持', 'rich_text', extractedData.privateProtocol || '不支持私有协议');
+  safeAddProperty('潜在协议冲突', 'select', '不存在潜在冲突');
+
+  // 多接口使用字段
+  safeAddProperty('双接口输出能力', 'rich_text', extractedData.dualOutput || '仅具有一个输出接口，或无法双接口同时输出');
+  safeAddProperty('双接口边冲边放', 'rich_text', extractedData.dualPassthrough || '仅具有一个输出接口，或无法双接口边冲边放');
+  safeAddProperty('双接口不断联能力', 'rich_text', '仅具有一个输出接口，或无法双接口同时使用');
+
+  // 显示与功能字段
+  safeAddProperty('显示内容', 'rich_text', extractedData.displayContent || '不具有以下内容的显示能力');
+  safeAddProperty('显示载体', 'rich_text', extractedData.displayCarrier || '不具有任何显示载体');
+  safeAddProperty('显示亮度', 'select', extractedData.displayBrightness || '不具有任何显示载体');
+  safeAddProperty('显示自定义能力', 'rich_text', '不具备任何自定义调节能力');
+  safeAddProperty('接口方向自定义', 'select', '不具有自定义特定接口输入输出方向的能力');
+  safeAddProperty('IoT能力', 'rich_text', extractedData.iot || '不支持IoT接入');
+
+  // 评价与投稿信息字段
+  safeAddProperty('产品优点', 'rich_text', Array.isArray(data.advantages) ? data.advantages.join('\n') : String(data.advantages || ''));
+  safeAddProperty('产品缺点', 'rich_text', Array.isArray(data.disadvantages) ? data.disadvantages.join('\n') : String(data.disadvantages || ''));
+  safeAddProperty('投稿人昵称', 'rich_text', data.submitterName);
+  safeAddProperty('联系方式', 'rich_text', data.submitterEmail || '未提供');
+  safeAddProperty('测试环境说明', 'rich_text', '室内常温环境');
+  safeAddProperty('其他备注', 'rich_text', extractedData.additionalNotes || data.submitterNote || '无');
+  safeAddProperty('数据来源', 'select', '用户测试');
   
   // 时间戳
-  safeAddProperty('CreatedAt', 'date', new Date().toISOString());
+  safeAddProperty('提交时间', 'date', new Date().toISOString());
 
   return properties;
 }
@@ -203,20 +223,22 @@ export async function POST(request: NextRequest) {
     const data: SubmissionData = await request.json();
 
     // 基本验证
-    if (!data.brand || !data.model || !data.title || !data.submitterName || !data.submitterEmail) {
+    if (!data.brand || !data.title || !data.submitterName) {
       return NextResponse.json(
-        { error: '必填字段不能为空：品牌、型号、标题、投稿人姓名、邮箱' },
+        { error: '必填字段不能为空：品牌、标题、投稿人姓名' },
         { status: 400 }
       );
     }
 
-    // 邮箱格式验证
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.submitterEmail)) {
-      return NextResponse.json(
-        { error: '邮箱格式不正确' },
-        { status: 400 }
-      );
+    // 邮箱格式验证（如果提供了邮箱）
+    if (data.submitterEmail && data.submitterEmail !== 'no-email@provided.com') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.submitterEmail)) {
+        return NextResponse.json(
+          { error: '邮箱格式不正确' },
+          { status: 400 }
+        );
+      }
     }
 
     // 创建 Notion 页面

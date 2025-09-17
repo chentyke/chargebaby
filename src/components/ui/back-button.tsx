@@ -3,7 +3,8 @@ import { ArrowLeft, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BackButtonProps {
-  href: string;
+  href?: string;
+  onClick?: () => void;
   children: React.ReactNode;
   className?: string;
   variant?: 'default' | 'compact' | 'home';
@@ -12,6 +13,7 @@ interface BackButtonProps {
 
 export function BackButton({ 
   href, 
+  onClick,
   children, 
   className,
   variant = 'default',
@@ -19,7 +21,7 @@ export function BackButton({
 }: BackButtonProps) {
   const Icon = variant === 'home' ? Home : ArrowLeft;
   
-  const baseStyles = "inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors";
+  const baseStyles = "inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer";
   
   const variantStyles = {
     default: "",
@@ -27,15 +29,36 @@ export function BackButton({
     home: "px-4 py-2 bg-white/70 hover:bg-white border border-gray-200 rounded-xl"
   };
 
-  return (
-    <Link 
-      href={href}
-      className={cn(baseStyles, variantStyles[variant], className)}
-    >
+  const content = (
+    <>
       {showIcon && <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
       <span>{children}</span>
-    </Link>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={cn(baseStyles, variantStyles[variant], className)}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  if (href) {
+    return (
+      <Link 
+        href={href}
+        className={cn(baseStyles, variantStyles[variant], className)}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return null;
 }
 
 interface PageHeaderProps {
