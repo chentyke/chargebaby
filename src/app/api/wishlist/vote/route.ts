@@ -1,14 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { voteForWishlistProduct } from '@/lib/notion';
+import { verifyTurnstileToken } from '@/lib/turnstile';
 
 export async function POST(request: NextRequest) {
   try {
-    const { productId } = await request.json();
+    const { productId, turnstileToken } = await request.json();
 
     if (!productId) {
       return NextResponse.json(
         { error: '缺少产品ID' },
         { status: 400 }
+      );
+    }
+
+    if (!turnstileToken) {
+      return NextResponse.json(
+        { error: '缺少验证令牌' },
+        { status: 400 }
+      );
+    }
+
+    // 验证 Turnstile token
+    const isValidToken = await verifyTurnstileToken(turnstileToken);
+    if (!isValidToken) {
+      return NextResponse.json(
+        { error: '验证失败，请重新验证' },
+        { status: 403 }
       );
     }
 

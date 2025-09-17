@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Heart, Plus, Clock, TrendingUp, Users } from 'lucide-react';
 import { WishlistProduct, WISHLIST_STATUS_LABELS, WISHLIST_STATUS_COLORS } from '@/types/chargebaby';
+import { TurnstileWidget } from './turnstile-widget';
 // 简单的时间格式化工具
 function formatRelativeTime(dateString: string): string {
   try {
@@ -36,6 +37,8 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [votingProducts, setVotingProducts] = useState<Set<string>>(new Set());
   const [selectedStatus, setSelectedStatus] = useState<WishlistProduct['status'] | 'all'>('all');
+  const [showTurnstile, setShowTurnstile] = useState<string | null>(null);
+  const [turnstileTokens, setTurnstileTokens] = useState<Map<string, string>>(new Map());
 
   // 按状态筛选产品
   const filteredProducts = selectedStatus === 'all' 
@@ -55,13 +58,19 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
   const handleVote = async (productId: string) => {
     if (votingProducts.has(productId)) return;
 
+    const token = turnstileTokens.get(productId);
+    if (!token) {
+      setShowTurnstile(productId);
+      return;
+    }
+
     setVotingProducts(prev => new Set(prev).add(productId));
 
     try {
       const response = await fetch('/api/wishlist/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, turnstileToken: token }),
       });
 
       if (response.ok) {
@@ -79,6 +88,18 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
         return newSet;
       });
     }
+  };
+
+  const handleTurnstileVerify = (productId: string, token: string) => {
+    setTurnstileTokens(prev => new Map(prev).set(productId, token));
+    setShowTurnstile(null);
+    // 自动执行投票
+    setTimeout(() => handleVote(productId), 100);
+  };
+
+  const handleTurnstileError = () => {
+    setShowTurnstile(null);
+    alert('验证失败，请重试');
   };
 
   return (
@@ -118,6 +139,32 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
           申请新产品测试
         </button>
       </div>
+
+      {/* Turnstile 验证弹窗 */}
+      {showTurnstile && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 m-4 max-w-md w-full">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">安全验证</h3>
+              <p className="text-gray-600 text-sm">请完成安全验证后继续点赞</p>
+            </div>
+            <div className="flex justify-center mb-4">
+              <TurnstileWidget 
+                onVerify={(token) => handleTurnstileVerify(showTurnstile, token)}
+                onError={handleTurnstileError}
+              />
+            </div>
+            <div className="text-center">
+              <button
+                onClick={() => setShowTurnstile(null)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 产品列表 */}
       {filteredProducts.length > 0 ? (
