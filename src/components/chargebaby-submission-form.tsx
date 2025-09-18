@@ -25,9 +25,8 @@ interface ChargeBabySubmissionData {
   width: number;
   thickness: number;
   weight: number;
-  cableLength: string;
+  cableLengths: string[];
   cableFlexibility: string;
-  cableLengthOther: string;
   cableFlexibilityOther: string;
   
   // 性能数据：自充电
@@ -83,8 +82,7 @@ const CABLE_LENGTH_OPTIONS = [
   '<10cm',
   '10-25cm',
   '25-50cm',
-  '>50cm',
-  '其他'
+  '>50cm'
 ];
 
 const CABLE_FLEXIBILITY_OPTIONS = [
@@ -163,9 +161,8 @@ export function ChargeBabySubmissionForm() {
     width: 0,
     thickness: 0,
     weight: 0,
-    cableLength: '',
+    cableLengths: [],
     cableFlexibility: '',
-    cableLengthOther: '',
     cableFlexibilityOther: '',
     
     // 性能数据：自充电
@@ -216,6 +213,7 @@ export function ChargeBabySubmissionForm() {
     additionalNotes: '',
   });
 
+  const [cableLengthInput, setCableLengthInput] = useState('');
   const [pdPpsInput, setPdPpsInput] = useState('');
   const [ufcsInput, setUfcsInput] = useState('');
   const [privateProtocolInput, setPrivateProtocolInput] = useState('');
@@ -237,13 +235,6 @@ export function ChargeBabySubmissionForm() {
     setFormData(prev => ({
       ...prev,
       [field]: value
-    }));
-  };
-
-  const setArrayField = (field: keyof ChargeBabySubmissionData, values: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: values,
     }));
   };
 
@@ -308,6 +299,12 @@ export function ChargeBabySubmissionForm() {
         [field]: [...filtered, trimmed],
       };
     });
+  };
+
+  const handleAddCableLength = () => {
+    if (!cableLengthInput.trim()) return;
+    addCustomValue('cableLengths', cableLengthInput);
+    setCableLengthInput('');
   };
 
   const handleAddPdPps = () => {
@@ -377,7 +374,7 @@ export function ChargeBabySubmissionForm() {
         return filtered.length ? filtered.join(', ') : '未填写';
       };
 
-      const cableLengthValue = formatOtherOption(formData.cableLength, formData.cableLengthOther);
+      const cableLengthValue = formatList(formData.cableLengths);
       const cableFlexibilityValue = formatOtherOption(formData.cableFlexibility, formData.cableFlexibilityOther);
       const maxTemperatureValue = formatEstimated(formData.maxSurfaceTemperature, formData.temperatureEstimated);
       const temperatureUniformityValue = formatEstimated(formData.temperatureUniformity, formData.temperatureUniformityEstimated);
@@ -644,44 +641,65 @@ IoT能力: ${formatList(formData.iotCapabilities)}
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-900">线缆长度 (cm)</Label>
-                <p className="text-xs text-muted-foreground mt-1">移动电源附带的不可拆卸线缆长度。如有多根线缆，请勾选其他然后分别进行描述。</p>
+                <p className="text-xs text-muted-foreground mt-1">移动电源附带的不可拆卸线缆长度。如有多根线缆，请新增多条记录。</p>
               </div>
-              <RadioGroup
-                value={formData.cableLength}
-                onValueChange={(value) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    cableLength: value,
-                    cableLengthOther: value === '其他' ? prev.cableLengthOther : '',
-                  }));
-                }}
-                className="grid gap-3"
-              >
-                {CABLE_LENGTH_OPTIONS.map(option => {
-                  const isOther = option === '其他';
-                  const isSelected = formData.cableLength === option;
-                  return (
-                    <div key={option} className="space-y-2">
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value={option} id={`cable-length-${option}`} />
-                        <Label 
-                          htmlFor={`cable-length-${option}`} 
-                          className="text-sm font-normal cursor-pointer"
-                        >
-                          {option}
-                        </Label>
-                      </div>
-                      {isOther && isSelected && (
-                        <Input
-                          value={formData.cableLengthOther}
-                          onChange={(e) => updateFormData('cableLengthOther', e.target.value)}
-                          placeholder="请描述线缆长度，如 35cm"
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </RadioGroup>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {CABLE_LENGTH_OPTIONS.map((option, index) => (
+                  <label
+                    key={option}
+                    htmlFor={`cable-length-${index}`}
+                    className="flex items-center space-x-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal text-gray-700 shadow-sm hover:border-blue-300"
+                  >
+                    <Checkbox
+                      id={`cable-length-${index}`}
+                      checked={formData.cableLengths.includes(option)}
+                      onCheckedChange={() => toggleArrayValue('cableLengths', option)}
+                    />
+                    <span className="cursor-pointer select-none">{option}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Input
+                  type="text"
+                  placeholder="其他长度，如 35cm"
+                  className="sm:flex-1"
+                  value={cableLengthInput}
+                  onChange={(e) => setCableLengthInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCableLength();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddCableLength}
+                >
+                  <Plus className="mr-1 h-4 w-4" /> 添加长度
+                </Button>
+              </div>
+              {formData.cableLengths.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {formData.cableLengths.map((item, index) => (
+                    <span key={`${item}-${index}`} className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs text-primary">
+                      {item}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleArrayValue('cableLengths', item)}
+                        className="h-auto p-0 text-primary/70 hover:text-primary"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
