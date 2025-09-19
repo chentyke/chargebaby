@@ -82,6 +82,7 @@ export interface ChargeBaby {
   title: string; // 标题
   subtitle: string; // 副标题
   displayName?: string; // 外部展示名称（列表/分享）
+  type?: string[]; // 产品类型（如：充电宝、无线充等）
   tags: string[]; // 标签
   protocols: string[]; // 充电协议 (来自数据库协议字段)
   price: number; // 定价

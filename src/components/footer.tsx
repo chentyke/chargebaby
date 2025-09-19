@@ -11,13 +11,13 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 py-4">
+    <footer className="py-8 mt-16">
       <div className="container mx-auto px-4 text-center">
         <a 
           href="http://beian.miit.gov.cn/" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
+          className="text-xs text-gray-400 hover:text-gray-500 transition-colors opacity-70"
         >
           浙ICP备2025199560号-1
         </a>

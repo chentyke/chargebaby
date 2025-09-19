@@ -66,6 +66,26 @@ async function fetchChargeBabiesFromNotion(): Promise<ChargeBaby[]> {
   const response = await notionFetch<NotionDatabase>(`/databases/${databaseId}/query`, {
     method: 'POST',
     body: JSON.stringify({
+      filter: {
+        or: [
+          {
+            property: 'Type',
+            multi_select: { contains: '充电宝' },
+          },
+          {
+            property: '类型',
+            multi_select: { contains: '充电宝' },
+          },
+          {
+            property: 'Type',
+            multi_select: { is_empty: true },
+          },
+          {
+            property: '类型',
+            multi_select: { is_empty: true },
+          },
+        ],
+      },
       sorts: [
         {
           property: 'UpdatedAt',
@@ -484,6 +504,7 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
     title: getTextProperty(props.Title) || getTextProperty(props.Name) || 'Unknown',
     displayName: getTextProperty(props.DisplayName) || getTextProperty(props.ExternalName) || '',
     subtitle: getTextProperty(props.Subtitle) || '',
+    type: getMultiSelectProperty(props.Type) || getMultiSelectProperty(props.类型) || ['充电宝'],
     tags: getMultiSelectProperty(props.Tags) || [],
     protocols: getMultiSelectProperty(props['协议']) || [],
     price: getNumberProperty(props.Price) || 0,
