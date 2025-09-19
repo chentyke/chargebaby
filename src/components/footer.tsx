@@ -11,7 +11,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="py-6 mt-8">
+    <footer className="py-3 mt-4">
       <div className="container mx-auto px-4 text-center">
         <a 
           href="http://beian.miit.gov.cn/" 
