@@ -255,7 +255,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               </div>
             )}
 
-            {/* 线上评测卡片 */}
+            {/* 相关评测卡片 */}
             {chargeBaby.subProjects && chargeBaby.subProjects.length > 0 && (
               <ReviewCards subProjects={chargeBaby.subProjects} />
             )}
@@ -488,7 +488,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                   </div>
                 </div>
 
-                {/* 线上评测卡片 */}
+                {/* 相关评测卡片 */}
                 {chargeBaby.subProjects && chargeBaby.subProjects.length > 0 && (
                   <ReviewCards subProjects={chargeBaby.subProjects} />
                 )}
