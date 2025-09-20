@@ -19,11 +19,13 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
+    setIsClient(true);
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -66,6 +68,23 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
   const handleNavigation = (path: string) => {
     router.push(path);
   };
+
+  // 确保客户端渲染后再显示移动端UI
+  if (!isClient) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="overflow-hidden">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-3 px-4 min-w-max">
+              <button className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 text-blue-600 transition-all duration-300 flex-shrink-0">
+                <Search className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 移动端紧凑模式
   if (isMobile && !isSearchExpanded) {
