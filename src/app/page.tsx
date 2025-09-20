@@ -7,11 +7,11 @@ import { Loading } from '@/components/ui/loading';
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative">
-      {/* 统一背景装饰层 */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/30 via-transparent to-purple-50/30 pointer-events-none"></div>
+      {/* 统一背景装饰层 - 覆盖整个页面 */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/20 via-transparent to-purple-50/20 pointer-events-none"></div>
       
-      {/* 网格背景 */}
-      <div className="absolute inset-0 opacity-[0.015]" 
+      {/* 网格背景 - 覆盖整个页面，降低透明度 */}
+      <div className="absolute inset-0 opacity-[0.008]" 
            style={{
              backgroundImage: `linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)`,
              backgroundSize: '50px 50px'
