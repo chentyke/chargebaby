@@ -122,13 +122,13 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               </button>
 
               {/* 投稿按钮 */}
-              <button 
-                onClick={() => handleNavigation('/submit')}
+              <a 
+                href="https://powerbank.wiki/submit"
                 className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-green-50/80 via-green-50/60 to-green-50/40 backdrop-blur-2xl rounded-2xl border border-green-200/50 text-green-600 hover:text-green-700 hover:bg-gradient-to-br hover:from-green-100/80 hover:via-green-100/60 hover:to-green-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0"
               >
                 <Plus className="w-5 h-5" />
                 <span className="text-sm font-medium">投稿</span>
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -259,13 +259,13 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             </Link>
 
             {/* 投稿按钮 */}
-            <Link 
-              href="/submit"
+            <a 
+              href="https://powerbank.wiki/submit"
               className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-gradient-to-br hover:from-green-50/40 hover:via-green-50/30 hover:to-green-50/20 transition-all duration-300 group"
             >
               <Plus className="w-5 h-5" />
               <span className="text-sm font-medium whitespace-nowrap">投稿</span>
-            </Link>
+            </a>
 
             {/* 筛选按钮 - 桌面端 */}
             <FilterComponent 
