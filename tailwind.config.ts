@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        'hover-hover': {'raw': '(hover: hover)'},
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

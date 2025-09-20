@@ -70,15 +70,33 @@
   }
 
   .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700;
+    @apply btn bg-blue-600 text-white;
+  }
+
+  @media (hover: hover) {
+    .btn-primary {
+      @apply hover:bg-blue-700;
+    }
   }
 
   .btn-secondary {
-    @apply btn bg-gray-100 text-gray-900 hover:bg-gray-200;
+    @apply btn bg-gray-100 text-gray-900;
+  }
+
+  @media (hover: hover) {
+    .btn-secondary {
+      @apply hover:bg-gray-200;
+    }
   }
 
   .btn-outline {
-    @apply btn border border-gray-300 hover:bg-gray-50 hover:text-gray-900;
+    @apply btn border border-gray-300;
+  }
+
+  @media (hover: hover) {
+    .btn-outline {
+      @apply hover:bg-gray-50 hover:text-gray-900;
+    }
   }
 
   .input {
@@ -122,8 +140,10 @@
   border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+@media (hover: hover) {
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
 }
 
 /* 动画效果 */
@@ -210,21 +230,23 @@
 }
 
 /* 悬停时显示滚动条 */
-.auto-hide-scrollbar:hover {
-  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
-}
+@media (hover: hover) {
+  .auto-hide-scrollbar:hover {
+    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
+  }
 
-.auto-hide-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.3);
-}
+  .auto-hide-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+  }
 
-.auto-hide-scrollbar:hover::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-}
+  .auto-hide-scrollbar:hover::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+  }
 
-/* 滚动条拖拽时 */
-.auto-hide-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.5);
+  /* 滚动条拖拽时 */
+  .auto-hide-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+  }
 }
 
 .auto-hide-scrollbar::-webkit-scrollbar-thumb:active {
@@ -302,12 +324,20 @@
 }
 
 /* 悬停时也显示 */
-.scrollbar-on-scroll:hover {
-  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+@media (hover: hover) {
+  .scrollbar-on-scroll:hover {
+    scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+  }
+
+  .scrollbar-on-scroll:hover::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.4);
+  }
 }
 
-.scrollbar-on-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+/* 移动端触摸优化 */
+button, a, [role="button"], [role="link"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 简单的卡片进入动画 */

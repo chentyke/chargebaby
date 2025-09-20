@@ -98,7 +98,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {/* 搜索按钮 */}
               <button 
                 onClick={toggleSearch}
-                className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 text-blue-600 hover:text-blue-700 hover:bg-gradient-to-br hover:from-blue-100/80 hover:via-blue-100/60 hover:to-blue-100/40 transition-all duration-300 flex-shrink-0"
+                className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 text-blue-600 hover-hover:hover:text-blue-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-blue-100/80 hover-hover:hover:via-blue-100/60 hover-hover:hover:to-blue-100/40 transition-all duration-300 flex-shrink-0"
               >
                 <Search className="w-5 h-5" />
               </button>
@@ -106,7 +106,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {/* 对比按钮 */}
               <button 
                 onClick={() => handleNavigation('/compare')}
-                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-purple-50/80 via-purple-50/60 to-purple-50/40 backdrop-blur-2xl rounded-2xl border border-purple-200/50 text-purple-600 hover:text-purple-700 hover:bg-gradient-to-br hover:from-purple-100/80 hover:via-purple-100/60 hover:to-purple-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0"
+                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-purple-50/80 via-purple-50/60 to-purple-50/40 backdrop-blur-2xl rounded-2xl border border-purple-200/50 text-purple-600 hover-hover:hover:text-purple-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-purple-100/80 hover-hover:hover:via-purple-100/60 hover-hover:hover:to-purple-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0"
               >
                 <GitCompare className="w-5 h-5" />
                 <span className="text-sm font-medium">对比</span>
@@ -115,7 +115,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {/* 排行榜按钮 */}
               <button 
                 onClick={() => handleNavigation('/ranking')}
-                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-orange-50/80 via-orange-50/60 to-orange-50/40 backdrop-blur-2xl rounded-2xl border border-orange-200/50 text-orange-600 hover:text-orange-700 hover:bg-gradient-to-br hover:from-orange-100/80 hover:via-orange-100/60 hover:to-orange-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0"
+                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-orange-50/80 via-orange-50/60 to-orange-50/40 backdrop-blur-2xl rounded-2xl border border-orange-200/50 text-orange-600 hover-hover:hover:text-orange-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-orange-100/80 hover-hover:hover:via-orange-100/60 hover-hover:hover:to-orange-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0"
               >
                 <Trophy className="w-5 h-5" />
                 <span className="text-sm font-medium">排行榜</span>
@@ -124,7 +124,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {/* 投稿按钮 */}
               <a 
                 href="https://powerbank.wiki/submit"
-                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-green-50/80 via-green-50/60 to-green-50/40 backdrop-blur-2xl rounded-2xl border border-green-200/50 text-green-600 hover:text-green-700 hover:bg-gradient-to-br hover:from-green-100/80 hover:via-green-100/60 hover:to-green-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0"
+                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-green-50/80 via-green-50/60 to-green-50/40 backdrop-blur-2xl rounded-2xl border border-green-200/50 text-green-600 hover-hover:hover:text-green-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-green-100/80 hover-hover:hover:via-green-100/60 hover-hover:hover:to-green-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0"
               >
                 <Plus className="w-5 h-5" />
                 <span className="text-sm font-medium">投稿</span>
@@ -147,7 +147,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             <div className="flex items-center h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 px-4 gap-3 w-full animate-scale-in">
               <button
                 onClick={toggleSearch}
-                className="p-1 text-blue-600 hover:text-blue-600 transition-colors flex-shrink-0"
+                className="p-1 text-blue-600 hover-hover:hover:text-blue-600 transition-colors flex-shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -163,7 +163,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {searchQuery && (
                 <button
                   onClick={clearSearch}
-                  className="p-1 text-blue-400 hover:text-blue-600 transition-colors flex-shrink-0"
+                  className="p-1 text-blue-400 hover-hover:hover:text-blue-600 transition-colors flex-shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -171,7 +171,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {/* 筛选按钮 */}
               <button
                 onClick={toggleFilter}
-                className="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-gradient-to-br hover:from-blue-100/50 hover:via-blue-100/30 hover:to-blue-100/20 rounded-lg transition-all duration-300 flex-shrink-0"
+                className="flex items-center justify-center w-8 h-8 text-blue-600 hover-hover:hover:text-blue-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-blue-100/50 hover-hover:hover:via-blue-100/30 hover-hover:hover:to-blue-100/20 rounded-lg transition-all duration-300 flex-shrink-0"
               >
                 <Filter className="w-4 h-4" />
               </button>
@@ -221,7 +221,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {searchQuery && (
                 <button
                   onClick={clearSearch}
-                  className="p-1 text-blue-400 hover:text-blue-600 transition-colors flex-shrink-0"
+                  className="p-1 text-blue-400 hover-hover:hover:text-blue-600 transition-colors flex-shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -243,7 +243,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             {/* 对比按钮 */}
             <Link 
               href="/compare"
-              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-purple-600 hover:text-purple-700 hover:bg-gradient-to-br hover:from-purple-50/40 hover:via-purple-50/30 hover:to-purple-50/20 transition-all duration-300 group"
+              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-purple-600 hover-hover:hover:text-purple-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-purple-50/40 hover-hover:hover:via-purple-50/30 hover-hover:hover:to-purple-50/20 transition-all duration-300 group"
             >
               <GitCompare className="w-5 h-5" />
               <span className="text-sm font-medium whitespace-nowrap">对比</span>
@@ -252,7 +252,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             {/* 排行榜按钮 */}
             <Link 
               href="/ranking"
-              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-gradient-to-br hover:from-orange-50/40 hover:via-orange-50/30 hover:to-orange-50/20 transition-all duration-300 group"
+              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-orange-600 hover-hover:hover:text-orange-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-orange-50/40 hover-hover:hover:via-orange-50/30 hover-hover:hover:to-orange-50/20 transition-all duration-300 group"
             >
               <Trophy className="w-5 h-5" />
               <span className="text-sm font-medium whitespace-nowrap">排行榜</span>
@@ -261,7 +261,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             {/* 投稿按钮 */}
             <a 
               href="https://powerbank.wiki/submit"
-              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-gradient-to-br hover:from-green-50/40 hover:via-green-50/30 hover:to-green-50/20 transition-all duration-300 group"
+              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-green-600 hover-hover:hover:text-green-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-green-50/40 hover-hover:hover:via-green-50/30 hover-hover:hover:to-green-50/20 transition-all duration-300 group"
             >
               <Plus className="w-5 h-5" />
               <span className="text-sm font-medium whitespace-nowrap">投稿</span>
