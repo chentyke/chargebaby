@@ -166,12 +166,16 @@ export function NotionImage({
         sizes: defaultSizes,
         alt: alt,
         className: props.className || '',
-        style: props.fill ? { width: '100%', height: '100%' } : {
+        style: props.fill ? { width: '100%', height: '100%', aspectRatio: '1' } : {
           width: props.width,
           height: props.height
         },
         onError: handleError,
-        loading: props.loading
+        loading: props.loading,
+        ...(props.fill ? { width: '100%', height: '100%' } : {
+          width: props.width,
+          height: props.height
+        })
       };
       
       return createImageComponent(imgProps, imageKey);
@@ -185,12 +189,16 @@ export function NotionImage({
       src: imageUrl,
       alt: alt,
       className: props.className || '',
-      style: props.fill ? { width: '100%', height: '100%' } : {
+      style: props.fill ? { width: '100%', height: '100%', aspectRatio: '1' } : {
         width: props.width,
         height: props.height
       },
       onError: handleError,
-      loading: props.loading
+      loading: props.loading,
+      ...(props.fill ? { width: '100%', height: '100%' } : {
+        width: props.width,
+        height: props.height
+      })
     };
     
     return createImageComponent(imgProps, imageKey);
@@ -206,12 +214,16 @@ export function NotionImage({
       src: imageUrl,
       alt: alt,
       className: props.className || '',
-      style: props.fill ? { width: '100%', height: '100%' } : {
+      style: props.fill ? { width: '100%', height: '100%', aspectRatio: '1' } : {
         width: props.width,
         height: props.height
       },
       onError: handleError,
-      loading: props.loading
+      loading: props.loading,
+      ...(props.fill ? { width: '100%', height: '100%' } : {
+        width: props.width,
+        height: props.height
+      })
     };
     
     return createImageComponent(imgProps, imageKey);
