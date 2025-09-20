@@ -13,6 +13,11 @@ interface ReviewCardsProps {
 export function ReviewCards({ subProjects }: ReviewCardsProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -69,7 +74,7 @@ export function ReviewCards({ subProjects }: ReviewCardsProps) {
       </div>
 
       {/* 联系管理员弹窗 */}
-      {showContactModal && (
+      {mounted && showContactModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6 space-y-4">
             {/* 弹窗标题 */}
