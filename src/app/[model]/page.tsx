@@ -8,6 +8,7 @@ import { formatPrice, formatRating, getRatingProgress, formatDate } from '@/lib/
 import { PageHeader } from '@/components/ui/back-button';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
+import { ReviewCards } from '@/components/review-cards';
 
 interface PageProps {
   params: Promise<{
@@ -254,6 +255,11 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               </div>
             )}
 
+            {/* 线上评测卡片 */}
+            {chargeBaby.subProjects && chargeBaby.subProjects.length > 0 && (
+              <ReviewCards subProjects={chargeBaby.subProjects} />
+            )}
+
             {/* 图文内容 */}
             {articleContent && (
               <div className="rounded-2xl border border-gray-200 bg-white p-5">
@@ -481,6 +487,11 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                     </div>
                   </div>
                 </div>
+
+                {/* 线上评测卡片 */}
+                {chargeBaby.subProjects && chargeBaby.subProjects.length > 0 && (
+                  <ReviewCards subProjects={chargeBaby.subProjects} />
+                )}
 
                 {/* 图文内容 */}
                 {articleContent && (

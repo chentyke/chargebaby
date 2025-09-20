@@ -74,6 +74,24 @@ export interface DetailData {
   dataSource: string; // 数据来源
 }
 
+// 子项目类型定义
+export interface SubProject {
+  id: string;
+  model: string; // 型号（如：视频评测-xxx）
+  title?: string; // 标题
+  displayName?: string; // 显示名称
+  type: string[]; // 类型（视频、图文等）
+  tags?: string[]; // 标签
+  videoLink?: string; // 视频链接
+  videoDate?: string; // 视频日期
+  videoAuthor?: string; // 视频作者
+  videoCover?: string; // 视频封面
+  overallRating?: number; // 综合评分
+  performanceRating?: number; // 性能评分
+  createdAt: string;
+  updatedAt: string;
+}
+
 // 充电宝基础类型定义
 export interface ChargeBaby {
   id: string;
@@ -104,6 +122,7 @@ export interface ChargeBaby {
   updatedAt: string;
   detailData?: DetailData; // 详细技术数据
   articleContent?: string; // 图文内容（Markdown格式）
+  subProjects?: SubProject[]; // 子项目（评测内容）
 }
 
 // 评分类型

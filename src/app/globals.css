@@ -259,3 +259,65 @@
 .markdown-content details > *:not(summary) {
   padding: 0 1rem 1rem 1rem;
 }
+
+/* 隐藏滚动条 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 滚动时显示滚动条 */
+.scrollbar-on-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+.scrollbar-on-scroll::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+
+.scrollbar-on-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-on-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+/* 滚动时显示 */
+.scrollbar-on-scroll.scrolling {
+  scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+}
+
+.scrollbar-on-scroll.scrolling::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+/* 悬停时也显示 */
+.scrollbar-on-scroll:hover {
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
+.scrollbar-on-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+}
+
+/* 简单的卡片进入动画 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

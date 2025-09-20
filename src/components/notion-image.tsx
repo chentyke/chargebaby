@@ -94,7 +94,7 @@ export function NotionImage({
           src={placeholderSvg}
           alt="图片加载失败"
           className={props.className || ''}
-          style={props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+          style={props.fill ? { width: '100%', height: '100%' } : {
             width: props.width,
             height: props.height
           }}
@@ -166,7 +166,7 @@ export function NotionImage({
         sizes: defaultSizes,
         alt: alt,
         className: props.className || '',
-        style: props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+        style: props.fill ? { width: '100%', height: '100%' } : {
           width: props.width,
           height: props.height
         },
@@ -185,7 +185,7 @@ export function NotionImage({
       src: imageUrl,
       alt: alt,
       className: props.className || '',
-      style: props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+      style: props.fill ? { width: '100%', height: '100%' } : {
         width: props.width,
         height: props.height
       },
@@ -206,7 +206,7 @@ export function NotionImage({
       src: imageUrl,
       alt: alt,
       className: props.className || '',
-      style: props.fill ? { width: '100%', height: '100%', objectFit: 'contain' } : {
+      style: props.fill ? { width: '100%', height: '100%' } : {
         width: props.width,
         height: props.height
       },

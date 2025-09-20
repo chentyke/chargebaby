@@ -1,4 +1,4 @@
-import { ChargeBaby, NotionDatabase, NotionPage, DetailData, WishlistProduct } from '@/types/chargebaby';
+import { ChargeBaby, NotionDatabase, NotionPage, DetailData, WishlistProduct, SubProject } from '@/types/chargebaby';
 import { serverCache, CACHE_KEYS } from './cache';
 
 const notionApiBase = 'https://api.notion.com/v1';
@@ -406,9 +406,13 @@ async function fetchChargeBabyByIdFromNotion(id: string): Promise<ChargeBaby | n
   // 将页面内容转换为Markdown并添加到articleContent
   const articleContent = convertBlocksToMarkdown(blocks);
   
+  // 获取子项目数据
+  const subProjects = await fetchSubProjects(id);
+  
   return {
     ...chargeBaby,
-    articleContent: articleContent || chargeBaby.articleContent
+    articleContent: articleContent || chargeBaby.articleContent,
+    subProjects
   };
 }
 
@@ -839,6 +843,63 @@ function parseNotionPageToWishlistProduct(page: NotionPage): WishlistProduct {
     voteCount: getNumberProperty(props.VoteCount) || 0,
     status: (getSelectProperty(props.Status) as WishlistProduct['status']) || 'requested',
     submittedAt: getDateProperty(props.SubmittedAt) || new Date().toISOString(),
+    updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
+  };
+}
+
+/**
+ * 获取子项目数据
+ */
+async function fetchSubProjects(parentId: string): Promise<SubProject[]> {
+  try {
+    // 查询所有子项目
+    const response = await notionFetch<NotionDatabase>(`/databases/${databaseId}/query`, {
+      method: 'POST',
+      body: JSON.stringify({
+        filter: {
+          property: '上级 项目',
+          relation: { contains: parentId }
+        },
+        sorts: [
+          {
+            property: 'VideoDate',
+            direction: 'descending'
+          },
+          {
+            property: 'CreatedAt',
+            direction: 'descending'
+          }
+        ]
+      })
+    });
+
+    return response.results.map(parseNotionPageToSubProject);
+  } catch (error) {
+    console.error('Error fetching sub projects:', error);
+    return [];
+  }
+}
+
+/**
+ * 将 Notion 页面数据解析为 SubProject 对象
+ */
+function parseNotionPageToSubProject(page: NotionPage): SubProject {
+  const props = page.properties;
+
+  return {
+    id: page.id,
+    model: getTextProperty(props.Model) || '',
+    title: getTextProperty(props.Title) || '',
+    displayName: getTextProperty(props.DisplayName) || '',
+    type: getMultiSelectProperty(props.Type) || [],
+    tags: getMultiSelectProperty(props.Tags) || [],
+    videoLink: props.VideoLink?.url || '',
+    videoDate: getDateProperty(props.VideoDate) || '',
+    videoAuthor: getTextProperty(props.VideoAuthor) || '',
+    videoCover: getFileProperty(props.VideoCover) || '',
+    overallRating: getNumberProperty(props.OverallRating),
+    performanceRating: getNumberProperty(props.PerformanceRating),
+    createdAt: getDateProperty(props.CreatedAt) || new Date().toISOString(),
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
   };
 }
