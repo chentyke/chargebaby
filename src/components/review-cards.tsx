@@ -1,10 +1,10 @@
 'use client';
 
 import { SubProject } from '@/types/chargebaby';
-import { Play, FileText, ExternalLink, Calendar, User } from 'lucide-react';
+import { Play, FileText, ExternalLink, Calendar, User, Plus, Minus, X, Mail } from 'lucide-react';
 import { NotionImage } from './notion-image';
 import { formatDate } from '@/lib/utils';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface ReviewCardsProps {
   subProjects: SubProject[];
@@ -12,6 +12,7 @@ interface ReviewCardsProps {
 
 export function ReviewCards({ subProjects }: ReviewCardsProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -41,7 +42,19 @@ export function ReviewCards({ subProjects }: ReviewCardsProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">线上评测</h3>
+      {/* 标题和添加/删除按钮 */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">相关评测</h3>
+          <p className="text-xs text-gray-500 mt-1">以下内容收集自互联网，本站不保证内容真实可靠，请注意甄别。</p>
+        </div>
+        <button
+          onClick={() => setShowContactModal(true)}
+          className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-md transition-colors duration-200"
+        >
+          添加/删除
+        </button>
+      </div>
       
       {/* 横向滑动容器 */}
       <div 
@@ -54,6 +67,54 @@ export function ReviewCards({ subProjects }: ReviewCardsProps) {
           ))}
         </div>
       </div>
+
+      {/* 联系管理员弹窗 */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 space-y-4">
+            {/* 弹窗标题 */}
+            <div className="flex items-center justify-between">
+              <h4 className="text-lg font-semibold text-gray-900">管理评测内容</h4>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* 说明文字 */}
+            <div className="text-gray-600 leading-relaxed">
+              如果您是作者，想要将自己的评测展示在本版块，或想要将评测从本版块移除，请联系网站管理员：
+            </div>
+            
+            {/* 邮箱信息 */}
+            <div className="bg-gray-50 p-3 rounded-md">
+              <div className="text-sm text-gray-500 mb-2">管理员邮箱</div>
+              <div className="text-gray-900 font-medium">y.nw@qq.com</div>
+            </div>
+            
+            {/* 按钮组 */}
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  window.open('mailto:y.nw@qq.com?subject=评测内容管理申请&body=您好，我想要申请管理评测内容：%0A%0A请在此处描述您的需求...', '_blank');
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                发送邮件
+              </button>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
