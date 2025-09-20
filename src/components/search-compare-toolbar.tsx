@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, GitCompare, X, Trophy, Plus } from 'lucide-react';
 import { FilterComponent } from './filter-component';
 import { ChargeBaby, SortOption } from '@/types/chargebaby';
@@ -18,6 +19,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -53,6 +55,10 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
     }
   };
 
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
+
   // 移动端紧凑模式
   if (isMobile && !isSearchExpanded) {
     return (
@@ -66,28 +72,28 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         </button>
 
         {/* 对比按钮 */}
-        <Link 
-          href="/compare"
-          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-purple-600 hover:text-purple-700 hover:bg-purple-50/30 transition-all duration-300"
+        <button 
+          onClick={() => handleNavigation('/compare')}
+          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-purple-600 hover:text-purple-700 hover:bg-purple-50/30 transition-all duration-300 touch-manipulation"
         >
           <GitCompare className="w-5 h-5" />
-        </Link>
+        </button>
 
         {/* 排行榜按钮 */}
-        <Link 
-          href="/ranking"
-          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300"
+        <button 
+          onClick={() => handleNavigation('/ranking')}
+          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300 touch-manipulation"
         >
           <Trophy className="w-5 h-5" />
-        </Link>
+        </button>
 
         {/* 投稿按钮 */}
-        <Link 
-          href="/submit"
-          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300"
+        <button 
+          onClick={() => handleNavigation('/submit')}
+          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300 touch-manipulation"
         >
           <Plus className="w-5 h-5" />
-        </Link>
+        </button>
 
         {/* 筛选按钮 - 移动端 */}
         <FilterComponent 
