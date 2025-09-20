@@ -66,24 +66,27 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         </button>
 
         {/* 对比按钮 */}
-        <Link href="/compare">
-          <div className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-purple-600 hover:text-purple-700 hover:bg-purple-50/30 transition-all duration-300">
-            <GitCompare className="w-5 h-5" />
-          </div>
+        <Link 
+          href="/compare"
+          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-purple-600 hover:text-purple-700 hover:bg-purple-50/30 transition-all duration-300"
+        >
+          <GitCompare className="w-5 h-5" />
         </Link>
 
         {/* 排行榜按钮 */}
-        <Link href="/ranking">
-          <div className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300">
-            <Trophy className="w-5 h-5" />
-          </div>
+        <Link 
+          href="/ranking"
+          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300"
+        >
+          <Trophy className="w-5 h-5" />
         </Link>
 
         {/* 投稿按钮 */}
-        <Link href="/submit">
-          <div className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300">
-            <Plus className="w-5 h-5" />
-          </div>
+        <Link 
+          href="/submit"
+          className="flex items-center justify-center w-12 h-12 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300"
+        >
+          <Plus className="w-5 h-5" />
         </Link>
 
         {/* 筛选按钮 - 移动端 */}
@@ -145,27 +148,30 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
       {!isMobile && (
         <div className="flex items-center gap-2">
           {/* 对比按钮 */}
-          <Link href="/compare">
-            <div className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-purple-600 hover:text-purple-700 hover:bg-purple-50/30 transition-all duration-300 group">
-              <GitCompare className="w-5 h-5" />
-              <span className="text-sm font-medium whitespace-nowrap">对比</span>
-            </div>
+          <Link 
+            href="/compare"
+            className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-purple-600 hover:text-purple-700 hover:bg-purple-50/30 transition-all duration-300 group"
+          >
+            <GitCompare className="w-5 h-5" />
+            <span className="text-sm font-medium whitespace-nowrap">对比</span>
           </Link>
 
           {/* 排行榜按钮 */}
-          <Link href="/ranking">
-            <div className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300 group">
-              <Trophy className="w-5 h-5" />
-              <span className="text-sm font-medium whitespace-nowrap">排行榜</span>
-            </div>
+          <Link 
+            href="/ranking"
+            className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-orange-600 hover:text-orange-700 hover:bg-orange-50/30 transition-all duration-300 group"
+          >
+            <Trophy className="w-5 h-5" />
+            <span className="text-sm font-medium whitespace-nowrap">排行榜</span>
           </Link>
 
           {/* 投稿按钮 */}
-          <Link href="/submit">
-            <div className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300 group">
-              <Plus className="w-5 h-5" />
-              <span className="text-sm font-medium whitespace-nowrap">投稿</span>
-            </div>
+          <Link 
+            href="/submit"
+            className="flex items-center gap-2 h-12 px-4 bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/30 shadow-lg shadow-black/5 text-green-600 hover:text-green-700 hover:bg-green-50/30 transition-all duration-300 group"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-sm font-medium whitespace-nowrap">投稿</span>
           </Link>
 
           {/* 筛选按钮 - 桌面端 */}
