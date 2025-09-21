@@ -256,9 +256,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
             )}
 
             {/* 相关评测卡片 */}
-            {chargeBaby.subProjects && chargeBaby.subProjects.length > 0 && (
-              <ReviewCards subProjects={chargeBaby.subProjects} />
-            )}
+            <ReviewCards subProjects={chargeBaby.subProjects} modelName={productModel} />
 
             {/* 图文内容 */}
             {articleContent && (
@@ -489,9 +487,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                 </div>
 
                 {/* 相关评测卡片 */}
-                {chargeBaby.subProjects && chargeBaby.subProjects.length > 0 && (
-                  <ReviewCards subProjects={chargeBaby.subProjects} />
-                )}
+                <ReviewCards subProjects={chargeBaby.subProjects} modelName={productModel} />
 
                 {/* 图文内容 */}
                 {articleContent && (
