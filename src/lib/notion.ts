@@ -91,7 +91,8 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
     const cached = serverCache.get<ChargeBaby[]>(CACHE_KEYS.CHARGE_BABIES);
     if (cached) {
       console.log('📦 Serving charge babies from cache');
-      return cached;
+      // 将WeChat组件移到最前面
+      return moveWeChatToFirst(cached);
     }
 
     console.log('🌐 Fetching charge babies from Notion API');
@@ -105,7 +106,8 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
       fetchChargeBabiesFromNotion
     );
 
-    return data;
+    // 将WeChat组件移到最前面
+    return moveWeChatToFirst(data);
   } catch (error) {
     console.error('Error fetching charge babies from Notion:', error);
     
@@ -113,11 +115,24 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
     const staleCache = serverCache.get<ChargeBaby[]>(CACHE_KEYS.CHARGE_BABIES);
     if (staleCache) {
       console.log('⚠️  Serving stale cache due to API error');
-      return staleCache;
+      return moveWeChatToFirst(staleCache);
     }
     
     return [];
   }
+}
+
+/**
+ * 将WeChat组件移动到数组最前面
+ */
+function moveWeChatToFirst(chargeBabies: ChargeBaby[]): ChargeBaby[] {
+  const wechatIndex = chargeBabies.findIndex(item => item.model === 'WeChat');
+  if (wechatIndex > 0) {
+    const wechatItem = chargeBabies[wechatIndex];
+    const otherItems = chargeBabies.filter((_, index) => index !== wechatIndex);
+    return [wechatItem, ...otherItems];
+  }
+  return chargeBabies;
 }
 
 /**
