@@ -852,13 +852,21 @@ function parseNotionPageToWishlistProduct(page: NotionPage): WishlistProduct {
  */
 async function fetchSubProjects(parentId: string): Promise<SubProject[]> {
   try {
-    // 查询所有子项目
+    // 查询所有子项目，只显示审核通过的
     const response = await notionFetch<NotionDatabase>(`/databases/${databaseId}/query`, {
       method: 'POST',
       body: JSON.stringify({
         filter: {
-          property: '上级 项目',
-          relation: { contains: parentId }
+          and: [
+            {
+              property: '上级 项目',
+              relation: { contains: parentId }
+            },
+            {
+              property: '投稿审核',
+              select: { equals: '通过' }
+            }
+          ]
         },
         sorts: [
           {
@@ -899,6 +907,7 @@ function parseNotionPageToSubProject(page: NotionPage): SubProject {
     videoCover: getFileProperty(props.VideoCover) || '',
     overallRating: getNumberProperty(props.OverallRating),
     performanceRating: getNumberProperty(props.PerformanceRating),
+    submissionStatus: getSelectProperty(props['投稿审核']) || '',
     createdAt: getDateProperty(props.CreatedAt) || new Date().toISOString(),
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
   };

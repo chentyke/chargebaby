@@ -88,6 +88,7 @@ export interface SubProject {
   videoCover?: string; // 视频封面
   overallRating?: number; // 综合评分
   performanceRating?: number; // 性能评分
+  submissionStatus?: string; // 投稿审核状态（通过、待审核、拒绝等）
   createdAt: string;
   updatedAt: string;
 }

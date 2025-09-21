@@ -69,7 +69,9 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
           'group relative bg-white/70 backdrop-blur-2xl rounded-2xl overflow-hidden border border-white/20 transition-all duration-200 ease-out transform cursor-pointer shadow-lg shadow-black/5',
           'hover-hover:hover:border-white/30 hover-hover:hover:scale-[1.02] hover-hover:hover:shadow-2xl hover-hover:hover:shadow-black/10',
           'before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:opacity-0 hover-hover:hover:before:opacity-100 before:transition-opacity before:duration-200',
-          'active:scale-[0.98] active:transition-transform active:duration-100',
+          'active:scale-[0.98] active:transition-transform active:duration-100 active:shadow-xl active:border-white/40',
+          'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-transparent',
+          'touch-manipulation select-none',
           className
         )}
         style={{ 
