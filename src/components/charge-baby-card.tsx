@@ -63,28 +63,25 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
   };
 
   const sortValue = getSortValue();
+  const isWeChatGroup = model === 'WeChat';
 
-  return (
-    <Link 
-      href={`/${encodeURIComponent(model)}`}
-      prefetch={index < 8} // 预取前8个项目的页面
+  const cardContent = (
+    <div 
+      className={cn(
+        'group relative bg-white/70 backdrop-blur-2xl rounded-2xl overflow-hidden border border-white/20 transition-all duration-200 ease-out transform cursor-pointer shadow-lg shadow-black/5',
+        'hover-hover:hover:border-white/30 hover-hover:hover:scale-[1.02] hover-hover:hover:shadow-2xl hover-hover:hover:shadow-black/10',
+        'before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:opacity-0 hover-hover:hover:before:opacity-100 before:transition-opacity before:duration-200',
+        'active:scale-[0.98] active:transition-transform active:duration-100 active:shadow-xl active:border-white/40',
+        'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-transparent',
+        'touch-manipulation select-none',
+        className
+      )}
+      style={{ 
+        animationDelay: `${index * 80}ms`,
+        opacity: 0,
+        animation: `slideInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 80}ms forwards`
+      }}
     >
-      <div 
-        className={cn(
-          'group relative bg-white/70 backdrop-blur-2xl rounded-2xl overflow-hidden border border-white/20 transition-all duration-200 ease-out transform cursor-pointer shadow-lg shadow-black/5',
-          'hover-hover:hover:border-white/30 hover-hover:hover:scale-[1.02] hover-hover:hover:shadow-2xl hover-hover:hover:shadow-black/10',
-          'before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:opacity-0 hover-hover:hover:before:opacity-100 before:transition-opacity before:duration-200',
-          'active:scale-[0.98] active:transition-transform active:duration-100 active:shadow-xl active:border-white/40',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-transparent',
-          'touch-manipulation select-none',
-          className
-        )}
-        style={{ 
-          animationDelay: `${index * 80}ms`,
-          opacity: 0,
-          animation: `slideInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 80}ms forwards`
-        }}
-      >
         {/* 图片容器 */}
         <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-100/80 backdrop-blur-sm">
           {/* 背景装饰 */}
@@ -151,7 +148,25 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
           {/* 光效 */}
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 hover-hover:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
         </div>
-      </div>
+    </div>
+  );
+
+  // 如果是WeChat群组，跳转到专门的wechat页面
+  if (isWeChatGroup) {
+    return (
+      <Link href="/wechat">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  // 普通充电宝卡片，使用Link包裹
+  return (
+    <Link 
+      href={`/${encodeURIComponent(model)}`}
+      prefetch={index < 8} // 预取前8个项目的页面
+    >
+      {cardContent}
     </Link>
   );
 }
