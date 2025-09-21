@@ -176,6 +176,10 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
           valueA = Math.max(a.detailData?.maxOutputPower || 0, a.detailData?.maxSelfChargingPower || 0);
           valueB = Math.max(b.detailData?.maxOutputPower || 0, b.detailData?.maxSelfChargingPower || 0);
           break;
+        case 'weight':
+          valueA = a.detailData?.weight || 0;
+          valueB = b.detailData?.weight || 0;
+          break;
         case 'price':
           valueA = a.price || 0;
           valueB = b.price || 0;
@@ -293,10 +297,10 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                 </div>
               </div>
 
-              {/* 功率块 */}
+              {/* 最大功率块 */}
               <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-yellow-50/80 via-yellow-50/60 to-yellow-50/40 backdrop-blur-2xl rounded-xl border border-yellow-200/50 flex-shrink-0">
                 <Zap className="w-4 h-4 text-yellow-600" />
-                <span className="text-sm text-yellow-700 whitespace-nowrap">功率</span>
+                <span className="text-sm text-yellow-700 whitespace-nowrap">最大功率</span>
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
@@ -707,11 +711,11 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                 </div>
               </div>
 
-              {/* 充电功率筛选 */}
+              {/* 最大功率筛选 */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
-                    充电功率 (W)
+                    最大功率 (W)
                   </label>
                   <div className="text-xs text-gray-500">
                     {filters.powerRange.min} - {filters.powerRange.max} W

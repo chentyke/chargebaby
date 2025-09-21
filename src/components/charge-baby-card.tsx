@@ -46,6 +46,11 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
         const maxSelfCharging = detailData?.maxSelfChargingPower || 0;
         const maxPower = Math.max(maxOutput, maxSelfCharging);
         return maxPower > 0 ? `${formatNumber(maxPower)}W` : null;
+      case 'weight':
+        const weight = detailData?.weight;
+        return weight > 0 ? `${formatNumber(weight)}g` : null;
+      case 'price':
+        return chargeBaby.price > 0 ? `¥${formatNumber(chargeBaby.price)}` : null;
       case 'overallRating':
         return chargeBaby.overallRating != null ? `${formatNumber(chargeBaby.overallRating)}分` : null;
       case 'performanceRating':
