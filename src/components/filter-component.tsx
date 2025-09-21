@@ -18,6 +18,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
   const [filters, setFilters] = useState<FilterOptions>({
     capacityRange: { min: 0, max: 100000 },
     powerRange: { min: 0, max: 1000 },
+    priceRange: { min: 0, max: 1000 },
     brands: [],
     features: [],
     protocols: [],
@@ -59,17 +60,38 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     max: powerData.length > 0 ? Math.max(...powerData) : 1000
   };
 
+  // 获取价格范围
+  const priceData = (chargeBabies || []).filter(b => b.price && b.price > 0).map(b => b.price);
+  const priceRange = {
+    min: priceData.length > 0 ? Math.min(...priceData) : 0,
+    max: priceData.length > 0 ? Math.max(...priceData) : 1000
+  };
+
   // 检查是否有激活的筛选条件
   const hasActiveFilters = 
     filters.capacityRange.min > capacityRange.min ||
     filters.capacityRange.max < capacityRange.max ||
     filters.powerRange.min > powerRange.min ||
     filters.powerRange.max < powerRange.max ||
+    filters.priceRange.min > priceRange.min ||
+    filters.priceRange.max < priceRange.max ||
     filters.brands.length > 0 ||
     filters.features.length > 0 ||
     filters.protocols.length > 0 ||
     filters.sortBy !== 'updatedAt' ||
     filters.sortOrder !== 'desc';
+
+  // 初始化筛选条件为实际数据范围
+  useEffect(() => {
+    if (chargeBabies && chargeBabies.length > 0) {
+      setFilters(prev => ({
+        ...prev,
+        capacityRange: { min: capacityRange.min, max: capacityRange.max },
+        powerRange: { min: powerRange.min, max: powerRange.max },
+        priceRange: { min: priceRange.min, max: priceRange.max }
+      }));
+    }
+  }, [chargeBabies.length, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max]);
 
   // 应用筛选
   useEffect(() => {
@@ -95,6 +117,14 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
         const maxSelfCharging = baby.detailData?.maxSelfChargingPower || 0;
         const maxPower = Math.max(maxOutput, maxSelfCharging);
         return maxPower >= filters.powerRange.min && maxPower <= filters.powerRange.max;
+      });
+    }
+
+    // 价格筛选
+    if (filters.priceRange.min > priceRange.min || filters.priceRange.max < priceRange.max) {
+      filtered = filtered.filter(baby => {
+        const price = baby.price || 0;
+        return price >= filters.priceRange.min && price <= filters.priceRange.max;
       });
     }
 
@@ -146,6 +176,10 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
           valueA = Math.max(a.detailData?.maxOutputPower || 0, a.detailData?.maxSelfChargingPower || 0);
           valueB = Math.max(b.detailData?.maxOutputPower || 0, b.detailData?.maxSelfChargingPower || 0);
           break;
+        case 'price':
+          valueA = a.price || 0;
+          valueB = b.price || 0;
+          break;
         case 'overallRating':
           valueA = a.overallRating || 0;
           valueB = b.overallRating || 0;
@@ -174,19 +208,20 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     });
 
     onFilterChange(filtered, filters.sortBy, hasActiveFilters);
-  }, [filters, chargeBabies, onFilterChange, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, hasActiveFilters]);
+  }, [filters, chargeBabies, onFilterChange, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max, hasActiveFilters]);
 
   const resetFilters = useCallback(() => {
     setFilters({
       capacityRange: { min: capacityRange.min, max: capacityRange.max },
       powerRange: { min: powerRange.min, max: powerRange.max },
+      priceRange: { min: priceRange.min, max: priceRange.max },
       brands: [],
       features: [],
       protocols: [],
       sortBy: 'updatedAt',
       sortOrder: 'desc'
     });
-  }, [capacityRange.min, capacityRange.max, powerRange.min, powerRange.max]);
+  }, [capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max]);
 
   // 内联模式直接显示筛选内容
   if (isInline) {
@@ -240,7 +275,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                     value={filters.capacityRange.min || ''}
                     onChange={(e) => setFilters(prev => ({
                       ...prev,
-                      capacityRange: { ...prev.capacityRange, min: Number(e.target.value) || 0 }
+                      capacityRange: { ...prev.capacityRange, min: e.target.value === '' ? capacityRange.min : Number(e.target.value) }
                     }))}
                     className="w-14 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
@@ -251,7 +286,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                     value={filters.capacityRange.max || ''}
                     onChange={(e) => setFilters(prev => ({
                       ...prev,
-                      capacityRange: { ...prev.capacityRange, max: Number(e.target.value) || 100000 }
+                      capacityRange: { ...prev.capacityRange, max: e.target.value === '' ? capacityRange.max : Number(e.target.value) }
                     }))}
                     className="w-14 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
@@ -269,7 +304,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                     value={filters.powerRange.min || ''}
                     onChange={(e) => setFilters(prev => ({
                       ...prev,
-                      powerRange: { ...prev.powerRange, min: Number(e.target.value) || 0 }
+                      powerRange: { ...prev.powerRange, min: e.target.value === '' ? powerRange.min : Number(e.target.value) }
                     }))}
                     className="w-12 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
@@ -280,7 +315,36 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                     value={filters.powerRange.max || ''}
                     onChange={(e) => setFilters(prev => ({
                       ...prev,
-                      powerRange: { ...prev.powerRange, max: Number(e.target.value) || 1000 }
+                      powerRange: { ...prev.powerRange, max: e.target.value === '' ? powerRange.max : Number(e.target.value) }
+                    }))}
+                    className="w-12 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* 价格块 */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-red-50/80 via-red-50/60 to-red-50/40 backdrop-blur-2xl rounded-xl border border-red-200/50 flex-shrink-0">
+                <span className="text-sm text-red-700 whitespace-nowrap">¥</span>
+                <span className="text-sm text-red-700 whitespace-nowrap">价格</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    placeholder="最小"
+                    value={filters.priceRange.min || ''}
+                    onChange={(e) => setFilters(prev => ({
+                      ...prev,
+                      priceRange: { ...prev.priceRange, min: e.target.value === '' ? priceRange.min : Number(e.target.value) }
+                    }))}
+                    className="w-14 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <span className="text-gray-400 text-xs">-</span>
+                  <input
+                    type="number"
+                    placeholder="最大"
+                    value={filters.priceRange.max || ''}
+                    onChange={(e) => setFilters(prev => ({
+                      ...prev,
+                      priceRange: { ...prev.priceRange, max: e.target.value === '' ? priceRange.max : Number(e.target.value) }
                     }))}
                     className="w-12 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
@@ -617,7 +681,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                         value={filters.capacityRange.min || ''}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
-                          capacityRange: { ...prev.capacityRange, min: Number(e.target.value) || 0 }
+                          capacityRange: { ...prev.capacityRange, min: e.target.value === '' ? capacityRange.min : Number(e.target.value) }
                         }))}
                         className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           isMobile ? 'py-3' : 'py-2'
@@ -632,7 +696,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                         value={filters.capacityRange.max || ''}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
-                          capacityRange: { ...prev.capacityRange, max: Number(e.target.value) || 100000 }
+                          capacityRange: { ...prev.capacityRange, max: e.target.value === '' ? capacityRange.max : Number(e.target.value) }
                         }))}
                         className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           isMobile ? 'py-3' : 'py-2'
@@ -663,7 +727,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                         value={filters.powerRange.min || ''}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
-                          powerRange: { ...prev.powerRange, min: Number(e.target.value) || 0 }
+                          powerRange: { ...prev.powerRange, min: e.target.value === '' ? powerRange.min : Number(e.target.value) }
                         }))}
                         className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           isMobile ? 'py-3' : 'py-2'
@@ -678,7 +742,53 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                         value={filters.powerRange.max || ''}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
-                          powerRange: { ...prev.powerRange, max: Number(e.target.value) || 1000 }
+                          powerRange: { ...prev.powerRange, max: e.target.value === '' ? powerRange.max : Number(e.target.value) }
+                        }))}
+                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          isMobile ? 'py-3' : 'py-2'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 价格筛选 */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    价格 (¥)
+                  </label>
+                  <div className="text-xs text-gray-500">
+                    ¥{filters.priceRange.min} - ¥{filters.priceRange.max}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">最小值</label>
+                      <input
+                        type="number"
+                        placeholder="最小值"
+                        value={filters.priceRange.min || ''}
+                        onChange={(e) => setFilters(prev => ({
+                          ...prev,
+                          priceRange: { ...prev.priceRange, min: e.target.value === '' ? priceRange.min : Number(e.target.value) }
+                        }))}
+                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          isMobile ? 'py-3' : 'py-2'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">最大值</label>
+                      <input
+                        type="number"
+                        placeholder="最大值"
+                        value={filters.priceRange.max || ''}
+                        onChange={(e) => setFilters(prev => ({
+                          ...prev,
+                          priceRange: { ...prev.priceRange, max: e.target.value === '' ? priceRange.max : Number(e.target.value) }
                         }))}
                         className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           isMobile ? 'py-3' : 'py-2'

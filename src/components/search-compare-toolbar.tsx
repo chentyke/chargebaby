@@ -3,10 +3,23 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, GitCompare, X, Trophy, Plus, Filter } from 'lucide-react';
+import { Search, GitCompare, X, Trophy, Plus, Filter, Clock, Hash } from 'lucide-react';
 import { FilterComponent } from './filter-component';
 import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import Image from 'next/image';
+import { 
+  getSearchHistory, 
+  addSearchHistory, 
+  removeSearchHistory, 
+  type SearchHistoryItem 
+} from '@/utils/search-history';
+import { 
+  generateSearchTags, 
+  applyTagFilter, 
+  getTagTypeLabel,
+  type SearchTag 
+} from '@/utils/search-tags';
+import { isAnyFieldMatch } from '@/utils/pinyin-matcher';
 
 interface SearchCompareToolbarProps {
   onSearch: (query: string) => void;
@@ -23,6 +36,10 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
   const [isClient, setIsClient] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
+  const [activeFilter, setActiveFilter] = useState<SearchTag | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -30,11 +47,11 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
 
   // 搜索建议逻辑
   const searchSuggestions = useMemo(() => {
-    if (!searchQuery.trim() || searchQuery.length < 2) {
+    if (!searchQuery.trim() || searchQuery.length < 1) {
       return [];
     }
 
-    const query = searchQuery.toLowerCase().trim();
+    const query = searchQuery.trim();
     const filtered = chargeBabies.filter((chargeBaby) => {
       const searchFields = [
         chargeBaby.title,
@@ -45,9 +62,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         ...(Array.isArray(chargeBaby.tags) ? chargeBaby.tags : [])
       ].filter(Boolean);
 
-      return searchFields.some(field => 
-        field?.toString().toLowerCase().includes(query)
-      );
+      return isAnyFieldMatch(searchFields, query);
     });
 
     // 按照匹配度排序：优先显示标题和显示名称匹配的产品
@@ -79,6 +94,9 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
     checkIfMobile();
     window.addEventListener('resize', checkIfMobile);
     
+    // 初始化搜索历史记录
+    setSearchHistory(getSearchHistory());
+    
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
@@ -92,56 +110,97 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
 
   // 处理搜索建议的显示/隐藏
   useEffect(() => {
-    setShowSuggestions(searchQuery.length >= 2 && searchSuggestions.length > 0);
+    setShowSuggestions(searchQuery.length >= 1 && searchSuggestions.length > 0);
     setSelectedSuggestionIndex(-1);
-  }, [searchQuery, searchSuggestions]);
+    
+    // 生成搜索标签
+    if (searchQuery.length >= 1) {
+      setSearchTags(generateSearchTags(searchQuery, chargeBabies));
+    } else {
+      setSearchTags([]);
+    }
+  }, [searchQuery, searchSuggestions, chargeBabies]);
 
-  // 点击外部区域隐藏建议
+  // 点击外部区域和页面滚动时隐藏建议
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
           inputRef.current && !inputRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
+        setShowHistory(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    };
+
+    const handleScroll = (event: Event) => {
+      // 只在搜索建议框外部滚动时隐藏建议
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+        setShowHistory(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      // 只在搜索建议框和输入框外部触摸时隐藏建议
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+        setShowHistory(false);
         setSelectedSuggestionIndex(-1);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('scroll', handleScroll, true);
+    document.addEventListener('touchstart', handleTouchStart);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll, true);
+      document.removeEventListener('touchstart', handleTouchStart);
+    };
   }, []);
 
   const clearSearch = () => {
     setSearchQuery('');
     setShowSuggestions(false);
+    setShowHistory(false);
     setSelectedSuggestionIndex(-1);
+    setSearchTags([]);
     inputRef.current?.focus();
   };
 
   // 处理键盘导航
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions || searchSuggestions.length === 0) return;
-
     switch (e.key) {
       case 'ArrowDown':
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
-          prev < searchSuggestions.length - 1 ? prev + 1 : 0
-        );
+        if (showSuggestions && searchSuggestions.length > 0) {
+          e.preventDefault();
+          setSelectedSuggestionIndex(prev => 
+            prev < searchSuggestions.length - 1 ? prev + 1 : 0
+          );
+        }
         break;
       case 'ArrowUp':
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
-          prev > 0 ? prev - 1 : searchSuggestions.length - 1
-        );
+        if (showSuggestions && searchSuggestions.length > 0) {
+          e.preventDefault();
+          setSelectedSuggestionIndex(prev => 
+            prev > 0 ? prev - 1 : searchSuggestions.length - 1
+          );
+        }
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < searchSuggestions.length) {
+        if (showSuggestions && selectedSuggestionIndex >= 0 && selectedSuggestionIndex < searchSuggestions.length) {
           handleSuggestionClick(searchSuggestions[selectedSuggestionIndex]);
+        } else {
+          handleSearchSubmit();
         }
         break;
       case 'Escape':
         setShowSuggestions(false);
+        setShowHistory(false);
         setSelectedSuggestionIndex(-1);
         inputRef.current?.blur();
         break;
@@ -153,13 +212,46 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
     router.push(`/${encodeURIComponent(chargeBaby.model)}`);
     setSearchQuery(chargeBaby.displayName || chargeBaby.title);
     setShowSuggestions(false);
+    setShowHistory(false);
     setSelectedSuggestionIndex(-1);
+  };
+
+  // 处理历史记录点击
+  const handleHistoryClick = (historyItem: SearchHistoryItem) => {
+    setSearchQuery(historyItem.query);
+    addSearchHistory(historyItem.query);
+    setSearchHistory(getSearchHistory());
+    setShowHistory(false);
+    setShowSuggestions(false);
+  };
+
+  // 处理删除历史记录
+  const handleDeleteHistory = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    removeSearchHistory(id);
+    setSearchHistory(getSearchHistory());
+  };
+
+  // 处理搜索标签点击
+  const handleTagClick = (tag: SearchTag) => {
+    const filteredBabies = applyTagFilter(chargeBabies, tag);
+    onFilterChange(filteredBabies, 'overallRating', true);
+    // 清空搜索框，避免协议名称进行二次筛选
+    setSearchQuery('');
+    // 设置激活的筛选
+    setActiveFilter(tag);
+    addSearchHistory(tag.label);
+    setSearchHistory(getSearchHistory());
+    setShowSuggestions(false);
+    setShowHistory(false);
   };
 
   // 处理输入框焦点
   const handleInputFocus = () => {
-    if (searchQuery.length >= 2 && searchSuggestions.length > 0) {
+    if (searchQuery.length >= 1 && searchSuggestions.length > 0) {
       setShowSuggestions(true);
+    } else if (searchQuery.length === 0 && searchHistory.length > 0) {
+      setShowHistory(true);
     }
   };
 
@@ -168,8 +260,25 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
     // 延迟隐藏建议，以便用户能够点击建议项
     setTimeout(() => {
       setShowSuggestions(false);
+      setShowHistory(false);
       setSelectedSuggestionIndex(-1);
     }, 200);
+  };
+
+  // 处理搜索提交
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      addSearchHistory(searchQuery.trim());
+      setSearchHistory(getSearchHistory());
+      setShowSuggestions(false);
+      setShowHistory(false);
+    }
+  };
+
+  // 处理清除筛选
+  const handleClearFilter = () => {
+    setActiveFilter(null);
+    onFilterChange(chargeBabies, 'overallRating', false);
   };
 
   const toggleSearch = () => {
@@ -210,7 +319,11 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
 
   // 渲染搜索建议组件
   const renderSearchSuggestions = () => {
-    if (!showSuggestions || searchSuggestions.length === 0) return null;
+    const hasHistory = showHistory && searchHistory.length > 0;
+    const hasSuggestions = showSuggestions && searchSuggestions.length > 0;
+    const hasTags = showSuggestions && searchTags.length > 0 && searchQuery.length >= 1;
+    
+    if (!hasHistory && !hasSuggestions && !hasTags) return null;
 
     return (
       <div 
@@ -218,51 +331,120 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-2xl border border-white/40 shadow-2xl shadow-black/10 z-50 animate-scale-in overflow-hidden"
       >
         <div className="py-2 max-h-80 overflow-y-auto">
-          {searchSuggestions.map((chargeBaby, index) => (
-            <button
-              key={chargeBaby.id}
-              onClick={() => handleSuggestionClick(chargeBaby)}
-              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50/80 transition-all duration-200 text-left ${
-                selectedSuggestionIndex === index ? 'bg-blue-50/80 border-l-2 border-blue-400' : ''
-              }`}
-            >
-              {/* 产品图片 */}
-              <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-                {chargeBaby.imageUrl ? (
-                  <Image
-                    src={`/api/image-proxy?url=${encodeURIComponent(chargeBaby.imageUrl)}&size=thumbnail`}
-                    alt={chargeBaby.displayName || chargeBaby.title}
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                    <Search className="w-5 h-5 text-gray-400" />
+          {/* 智能标签建议 - 最高优先级 */}
+          {hasTags && (
+            <>
+              <div className="px-4 py-2 flex items-center gap-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                <Hash className="w-3 h-3" />
+                <span>智能筛选</span>
+              </div>
+              {searchTags.map((tag) => (
+                <button
+                  key={tag.id}
+                  onClick={() => handleTagClick(tag)}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-blue-50/80 transition-all duration-200 text-left"
+                >
+                  <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
+                    tag.type === 'brand' ? 'bg-blue-500' : 
+                    tag.type === 'protocol' ? 'bg-green-500' : 'bg-purple-500'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">
+                      {highlightText(tag.label, searchQuery)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {getTagTypeLabel(tag.type)} · {tag.count} 个产品
+                    </div>
                   </div>
-                )}
+                </button>
+              ))}
+            </>
+          )}
+
+          {/* 产品建议 - 第二优先级 */}
+          {hasSuggestions && (
+            <>
+              {hasTags && <div className="border-t border-gray-100" />}
+              <div className="px-4 py-2 flex items-center gap-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                <Search className="w-3 h-3" />
+                <span>产品建议</span>
               </div>
-              
-              {/* 产品信息 */}
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-gray-900 text-sm truncate">
-                  {highlightText(chargeBaby.displayName || chargeBaby.title, searchQuery)}
+              {searchSuggestions.map((chargeBaby, index) => (
+                <button
+                  key={chargeBaby.id}
+                  onClick={() => handleSuggestionClick(chargeBaby)}
+                  className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50/80 transition-all duration-200 text-left ${
+                    selectedSuggestionIndex === index ? 'bg-blue-50/80 border-l-2 border-blue-400' : ''
+                  }`}
+                >
+                  {/* 产品图片 */}
+                  <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
+                    {chargeBaby.imageUrl ? (
+                      <Image
+                        src={`/api/image-proxy?url=${encodeURIComponent(chargeBaby.imageUrl)}&size=thumbnail`}
+                        alt={chargeBaby.displayName || chargeBaby.title}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                        <Search className="w-5 h-5 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* 产品信息 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 text-sm truncate">
+                      {highlightText(chargeBaby.displayName || chargeBaby.title, searchQuery)}
+                    </div>
+                  </div>
+                  
+                  {/* 价格信息 */}
+                  <div className="flex-shrink-0">
+                    <div className="text-sm font-medium text-gray-900">
+                      ¥{chargeBaby.price}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </>
+          )}
+
+          {/* 搜索历史记录 - 最低优先级 */}
+          {hasHistory && (
+            <>
+              {(hasSuggestions || hasTags) && <div className="border-t border-gray-100" />}
+              <div className="px-4 py-2 flex items-center gap-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                <Clock className="w-3 h-3" />
+                <span>搜索历史</span>
+              </div>
+              {searchHistory.slice(0, 5).map((historyItem) => (
+                <div
+                  key={historyItem.id}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50/80 transition-all duration-200 text-left group cursor-pointer"
+                  onClick={() => handleHistoryClick(historyItem)}
+                >
+                  <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <span className="flex-1 text-sm text-gray-700 truncate">
+                    {historyItem.query}
+                  </span>
+                  <button
+                    onClick={(e) => handleDeleteHistory(historyItem.id, e)}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-all duration-200 flex-shrink-0"
+                  >
+                    <X className="w-3 h-3 text-gray-400" />
+                  </button>
                 </div>
-              </div>
-              
-              {/* 价格信息 */}
-              <div className="flex-shrink-0">
-                <div className="text-sm font-medium text-gray-900">
-                  ¥{chargeBaby.price}
-                </div>
-              </div>
-            </button>
-          ))}
+              ))}
+            </>
+          )}
           
           {/* 搜索提示底部 */}
           <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100 flex items-center justify-between">
-            <span>按 ↵ 选择 · 按 ↑↓ 导航 · 按 ESC 关闭</span>
-            <span>{searchSuggestions.length} 个结果</span>
+            <span>按 ↵ 搜索 · 按 ↑↓ 导航 · 按 ESC 关闭</span>
+            {hasSuggestions && <span>{searchSuggestions.length} 个结果</span>}
           </div>
         </div>
       </div>
@@ -302,6 +484,25 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               >
                 <Search className="w-5 h-5" />
               </button>
+
+              {/* 激活筛选显示 - 移动端紧凑模式 */}
+              {activeFilter && (
+                <div className="flex items-center gap-2 h-12 px-3 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 animate-scale-in flex-shrink-0">
+                  <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                    activeFilter.type === 'brand' ? 'bg-blue-500' : 
+                    activeFilter.type === 'protocol' ? 'bg-green-500' : 'bg-purple-500'
+                  }`} />
+                  <span className="text-sm text-gray-700 whitespace-nowrap max-w-20 truncate">
+                    {activeFilter.label}
+                  </span>
+                  <button
+                    onClick={handleClearFilter}
+                    className="p-1 text-gray-400 hover-hover:hover:text-gray-600 hover-hover:hover:bg-gray-100/50 rounded transition-all duration-200 flex-shrink-0 touch-manipulation"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
 
               {/* 对比按钮 */}
               <button 
@@ -363,14 +564,6 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
                 onBlur={handleInputBlur}
                 className="flex-1 bg-transparent text-blue-900 placeholder-blue-500/70 focus:outline-none text-sm"
               />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="p-1 text-blue-400 hover-hover:hover:text-blue-600 transition-colors flex-shrink-0"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
               {/* 筛选按钮 */}
               <button
                 onClick={toggleFilter}
@@ -383,6 +576,25 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             {/* 搜索建议 */}
             {renderSearchSuggestions()}
           </div>
+
+          {/* 激活筛选显示 - 移动端 */}
+          {activeFilter && (
+            <div className="flex items-center gap-2 p-3 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 animate-scale-in">
+              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                activeFilter.type === 'brand' ? 'bg-blue-500' : 
+                activeFilter.type === 'protocol' ? 'bg-green-500' : 'bg-purple-500'
+              }`} />
+              <span className="text-sm text-gray-700 flex-1">
+                {getTagTypeLabel(activeFilter.type)}: {activeFilter.label}
+              </span>
+              <button
+                onClick={handleClearFilter}
+                className="p-1 text-gray-400 hover-hover:hover:text-gray-600 hover-hover:hover:bg-gray-100/50 rounded transition-all duration-200"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
 
           {/* 筛选组件展开区域 */}
           {isFilterExpanded && (
@@ -431,6 +643,25 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             {/* 搜索建议 */}
             {renderSearchSuggestions()}
           </div>
+
+          {/* 激活筛选显示 - 桌面端右侧 */}
+          {activeFilter && (
+            <div className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 animate-scale-in">
+              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                activeFilter.type === 'brand' ? 'bg-blue-500' : 
+                activeFilter.type === 'protocol' ? 'bg-green-500' : 'bg-purple-500'
+              }`} />
+              <span className="text-sm text-gray-700 whitespace-nowrap">
+                {getTagTypeLabel(activeFilter.type)}: {activeFilter.label}
+              </span>
+              <button
+                onClick={handleClearFilter}
+                className="p-1 text-gray-400 hover-hover:hover:text-gray-600 hover-hover:hover:bg-gray-100/50 rounded transition-all duration-200 ml-1"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
 
           {/* 功能按钮组 */}
           <div className="flex items-center gap-2">

@@ -166,13 +166,14 @@ export interface NotionDatabase {
 }
 
 // 排序选项类型
-export type SortOption = 'updatedAt' | 'capacity' | 'power' | 'alphabetical' | 'overallRating' | 'performanceRating' | 'experienceRating';
+export type SortOption = 'updatedAt' | 'capacity' | 'power' | 'price' | 'alphabetical' | 'overallRating' | 'performanceRating' | 'experienceRating';
 
 export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'updatedAt', label: '更新时间' },
   { value: 'overallRating', label: '综合评分' },
   { value: 'performanceRating', label: '性能评分' },
   { value: 'experienceRating', label: '体验评分' },
+  { value: 'price', label: '价格' },
   { value: 'capacity', label: '容量' },
   { value: 'power', label: '功率' },
   { value: 'alphabetical', label: '首字母' }
@@ -185,6 +186,10 @@ export interface FilterOptions {
     max: number;
   };
   powerRange: {
+    min: number;
+    max: number;
+  };
+  priceRange: {
     min: number;
     max: number;
   };
