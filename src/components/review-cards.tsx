@@ -428,7 +428,7 @@ function SubmissionTab({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-hidden">
       {/* 说明文字 */}
       <div className="text-sm text-gray-600 leading-relaxed bg-blue-50 p-3 rounded-md">
         感谢您投稿评测内容！投稿的内容会进入审核流程，审核通过后将显示在评测列表中。
@@ -443,7 +443,7 @@ function SubmissionTab({
           type="text"
           value={formData.model}
           readOnly
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-gray-600 text-sm"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-gray-600 text-sm min-w-0 max-w-full box-border"
         />
       </div>
 
@@ -457,7 +457,7 @@ function SubmissionTab({
           value={formData.type}
           onChange={handleInputChange}
           required
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-full box-border"
         >
           <option value="视频">视频评测</option>
           <option value="图文">图文评测</option>
@@ -476,7 +476,7 @@ function SubmissionTab({
           onChange={handleInputChange}
           placeholder="请输入评测标题"
           required
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-full box-border"
         />
       </div>
 
@@ -492,7 +492,7 @@ function SubmissionTab({
           onChange={handleInputChange}
           placeholder="请输入作者名称"
           required
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-full box-border"
         />
       </div>
 
@@ -508,7 +508,7 @@ function SubmissionTab({
           onChange={handleInputChange}
           placeholder="请输入完整的评测链接"
           required
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-full box-border"
         />
       </div>
 
@@ -523,7 +523,7 @@ function SubmissionTab({
           value={formData.date}
           onChange={handleInputChange}
           required
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-full box-border"
         />
       </div>
 
@@ -538,7 +538,7 @@ function SubmissionTab({
           value={formData.cover}
           onChange={handleInputChange}
           placeholder="请输入封面图片链接（可选）"
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-full box-border"
         />
       </div>
 
