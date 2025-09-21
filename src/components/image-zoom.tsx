@@ -303,21 +303,20 @@ export function ImageZoom({ src, alt, className, children }: ImageZoomProps) {
       if (container) {
         container.addEventListener('wheel', handleWheel, { passive: false });
       }
+
+      return () => {
+        document.body.style.overflow = 'unset';
+        document.removeEventListener('keydown', handleKeyDown);
+        if (container) {
+          container.removeEventListener('wheel', handleWheel);
+        }
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+      };
     } else {
       document.body.style.overflow = 'unset';
     }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.removeEventListener('keydown', handleKeyDown);
-      const container = containerRef.current;
-      if (container) {
-        container.removeEventListener('wheel', handleWheel);
-      }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
   }, [isOpen, handleKeyDown, handleWheel]);
 
   if (!mounted || !isOpen) return (

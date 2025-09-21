@@ -91,7 +91,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
         priceRange: { min: priceRange.min, max: priceRange.max }
       }));
     }
-  }, [chargeBabies.length, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max]);
+  }, [chargeBabies, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max]);
 
   // 应用筛选
   useEffect(() => {

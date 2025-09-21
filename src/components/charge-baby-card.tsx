@@ -48,7 +48,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
         return maxPower > 0 ? `${formatNumber(maxPower)}W` : null;
       case 'weight':
         const weight = detailData?.weight;
-        return weight > 0 ? `${formatNumber(weight)}g` : null;
+        return weight && weight > 0 ? `${formatNumber(weight)}g` : null;
       case 'price':
         return chargeBaby.price > 0 ? `¥${formatNumber(chargeBaby.price)}` : null;
       case 'overallRating':
