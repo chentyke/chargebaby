@@ -107,6 +107,25 @@ function createNotionProperties(data: SubmissionData) {
         case 'select':
           properties[name] = { select: { name: String(value) } };
           break;
+        case 'multi_select':
+          if (Array.isArray(value)) {
+            const filteredValues = value
+              .filter(item => item && String(item).trim() !== '')
+              .map(item => ({ name: String(item).trim() }));
+            if (filteredValues.length > 0) {
+              properties[name] = { multi_select: filteredValues };
+            }
+          } else if (typeof value === 'string' && value.trim() !== '') {
+            // 处理逗号分隔的字符串
+            const items = value.split(',')
+              .map(item => item.trim())
+              .filter(item => item !== '')
+              .map(item => ({ name: item }));
+            if (items.length > 0) {
+              properties[name] = { multi_select: items };
+            }
+          }
+          break;
         case 'date':
           properties[name] = { date: { start: String(value) } };
           break;
@@ -133,6 +152,13 @@ function createNotionProperties(data: SubmissionData) {
     return ensureText(first ?? '');
   };
 
+  const joinArray = (arr: any[]) => {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return '未填写';
+    }
+    return arr.filter(item => item && String(item).trim()).join(', ') || '未填写';
+  };
+
   const normalizeArrayText = (value?: string | string[]) => {
     if (Array.isArray(value)) {
       const filtered = value
@@ -149,31 +175,36 @@ function createNotionProperties(data: SubmissionData) {
   let extractedData: any = {};
   
   const extractValue = (line: string) => line.split(':').slice(1).join(':').trim();
+  const extractListValue = (line: string) => {
+    const value = extractValue(line);
+    if (value === '未填写' || !value) return [];
+    return value.split(',').map(item => item.trim()).filter(item => item !== '');
+  };
   
   noteLines.forEach(rawLine => {
     const line = rawLine.trim();
     if (!line.includes(':')) return;
-    if (line.startsWith('线缆长度:')) extractedData.cableLength = extractValue(line);
+    if (line.startsWith('线缆长度:')) extractedData.cableLength = extractListValue(line);
     if (line.startsWith('线缆柔软度:')) extractedData.cableFlexibility = extractValue(line);
     if (line.startsWith('最高温度:')) extractedData.maxTemp = extractValue(line);
     if (line.startsWith('温度均匀性:')) extractedData.tempUniformity = extractValue(line);
-    if (line.startsWith('温控策略:')) extractedData.thermalControl = extractValue(line);
+    if (line.startsWith('温控策略:')) extractedData.thermalControl = extractListValue(line);
     if (line.startsWith('最大纹波:')) extractedData.ripple = extractValue(line);
-    if (line.startsWith('PD固定档支持:')) extractedData.pdSupport = extractValue(line);
-    if (line.startsWith('PD PPS支持:')) extractedData.ppsSupport = extractValue(line);
-    if (line.startsWith('QC支持:')) extractedData.qcSupport = extractValue(line);
-    if (line.startsWith('UFCS支持:')) extractedData.ufcsSupport = extractValue(line);
-    if (line.startsWith('私有协议支持:')) extractedData.privateProtocol = extractValue(line);
+    if (line.startsWith('PD固定档支持:')) extractedData.pdSupport = extractListValue(line);
+    if (line.startsWith('PD PPS支持:')) extractedData.ppsSupport = extractListValue(line);
+    if (line.startsWith('QC支持:')) extractedData.qcSupport = extractListValue(line);
+    if (line.startsWith('UFCS支持:')) extractedData.ufcsSupport = extractListValue(line);
+    if (line.startsWith('私有协议支持:')) extractedData.privateProtocol = extractListValue(line);
     if (line.startsWith('潜在协议冲突:')) extractedData.potentialConflicts = extractValue(line);
     if (line.startsWith('双接口边冲边放:')) extractedData.dualPassthrough = extractValue(line);
     if (line.startsWith('双接口输出能力:')) extractedData.dualOutput = extractValue(line);
-    if (line.startsWith('双接口不断联能力:')) extractedData.dualNoDisconnect = extractValue(line);
-    if (line.startsWith('显示内容:')) extractedData.displayContent = extractValue(line);
+    if (line.startsWith('双接口不断联能力:')) extractedData.dualNoDisconnect = extractListValue(line);
+    if (line.startsWith('显示内容:')) extractedData.displayContent = extractListValue(line);
     if (line.startsWith('显示载体:')) extractedData.displayCarrier = extractValue(line);
     if (line.startsWith('显示亮度:')) extractedData.displayBrightness = extractValue(line);
-    if (line.startsWith('显示自定义能力:')) extractedData.displayCustomization = extractValue(line);
+    if (line.startsWith('显示自定义能力:')) extractedData.displayCustomization = extractListValue(line);
     if (line.startsWith('接口方向自定义:')) extractedData.portDirectionCustomization = extractValue(line);
-    if (line.startsWith('IoT能力:')) extractedData.iot = extractValue(line);
+    if (line.startsWith('IoT能力:')) extractedData.iot = extractListValue(line);
     if (line.startsWith('其他备注:')) extractedData.additionalNotes = extractValue(line);
   });
 
@@ -187,7 +218,8 @@ function createNotionProperties(data: SubmissionData) {
   safeAddProperty('宽度（cm）', 'number', data.detailData.width);
   safeAddProperty('厚度（cm）', 'number', data.detailData.thickness);
   safeAddProperty('重量（g）', 'number', data.detailData.weight);
-  safeAddProperty('线缆长度', 'rich_text', ensureText(extractedData.cableLength));
+  // 线缆长度在数据库中是rich_text，所以转换为逗号分隔的字符串
+  safeAddProperty('线缆长度', 'rich_text', joinArray(extractedData.cableLength));
   safeAddProperty('线缆柔软度', 'rich_text', ensureText(extractedData.cableFlexibility));
 
   // 性能数据字段
@@ -200,29 +232,29 @@ function createNotionProperties(data: SubmissionData) {
   // 温度与纹波字段
   safeAddProperty('表面最高温度', 'rich_text', ensureText(extractedData.maxTemp));
   safeAddProperty('温度均匀性', 'rich_text', ensureText(extractedData.tempUniformity));
-  safeAddProperty('温控策略', 'rich_text', ensureText(extractedData.thermalControl));
+  safeAddProperty('温控策略', 'rich_text', joinArray(extractedData.thermalControl));
   safeAddProperty('最大纹波', 'rich_text', ensureText(extractedData.ripple));
 
   // 协议支持字段
-  safeAddProperty('PD固定档支持', 'select', ensureFirstOption(extractedData.pdSupport));
-  safeAddProperty('PD_PPS支持', 'rich_text', ensureText(extractedData.ppsSupport));
-  safeAddProperty('QC支持', 'select', ensureFirstOption(extractedData.qcSupport));
-  safeAddProperty('UFCS支持', 'select', ensureFirstOption(extractedData.ufcsSupport));
-  safeAddProperty('私有协议支持', 'rich_text', ensureText(extractedData.privateProtocol));
-  safeAddProperty('潜在协议冲突', 'select', ensureFirstOption(extractedData.potentialConflicts));
+  safeAddProperty('PD固定档支持', 'multi_select', extractedData.pdSupport);
+  safeAddProperty('PD_PPS支持', 'rich_text', joinArray(extractedData.ppsSupport));
+  safeAddProperty('QC支持', 'multi_select', extractedData.qcSupport);
+  safeAddProperty('UFCS支持', 'multi_select', extractedData.ufcsSupport);
+  safeAddProperty('私有协议支持', 'rich_text', joinArray(extractedData.privateProtocol));
+  safeAddProperty('潜在协议冲突', 'multi_select', extractedData.potentialConflicts ? [extractedData.potentialConflicts] : []);
 
   // 多接口使用字段
   safeAddProperty('双接口输出能力', 'rich_text', ensureText(extractedData.dualOutput));
   safeAddProperty('双接口边冲边放', 'rich_text', ensureText(extractedData.dualPassthrough));
-  safeAddProperty('双接口不断联能力', 'rich_text', ensureText(extractedData.dualNoDisconnect));
+  safeAddProperty('双接口不断联能力', 'rich_text', joinArray(extractedData.dualNoDisconnect));
 
   // 显示与功能字段
-  safeAddProperty('显示内容', 'rich_text', ensureText(extractedData.displayContent));
+  safeAddProperty('显示内容', 'rich_text', joinArray(extractedData.displayContent));
   safeAddProperty('显示载体', 'rich_text', ensureText(extractedData.displayCarrier));
   safeAddProperty('显示亮度', 'select', ensureFirstOption(extractedData.displayBrightness));
-  safeAddProperty('显示自定义能力', 'rich_text', ensureText(extractedData.displayCustomization));
+  safeAddProperty('显示自定义能力', 'rich_text', joinArray(extractedData.displayCustomization));
   safeAddProperty('接口方向自定义', 'select', ensureFirstOption(extractedData.portDirectionCustomization));
-  safeAddProperty('IoT能力', 'rich_text', ensureText(extractedData.iot));
+  safeAddProperty('IoT能力', 'rich_text', joinArray(extractedData.iot));
 
   // 评价与投稿信息字段
   safeAddProperty('产品优点', 'rich_text', ensureText(normalizeArrayText(data.advantages)));
