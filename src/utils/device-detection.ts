@@ -62,15 +62,28 @@ export function detectDevice(): DeviceInfo {
 }
 
 /**
- * 检测是否为低性能设备（主要针对安卓）
+ * 检测是否为低性能设备（所有Chrome浏览器 + 所有安卓设备）
  */
 export function isLowPerformanceDevice(): boolean {
   if (typeof window === 'undefined') return false;
   
   const device = detectDevice();
+  const userAgent = navigator.userAgent.toLowerCase();
   
-  // 安卓设备被认为是低性能设备（相对于iOS和桌面端）
+  // 检测Chrome浏览器（包括Mac、iOS、Windows、Linux上的Chrome）
+  const isChrome = /chrome/.test(userAgent) && !/edge|edg/.test(userAgent);
+  
+  // 所有Chrome浏览器被视为低性能设备（Chrome在各平台都有性能问题）
+  if (isChrome) return true;
+  
+  // 所有安卓设备被视为低性能设备（无论什么浏览器）
   if (device.isAndroid) return true;
+  
+  // 检测基于Chromium的浏览器
+  if (/chromium/.test(userAgent)) return true;
+  
+  // 检测安卓WebView
+  if (/wv|webview/.test(userAgent)) return true;
   
   // 检测设备内存（如果支持）
   if ('deviceMemory' in navigator) {
@@ -93,10 +106,10 @@ export function isLowPerformanceDevice(): boolean {
 export function getPerformanceLevel(): 'low' | 'medium' | 'high' {
   if (typeof window === 'undefined') return 'high';
   
-  const device = detectDevice();
+  // 使用扩展的低性能设备检测
+  if (isLowPerformanceDevice()) return 'low';
   
-  // 安卓设备默认为低性能
-  if (device.isAndroid) return 'low';
+  const device = detectDevice();
   
   // 移动设备为中等性能
   if (device.isMobile || device.isTablet) return 'medium';
@@ -126,10 +139,10 @@ export function shouldEnableAnimations(): boolean {
 export function shouldEnableBackdropBlur(): boolean {
   if (typeof window === 'undefined') return false;
   
-  const device = detectDevice();
+  // 所有低性能设备禁用毛玻璃（包括Chrome+安卓）
+  if (isLowPerformanceDevice()) return false;
   
-  // 安卓设备禁用毛玻璃
-  if (device.isAndroid) return false;
+  const device = detectDevice();
   
   // 检测浏览器支持
   if (!device.supportsBackdropFilter) return false;
