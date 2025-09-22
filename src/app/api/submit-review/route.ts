@@ -12,6 +12,7 @@ interface ReviewSubmissionData {
   link: string;
   date: string;
   cover: string;
+  coverType?: 'uploaded' | 'external'; // 新增：标记封面类型
   type: string;
   title: string;
   turnstileToken?: string;
@@ -123,17 +124,34 @@ function createReviewNotionProperties(data: ReviewSubmissionData, parentId: stri
     }
   };
 
-  // 如果有封面图片链接，添加封面
+  // 如果有封面图片，添加封面
   if (data.cover) {
-    properties['VideoCover'] = {
-      files: [
-        {
-          external: {
-            url: data.cover
+    if (data.coverType === 'uploaded') {
+      // 使用上传的文件ID
+      properties['VideoCover'] = {
+        files: [
+          {
+            type: "file_upload",
+            file_upload: {
+              id: data.cover
+            },
+            name: "cover.png" // 提供默认名称
           }
-        }
-      ]
-    };
+        ]
+      };
+    } else {
+      // 使用外部URL
+      properties['VideoCover'] = {
+        files: [
+          {
+            type: "external",
+            external: {
+              url: data.cover
+            }
+          }
+        ]
+      };
+    }
   }
 
   // 如果找到了父产品，建立关联
@@ -167,20 +185,28 @@ export async function POST(request: NextRequest) {
 
     const data: ReviewSubmissionData = await request.json();
 
-    // Turnstile验证
-    if (!data.turnstileToken) {
-      return NextResponse.json(
-        { error: '缺少人机验证，请刷新页面重试' },
-        { status: 400 }
-      );
-    }
+    // Turnstile验证（本地开发环境跳过）
+    const isLocalhost = process.env.NODE_ENV === 'development' || 
+                       request.headers.get('host')?.includes('localhost') ||
+                       request.headers.get('host')?.includes('127.0.0.1');
 
-    const isValidToken = await verifyTurnstileToken(data.turnstileToken);
-    if (!isValidToken) {
-      return NextResponse.json(
-        { error: '人机验证失败，请重试' },
-        { status: 400 }
-      );
+    if (!isLocalhost) {
+      if (!data.turnstileToken) {
+        return NextResponse.json(
+          { error: '缺少人机验证，请刷新页面重试' },
+          { status: 400 }
+        );
+      }
+
+      const isValidToken = await verifyTurnstileToken(data.turnstileToken);
+      if (!isValidToken) {
+        return NextResponse.json(
+          { error: '人机验证失败，请重试' },
+          { status: 400 }
+        );
+      }
+    } else {
+      console.log('🔧 Development mode: Skipping Turnstile verification for review submission');
     }
 
     // 基本验证

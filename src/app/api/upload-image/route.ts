@@ -60,20 +60,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证 Turnstile token
-    if (!turnstileToken) {
-      return NextResponse.json(
-        { error: '缺少人机验证，请先完成验证' },
-        { status: 400 }
-      );
-    }
+    // 验证 Turnstile token（本地开发环境跳过）
+    const isLocalhost = process.env.NODE_ENV === 'development' || 
+                       request.headers.get('host')?.includes('localhost') ||
+                       request.headers.get('host')?.includes('127.0.0.1');
 
-    const isValidToken = await verifyTurnstileToken(turnstileToken);
-    if (!isValidToken) {
-      return NextResponse.json(
-        { error: '人机验证失败，请重新验证' },
-        { status: 400 }
-      );
+    if (!isLocalhost) {
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { error: '缺少人机验证，请先完成验证' },
+          { status: 400 }
+        );
+      }
+
+      const isValidToken = await verifyTurnstileToken(turnstileToken);
+      if (!isValidToken) {
+        return NextResponse.json(
+          { error: '人机验证失败，请重新验证' },
+          { status: 400 }
+        );
+      }
+    } else {
+      console.log('🔧 Development mode: Skipping Turnstile verification');
     }
 
     // 验证文件类型
@@ -100,7 +108,6 @@ export async function POST(request: NextRequest) {
     const uploadData = await notionFetch<NotionFileUploadResponse>('/file_uploads', {
       method: 'POST',
       body: JSON.stringify({
-        mode: 'single_part',
         filename: file.name,
         content_type: file.type,
       }),
@@ -108,15 +115,20 @@ export async function POST(request: NextRequest) {
 
     console.log(`📝 Notion file upload created: ${uploadData.id}`);
 
-    // 2. 上传文件到 Notion 的上传URL
+    // 2. 上传文件到 Notion 使用 send endpoint
     const fileBuffer = await file.arrayBuffer();
     
-    const uploadResponse = await fetch(uploadData.upload_url, {
-      method: 'PUT',
+    // 创建 FormData 用于文件上传
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', new Blob([fileBuffer], { type: file.type }), file.name);
+    
+    const uploadResponse = await fetch(`${notionApiBase}/file_uploads/${uploadData.id}/send`, {
+      method: 'POST',
       headers: {
-        'Content-Type': file.type,
+        'Authorization': `Bearer ${notionApiKey}`,
+        'Notion-Version': notionVersion,
       },
-      body: new Uint8Array(fileBuffer),
+      body: uploadFormData,
     });
 
     if (!uploadResponse.ok) {
@@ -126,26 +138,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ File uploaded successfully to Notion`);
+    
+    const uploadResult = await uploadResponse.json();
+    console.log('Upload result:', uploadResult);
 
-    // 3. 查询上传状态以获取最终的文件URL
-    let finalFileUrl = '';
-    try {
-      // 等待一小段时间让Notion处理文件
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const fileStatus = await notionFetch<NotionFileUploadResponse>(`/file_uploads/${uploadData.id}`);
-      if (fileStatus.status === 'completed') {
-        // 构造文件访问URL - 这是Notion内部文件的标准格式
-        finalFileUrl = `https://prod-files-secure.s3.us-west-2.amazonaws.com/${uploadData.id}/${encodeURIComponent(file.name)}`;
-      } else {
-        // 如果状态检查失败，使用备用URL格式
-        finalFileUrl = uploadData.upload_url.split('?')[0];
-      }
-    } catch (statusError) {
-      console.warn('无法获取文件状态，使用备用URL:', statusError);
-      // 备用URL格式
-      finalFileUrl = uploadData.upload_url.split('?')[0];
-    }
+    // 3. 文件上传成功，直接使用文件ID构建URL
+    const finalFileUrl = `https://prod-files-secure.s3.us-west-2.amazonaws.com/secure.notion-static.com/${uploadData.id}/${encodeURIComponent(file.name)}`;
 
     return NextResponse.json({
       success: true,

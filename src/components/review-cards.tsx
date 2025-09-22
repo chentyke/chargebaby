@@ -208,10 +208,21 @@ interface ReviewSubmissionData {
 }
 
 // 上传图片到Notion的函数
-async function uploadImageToNotion(file: File, turnstileToken: string): Promise<string> {
+async function uploadImageToNotion(file: File, turnstileToken: string): Promise<{fileId: string, url: string}> {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('turnstileToken', turnstileToken);
+  
+  // 本地开发环境检查
+  const isLocalhost = typeof window !== 'undefined' && 
+                     (window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1');
+
+  // 只在非本地环境下添加 turnstile token
+  if (!isLocalhost && turnstileToken) {
+    formData.append('turnstileToken', turnstileToken);
+  } else if (isLocalhost) {
+    console.log('🔧 Development mode: Skipping Turnstile token for image upload');
+  }
 
   const response = await fetch('/api/upload-image', {
     method: 'POST',
@@ -224,7 +235,7 @@ async function uploadImageToNotion(file: File, turnstileToken: string): Promise<
   }
 
   const result = await response.json();
-  return result.url;
+  return { fileId: result.fileId, url: result.url };
 }
 
 interface ReviewManageModalProps {
@@ -410,11 +421,15 @@ function SubmissionTab({
   setTurnstileToken,
   onClose 
 }: SubmissionTabProps) {
+  // 检测是否为本地开发环境
+  const isLocalhost = typeof window !== 'undefined' && 
+                     (window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1');
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 检查Turnstile验证
-    if (!turnstileToken) {
+    // 检查Turnstile验证（本地环境跳过）
+    if (!isLocalhost && !turnstileToken) {
       setSubmitMessage('请完成人机验证后再提交。');
       return;
     }
@@ -426,11 +441,13 @@ function SubmissionTab({
       let finalFormData = { ...formData };
 
       // 如果有选择的图片文件，先上传图片
-      if (selectedImageFile && turnstileToken) {
+      if (selectedImageFile) {
         setSubmitMessage('正在上传图片...');
         try {
-          const imageUrl = await uploadImageToNotion(selectedImageFile, turnstileToken);
-          finalFormData.cover = imageUrl;
+          const uploadResult = await uploadImageToNotion(selectedImageFile, turnstileToken || '');
+          // 传递文件ID而不是URL，用于Notion数据库
+          finalFormData.cover = uploadResult.fileId;
+          finalFormData.coverType = 'uploaded'; // 标记为上传的文件
           setSubmitMessage('图片上传成功，正在提交表单...');
         } catch (imageError) {
           throw new Error(`图片上传失败: ${imageError instanceof Error ? imageError.message : '未知错误'}`);
@@ -593,18 +610,28 @@ function SubmissionTab({
       {/* Turnstile人机验证 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          人机验证 <span className="text-red-500">*</span>
+          人机验证 {!isLocalhost && <span className="text-red-500">*</span>}
         </label>
-        <TurnstileWidget
-          onVerify={setTurnstileToken}
-          onError={() => {
-            setTurnstileToken(null);
-            setSubmitMessage('人机验证失败，请重试');
-          }}
-          className="flex justify-center"
-        />
-        {!turnstileToken && (
-          <p className="text-xs text-gray-500 mt-1">请完成人机验证</p>
+        {isLocalhost ? (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-center">
+            <p className="text-sm text-blue-700">
+              🔧 本地开发环境：已跳过人机验证
+            </p>
+          </div>
+        ) : (
+          <>
+            <TurnstileWidget
+              onVerify={setTurnstileToken}
+              onError={() => {
+                setTurnstileToken(null);
+                setSubmitMessage('人机验证失败，请重试');
+              }}
+              className="flex justify-center"
+            />
+            {!turnstileToken && (
+              <p className="text-xs text-gray-500 mt-1">请完成人机验证</p>
+            )}
+          </>
         )}
       </div>
 
@@ -623,11 +650,12 @@ function SubmissionTab({
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button
           type="submit"
-          disabled={isSubmitting || !turnstileToken}
+          disabled={isSubmitting || (!isLocalhost && !turnstileToken)}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-all duration-200 font-medium shadow-sm active:scale-95 min-h-[44px]"
         >
           <Send className="w-4 h-4" />
-          {isSubmitting ? '提交中...' : !turnstileToken ? '请先完成验证' : '提交投稿'}
+          {isSubmitting ? '提交中...' : 
+           (!isLocalhost && !turnstileToken) ? '请先完成验证' : '提交投稿'}
         </button>
         <button
           type="button"
