@@ -274,6 +274,28 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
           {/* 页脚版本信息 */}
           <div className="mt-4 text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
+
+          {/* ICP备案信息 */}
+          {(() => {
+            const shouldShowICP = typeof window !== 'undefined' 
+              ? window.location.hostname === 'chargedb.cn'
+              : process.env.NEXT_PUBLIC_APP_URL?.includes('chargedb.cn');
+            
+            if (!shouldShowICP) return null;
+            
+            return (
+              <div className="text-center mt-4 pt-4 border-t border-gray-200">
+                <a 
+                  href="http://beian.miit.gov.cn/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-gray-400 hover:text-gray-500 transition-colors"
+                >
+                  浙ICP备2025199560号-1
+                </a>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -504,6 +526,28 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
 
                 {/* 页脚版本信息 */}
                 <div className="text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
+
+                {/* ICP备案信息 */}
+                {(() => {
+                  const shouldShowICP = typeof window !== 'undefined' 
+                    ? window.location.hostname === 'chargedb.cn'
+                    : process.env.NEXT_PUBLIC_APP_URL?.includes('chargedb.cn');
+                  
+                  if (!shouldShowICP) return null;
+                  
+                  return (
+                    <div className="text-center pt-4 border-t border-gray-200">
+                      <a 
+                        href="http://beian.miit.gov.cn/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-gray-400 hover:text-gray-500 transition-colors"
+                      >
+                        浙ICP备2025199560号-1
+                      </a>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
