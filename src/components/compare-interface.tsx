@@ -51,6 +51,7 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
 
   const availableProducts = (excludeIndex: number) => 
     chargeBabies.filter(product => 
+      product.model !== 'WeChat' && 
       !displayedProducts.some((selected, i) => i !== excludeIndex && selected?.id === product.id)
     );
 
