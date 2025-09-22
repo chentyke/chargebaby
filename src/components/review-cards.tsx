@@ -569,24 +569,6 @@ function SubmissionTab({
         />
       </div>
 
-      {/* Turnstile人机验证 */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          人机验证 <span className="text-red-500">*</span>
-        </label>
-        <TurnstileWidget
-          onVerify={setTurnstileToken}
-          onError={() => {
-            setTurnstileToken(null);
-            setSubmitMessage('人机验证失败，请重试');
-          }}
-          className="flex justify-center"
-        />
-        {!turnstileToken && (
-          <p className="text-xs text-gray-500 mt-1">请先完成人机验证</p>
-        )}
-      </div>
-
       {/* 封面图片 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -606,21 +588,24 @@ function SubmissionTab({
         <p className="text-xs text-gray-500">
           支持选择 JPG、PNG、WebP、GIF 格式的图片，最大 20MB。提交时将自动上传（可选）
         </p>
-        
-        {/* 保留URL输入作为备选方案 */}
-        <div className="mt-3">
-          <label className="block text-xs font-medium text-gray-600 mb-1">
-            或者输入图片链接
-          </label>
-          <input
-            type="url"
-            name="cover"
-            value={formData.cover}
-            onChange={handleInputChange}
-            placeholder="请输入封面图片链接（可选）"
-            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs min-w-0 max-w-full box-border"
-          />
-        </div>
+      </div>
+
+      {/* Turnstile人机验证 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          人机验证 <span className="text-red-500">*</span>
+        </label>
+        <TurnstileWidget
+          onVerify={setTurnstileToken}
+          onError={() => {
+            setTurnstileToken(null);
+            setSubmitMessage('人机验证失败，请重试');
+          }}
+          className="flex justify-center"
+        />
+        {!turnstileToken && (
+          <p className="text-xs text-gray-500 mt-1">请完成人机验证</p>
+        )}
       </div>
 
       {/* 提交状态消息 */}
