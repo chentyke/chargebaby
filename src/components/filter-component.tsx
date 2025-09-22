@@ -12,9 +12,32 @@ interface FilterComponentProps {
   className?: string;
 }
 
+// 定义容量档位 - 移到组件外部
+const CAPACITY_PRESETS = [
+  { label: '不限', value: 0 },
+  { label: '5K', value: 5000 },
+  { label: '10K', value: 10000 },
+  { label: '15K', value: 15000 },
+  { label: '20K', value: 20000 },
+  { label: '25K', value: 25000 },
+  { label: '30K+', value: 30000 },
+];
+
+// 定义功率档位
+const POWER_PRESETS = [
+  { label: '不限', value: 0 },
+  { label: '20W', value: 20 },
+  { label: '30W', value: 30 },
+  { label: '45W', value: 45 },
+  { label: '65W', value: 65 },
+  { label: '100W', value: 100 },
+  { label: '100W+', value: 200 },
+];
+
 export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false, isInline = false, className = '' }: FilterComponentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAdvancedModal, setShowAdvancedModal] = useState(false);
+  const [scrollToSection, setScrollToSection] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     capacityRange: { min: 0, max: 100000 },
     powerRange: { min: 0, max: 1000 },
@@ -25,6 +48,35 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     sortBy: 'updatedAt',
     sortOrder: 'desc'
   });
+
+  // 容量滑块状态
+  const [capacitySlider, setCapacitySlider] = useState([0, CAPACITY_PRESETS.length - 1]);
+  // 功率滑块状态
+  const [powerSlider, setPowerSlider] = useState([0, POWER_PRESETS.length - 1]);
+
+  // 处理容量滑块变化
+  const handleCapacitySliderChange = useCallback((values: number[]) => {
+    setCapacitySlider(values);
+    const minCapacity = CAPACITY_PRESETS[values[0]].value;
+    const maxCapacity = values[1] === CAPACITY_PRESETS.length - 1 ? 999999 : CAPACITY_PRESETS[values[1]].value;
+    
+    setFilters(prev => ({
+      ...prev,
+      capacityRange: { min: minCapacity, max: maxCapacity }
+    }));
+  }, []);
+
+  // 处理功率滑块变化
+  const handlePowerSliderChange = useCallback((values: number[]) => {
+    setPowerSlider(values);
+    const minPower = POWER_PRESETS[values[0]].value;
+    const maxPower = values[1] === POWER_PRESETS.length - 1 ? 999999 : POWER_PRESETS[values[1]].value;
+    
+    setFilters(prev => ({
+      ...prev,
+      powerRange: { min: minPower, max: maxPower }
+    }));
+  }, []);
 
   // 获取所有可用的品牌
   const availableBrands = Array.from(new Set(
@@ -69,10 +121,10 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
 
   // 检查是否有激活的筛选条件
   const hasActiveFilters = 
-    filters.capacityRange.min > capacityRange.min ||
-    filters.capacityRange.max < capacityRange.max ||
-    filters.powerRange.min > powerRange.min ||
-    filters.powerRange.max < powerRange.max ||
+    capacitySlider[0] > 0 ||
+    capacitySlider[1] < CAPACITY_PRESETS.length - 1 ||
+    powerSlider[0] > 0 ||
+    powerSlider[1] < POWER_PRESETS.length - 1 ||
     filters.priceRange.min > priceRange.min ||
     filters.priceRange.max < priceRange.max ||
     filters.brands.length > 0 ||
@@ -86,12 +138,30 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     if (chargeBabies && chargeBabies.length > 0) {
       setFilters(prev => ({
         ...prev,
-        capacityRange: { min: capacityRange.min, max: capacityRange.max },
         powerRange: { min: powerRange.min, max: powerRange.max },
         priceRange: { min: priceRange.min, max: priceRange.max }
       }));
     }
-  }, [chargeBabies, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max]);
+  }, [chargeBabies, powerRange.min, powerRange.max, priceRange.min, priceRange.max]);
+
+  // 处理高级弹窗滚动到指定区域
+  useEffect(() => {
+    if (showAdvancedModal && scrollToSection) {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`${scrollToSection}-section`);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest' 
+          });
+        }
+        setScrollToSection(null);
+      }, 300); // 等待弹窗动画完成
+
+      return () => clearTimeout(timer);
+    }
+  }, [showAdvancedModal, scrollToSection]);
 
   // 应用筛选
   useEffect(() => {
@@ -103,20 +173,24 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     let filtered = [...chargeBabies];
 
     // 容量筛选
-    if (filters.capacityRange.min > capacityRange.min || filters.capacityRange.max < capacityRange.max) {
+    if (capacitySlider[0] > 0 || capacitySlider[1] < CAPACITY_PRESETS.length - 1) {
       filtered = filtered.filter(baby => {
         const capacity = baby.detailData?.capacityLevel || 0;
-        return capacity >= filters.capacityRange.min && capacity <= filters.capacityRange.max;
+        const minCapacity = CAPACITY_PRESETS[capacitySlider[0]].value;
+        const maxCapacity = capacitySlider[1] === CAPACITY_PRESETS.length - 1 ? 999999 : CAPACITY_PRESETS[capacitySlider[1]].value;
+        return capacity >= minCapacity && capacity <= maxCapacity;
       });
     }
 
     // 功率筛选
-    if (filters.powerRange.min > powerRange.min || filters.powerRange.max < powerRange.max) {
+    if (powerSlider[0] > 0 || powerSlider[1] < POWER_PRESETS.length - 1) {
       filtered = filtered.filter(baby => {
         const maxOutput = baby.detailData?.maxOutputPower || 0;
         const maxSelfCharging = baby.detailData?.maxSelfChargingPower || 0;
         const maxPower = Math.max(maxOutput, maxSelfCharging);
-        return maxPower >= filters.powerRange.min && maxPower <= filters.powerRange.max;
+        const minPower = POWER_PRESETS[powerSlider[0]].value;
+        const maxPowerLimit = powerSlider[1] === POWER_PRESETS.length - 1 ? 999999 : POWER_PRESETS[powerSlider[1]].value;
+        return maxPower >= minPower && maxPower <= maxPowerLimit;
       });
     }
 
@@ -212,12 +286,14 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
     });
 
     onFilterChange(filtered, filters.sortBy, hasActiveFilters);
-  }, [filters, chargeBabies, onFilterChange, capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max, hasActiveFilters]);
+  }, [filters, chargeBabies, onFilterChange, capacitySlider, powerSlider, priceRange.min, priceRange.max, hasActiveFilters]);
 
   const resetFilters = useCallback(() => {
+    setCapacitySlider([0, CAPACITY_PRESETS.length - 1]);
+    setPowerSlider([0, POWER_PRESETS.length - 1]);
     setFilters({
-      capacityRange: { min: capacityRange.min, max: capacityRange.max },
-      powerRange: { min: powerRange.min, max: powerRange.max },
+      capacityRange: { min: 0, max: 999999 },
+      powerRange: { min: 0, max: 999999 },
       priceRange: { min: priceRange.min, max: priceRange.max },
       brands: [],
       features: [],
@@ -225,7 +301,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       sortBy: 'updatedAt',
       sortOrder: 'desc'
     });
-  }, [capacityRange.min, capacityRange.max, powerRange.min, powerRange.max, priceRange.min, priceRange.max]);
+  }, [priceRange.min, priceRange.max]);
 
   // 内联模式直接显示筛选内容
   if (isInline) {
@@ -233,18 +309,18 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       <>
         <div className={`${className} overflow-hidden`}>
           <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-3 px-4 min-w-max">
-              {/* 排序字段块 */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-indigo-50/80 via-indigo-50/60 to-indigo-50/40 backdrop-blur-2xl rounded-xl border border-indigo-200/50 flex-shrink-0 min-h-[36px]">
-                <ArrowUpDown className="w-4 h-4 text-indigo-600" />
-                <span className="text-sm text-indigo-700 whitespace-nowrap">排序</span>
+            <div className="flex items-stretch gap-2 px-4 min-w-max h-12">
+              {/* 排序字段块 - 增强交互 */}
+              <div className="flex items-center gap-2 px-3 bg-gradient-to-br from-indigo-50/90 via-indigo-50/70 to-indigo-50/50 backdrop-blur-2xl rounded-xl border border-indigo-200/60 flex-shrink-0 shadow-sm hover:shadow-md hover:border-indigo-300/60 transition-all duration-300 group">
+                <ArrowUpDown className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-sm text-indigo-700 whitespace-nowrap font-medium">排序</span>
                 <select
                   value={filters.sortBy}
                   onChange={(e) => setFilters(prev => ({
                     ...prev,
                     sortBy: e.target.value as SortOption
                   }))}
-                  className="text-sm bg-transparent border-none focus:outline-none text-indigo-700 min-w-0 py-1"
+                  className="text-sm bg-transparent border-none focus:outline-none text-indigo-700 min-w-0 py-1 cursor-pointer"
                 >
                   {SORT_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
@@ -254,174 +330,138 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                 </select>
               </div>
 
-              {/* 排序方向切换块 */}
+              {/* 排序方向切换块 - 增强动画 */}
               <button
                 onClick={() => setFilters(prev => ({
                   ...prev,
                   sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc'
                 }))}
-                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-purple-50/80 via-purple-50/60 to-purple-50/40 backdrop-blur-2xl rounded-xl border border-purple-200/50 flex-shrink-0 hover:bg-gradient-to-br hover:from-purple-100/80 hover:via-purple-100/60 hover:to-purple-100/40 transition-all duration-300 min-h-[36px]"
+                className="flex items-center gap-2 px-3 bg-gradient-to-br from-purple-50/90 via-purple-50/70 to-purple-50/50 backdrop-blur-2xl rounded-xl border border-purple-200/60 flex-shrink-0 shadow-sm hover:shadow-md hover:border-purple-300/60 transition-all duration-300 group"
               >
-                <span className="text-sm text-purple-700 whitespace-nowrap">
+                <span className="text-sm text-purple-700 whitespace-nowrap font-medium">
                   {filters.sortOrder === 'asc' ? '升序' : '降序'}
                 </span>
-                <span className="text-purple-600">{filters.sortOrder === 'asc' ? '↑' : '↓'}</span>
+                <span className="text-purple-600 group-hover:scale-125 transition-transform duration-300">
+                  {filters.sortOrder === 'asc' ? '↑' : '↓'}
+                </span>
               </button>
 
-              {/* 容量块 */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-green-50/80 via-green-50/60 to-green-50/40 backdrop-blur-2xl rounded-xl border border-green-200/50 flex-shrink-0">
-                <Battery className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-700 whitespace-nowrap">容量</span>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    placeholder="最小"
-                    value={filters.capacityRange.min || ''}
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      capacityRange: { ...prev.capacityRange, min: e.target.value === '' ? capacityRange.min : Number(e.target.value) }
-                    }))}
-                    className="w-14 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+              {/* 容量块 - 增强视觉反馈 */}
+              <button
+                onClick={() => setShowAdvancedModal(true)}
+                className="flex items-center gap-2 px-3 bg-gradient-to-br from-green-50/90 via-green-50/70 to-green-50/50 backdrop-blur-2xl rounded-xl border border-green-200/60 flex-shrink-0 shadow-sm hover:shadow-md hover:border-green-300/60 transition-all duration-300 group"
+              >
+                <Battery className="w-4 h-4 text-green-600 group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-sm text-green-700 whitespace-nowrap font-medium">容量</span>
+                <div className="flex items-center gap-1 bg-white/60 rounded-md px-2 py-0.5 border border-green-200/40">
+                  <span className="text-xs text-gray-700 whitespace-nowrap font-semibold">
+                    {CAPACITY_PRESETS[capacitySlider[0]].label}
+                  </span>
                   <span className="text-gray-400 text-xs">-</span>
-                  <input
-                    type="number"
-                    placeholder="最大"
-                    value={filters.capacityRange.max || ''}
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      capacityRange: { ...prev.capacityRange, max: e.target.value === '' ? capacityRange.max : Number(e.target.value) }
-                    }))}
-                    className="w-14 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+                  <span className="text-xs text-gray-700 whitespace-nowrap font-semibold">
+                    {CAPACITY_PRESETS[capacitySlider[1]].label}
+                  </span>
                 </div>
-              </div>
+              </button>
 
-              {/* 最大功率块 */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-yellow-50/80 via-yellow-50/60 to-yellow-50/40 backdrop-blur-2xl rounded-xl border border-yellow-200/50 flex-shrink-0">
-                <Zap className="w-4 h-4 text-yellow-600" />
-                <span className="text-sm text-yellow-700 whitespace-nowrap">最大功率</span>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    placeholder="最小"
-                    value={filters.powerRange.min || ''}
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      powerRange: { ...prev.powerRange, min: e.target.value === '' ? powerRange.min : Number(e.target.value) }
-                    }))}
-                    className="w-12 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+              {/* 最大功率块 - 增强视觉反馈 */}
+              <button
+                onClick={() => setShowAdvancedModal(true)}
+                className="flex items-center gap-2 px-3 bg-gradient-to-br from-yellow-50/90 via-yellow-50/70 to-yellow-50/50 backdrop-blur-2xl rounded-xl border border-yellow-200/60 flex-shrink-0 shadow-sm hover:shadow-md hover:border-yellow-300/60 transition-all duration-300 group"
+              >
+                <Zap className="w-4 h-4 text-yellow-600 group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-sm text-yellow-700 whitespace-nowrap font-medium">功率</span>
+                <div className="flex items-center gap-1 bg-white/60 rounded-md px-2 py-0.5 border border-yellow-200/40">
+                  <span className="text-xs text-gray-700 whitespace-nowrap font-semibold">
+                    {POWER_PRESETS[powerSlider[0]].label}
+                  </span>
                   <span className="text-gray-400 text-xs">-</span>
-                  <input
-                    type="number"
-                    placeholder="最大"
-                    value={filters.powerRange.max || ''}
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      powerRange: { ...prev.powerRange, max: e.target.value === '' ? powerRange.max : Number(e.target.value) }
-                    }))}
-                    className="w-12 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+                  <span className="text-xs text-gray-700 whitespace-nowrap font-semibold">
+                    {POWER_PRESETS[powerSlider[1]].label}
+                  </span>
                 </div>
-              </div>
+              </button>
 
-              {/* 价格块 */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-red-50/80 via-red-50/60 to-red-50/40 backdrop-blur-2xl rounded-xl border border-red-200/50 flex-shrink-0">
-                <span className="text-sm text-red-700 whitespace-nowrap">¥</span>
-                <span className="text-sm text-red-700 whitespace-nowrap">价格</span>
-                <div className="flex items-center gap-1">
+              {/* 价格块 - 改进输入框样式 */}
+              <div className="flex items-center gap-2 px-3 bg-gradient-to-br from-red-50/90 via-red-50/70 to-red-50/50 backdrop-blur-2xl rounded-xl border border-red-200/60 flex-shrink-0 shadow-sm hover:shadow-md hover:border-red-300/60 transition-all duration-300 group">
+                <span className="text-sm text-red-700 whitespace-nowrap font-medium">¥价格</span>
+                <div className="flex items-center gap-1 bg-white/70 rounded-md px-2 py-1 border border-red-200/40">
                   <input
                     type="number"
                     placeholder="最小"
-                    value={filters.priceRange.min || ''}
+                    value={filters.priceRange.min === priceRange.min ? '' : (filters.priceRange.min || '')}
                     onChange={(e) => setFilters(prev => ({
                       ...prev,
                       priceRange: { ...prev.priceRange, min: e.target.value === '' ? priceRange.min : Number(e.target.value) }
                     }))}
-                    className="w-14 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-12 text-xs border-none bg-transparent focus:outline-none text-gray-700 placeholder-gray-400"
                   />
                   <span className="text-gray-400 text-xs">-</span>
                   <input
                     type="number"
                     placeholder="最大"
-                    value={filters.priceRange.max || ''}
+                    value={filters.priceRange.max === priceRange.max ? '' : (filters.priceRange.max || '')}
                     onChange={(e) => setFilters(prev => ({
                       ...prev,
                       priceRange: { ...prev.priceRange, max: e.target.value === '' ? priceRange.max : Number(e.target.value) }
                     }))}
-                    className="w-12 px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-12 text-xs border-none bg-transparent focus:outline-none text-gray-700 placeholder-gray-400"
                   />
                 </div>
               </div>
 
-              {/* 品牌块 */}
+              {/* 品牌块 - 全新设计 */}
               {availableBrands.length > 0 && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-cyan-50/80 via-cyan-50/60 to-cyan-50/40 backdrop-blur-2xl rounded-xl border border-cyan-200/50 flex-shrink-0">
-                  <Smartphone className="w-4 h-4 text-cyan-600" />
-                  <span className="text-sm text-cyan-700 whitespace-nowrap">品牌</span>
-                  <div className="flex gap-1">
-                    {availableBrands.slice(0, 3).map(brand => (
-                      <label key={brand} className="cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={filters.brands.includes(brand)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFilters(prev => ({
-                                ...prev,
-                                brands: [...prev.brands, brand]
-                              }));
-                            } else {
-                              setFilters(prev => ({
-                                ...prev,
-                                brands: prev.brands.filter(b => b !== brand)
-                              }));
-                            }
-                          }}
-                          className="sr-only"
-                        />
-                        <span className={`px-2 py-1 text-xs rounded-md border transition-all duration-200 whitespace-nowrap ${
-                          filters.brands.includes(brand)
-                            ? 'bg-blue-100 text-blue-700 border-blue-300'
-                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
-                        }`}>
-                          {brand}
+                <button
+                  onClick={() => {
+                    setScrollToSection('brands');
+                    setShowAdvancedModal(true);
+                  }}
+                  className="flex items-center gap-2 px-3 bg-gradient-to-br from-cyan-50/90 via-cyan-50/70 to-cyan-50/50 backdrop-blur-2xl rounded-xl border border-cyan-200/60 flex-shrink-0 shadow-sm hover:shadow-md hover:border-cyan-300/60 transition-all duration-300 group relative"
+                >
+                  <Smartphone className="w-4 h-4 text-cyan-600 group-hover:scale-110 transition-transform duration-200" />
+                  <span className="text-sm text-cyan-700 whitespace-nowrap font-medium">品牌</span>
+                  <div className="flex items-center gap-1 bg-white/60 rounded-md px-2 py-0.5 border border-cyan-200/40">
+                    {filters.brands.length > 0 ? (
+                      <>
+                        <span className="text-xs text-gray-700 font-semibold">
+                          {filters.brands.length === 1 ? filters.brands[0] : `已选${filters.brands.length}个`}
                         </span>
-                      </label>
-                    ))}
-                    {availableBrands.length > 3 && (
-                      <button
-                        onClick={() => setShowAdvancedModal(true)}
-                        className="px-2 py-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors whitespace-nowrap"
-                      >
-                        +{availableBrands.length - 3}个
-                      </button>
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-500">全部品牌</span>
                     )}
                   </div>
-                </div>
+                  {/* 选中数量指示器 */}
+                  {filters.brands.length > 0 && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-bounce">
+                      {filters.brands.length}
+                    </div>
+                  )}
+                </button>
               )}
 
-              {/* 更多配置块 */}
+              {/* 更多配置块 - 增强视觉提示 */}
               <button
                 onClick={() => setShowAdvancedModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-slate-50/80 via-slate-50/60 to-slate-50/40 backdrop-blur-2xl rounded-xl border border-slate-200/50 hover:bg-gradient-to-br hover:from-slate-100/80 hover:via-slate-100/60 hover:to-slate-100/40 transition-all duration-300 flex-shrink-0"
+                className="flex items-center gap-2 px-3 bg-gradient-to-br from-slate-50/90 via-slate-50/70 to-slate-50/50 backdrop-blur-2xl rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300/60 transition-all duration-300 flex-shrink-0 group relative"
               >
-                <Settings className="w-4 h-4 text-slate-600" />
-                <span className="text-sm text-slate-700 whitespace-nowrap">更多</span>
+                <Settings className="w-4 h-4 text-slate-600 group-hover:rotate-90 group-hover:scale-110 transition-all duration-300" />
+                <span className="text-sm text-slate-700 whitespace-nowrap font-medium">更多</span>
                 {(filters.features.length > 0 || filters.protocols.length > 0) && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                 )}
               </button>
 
-              {/* 重置按钮 */}
+              {/* 重置按钮 - 增强警示效果 */}
               {hasActiveFilters && (
                 <button
                   onClick={resetFilters}
-                  className="flex items-center gap-1 px-3 py-2 bg-gradient-to-br from-red-50/95 via-red-50/90 to-red-50/80 backdrop-blur-2xl rounded-xl border border-red-200/50 text-red-600 hover:text-red-700 hover:bg-gradient-to-br hover:from-red-100/80 hover:via-red-100/60 hover:to-red-100/40 transition-all duration-300 flex-shrink-0"
+                  className="flex items-center gap-1 px-3 bg-gradient-to-br from-red-50/95 via-red-50/80 to-red-50/70 backdrop-blur-2xl rounded-xl border border-red-200/60 text-red-600 shadow-sm hover:shadow-md hover:border-red-300/60 hover:text-red-700 transition-all duration-300 flex-shrink-0 group"
                 >
-                  <X className="w-3 h-3" />
-                  <span className="text-sm whitespace-nowrap">重置</span>
+                  <X className="w-3 h-3 group-hover:rotate-90 transition-transform duration-200" />
+                  <span className="text-sm whitespace-nowrap font-medium">重置</span>
                 </button>
               )}
             </div>
@@ -443,9 +483,367 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                 </button>
               </div>
               <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh]">
+                {/* 容量档位选择器 - 在高级弹窗中 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">容量档位</label>
+                  <div className="px-3">
+                    <div className="relative mb-6">
+                      {/* 滑块轨道 */}
+                      <div 
+                        className="h-3 bg-gray-200 rounded-full relative cursor-pointer"
+                        onMouseDown={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const percent = (e.clientX - rect.left) / rect.width;
+                          const newIndex = Math.round(percent * (CAPACITY_PRESETS.length - 1));
+                          
+                          // 判断点击的位置更接近哪个滑块
+                          const distToMin = Math.abs(newIndex - capacitySlider[0]);
+                          const distToMax = Math.abs(newIndex - capacitySlider[1]);
+                          
+                          if (distToMin <= distToMax) {
+                            // 更接近最小值滑块
+                            handleCapacitySliderChange([newIndex, Math.max(newIndex, capacitySlider[1])]);
+                          } else {
+                            // 更接近最大值滑块
+                            handleCapacitySliderChange([Math.min(capacitySlider[0], newIndex), newIndex]);
+                          }
+                        }}
+                      >
+                        {/* 激活区域 */}
+                        <div 
+                          className="absolute h-3 bg-gray-600 rounded-full pointer-events-none"
+                          style={{
+                            left: `${(capacitySlider[0] / (CAPACITY_PRESETS.length - 1)) * 100}%`,
+                            width: `${((capacitySlider[1] - capacitySlider[0]) / (CAPACITY_PRESETS.length - 1)) * 100}%`
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最小值 */}
+                        <div 
+                          className="absolute w-6 h-6 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(capacitySlider[0] / (CAPACITY_PRESETS.length - 1)) * 100}% - 12px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = capacitySlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([newValue, Math.max(newValue, capacitySlider[1])]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = capacitySlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([newValue, Math.max(newValue, capacitySlider[1])]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最大值 */}
+                        <div 
+                          className="absolute w-6 h-6 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(capacitySlider[1] / (CAPACITY_PRESETS.length - 1)) * 100}% - 12px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = capacitySlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([Math.min(capacitySlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = capacitySlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([Math.min(capacitySlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                      </div>
+                      {/* 档位标签 */}
+                      <div className="flex justify-between mt-4 px-1">
+                        {CAPACITY_PRESETS.map((preset, index) => (
+                          <button
+                            key={preset.value}
+                            onClick={() => {
+                              // 点击标签可以设置为单一值
+                              handleCapacitySliderChange([index, index]);
+                            }}
+                            className={`text-xs transition-colors cursor-pointer py-1 ${
+                              index >= capacitySlider[0] && index <= capacitySlider[1]
+                                ? 'text-gray-800 font-semibold'
+                                : 'text-gray-400 hover:text-gray-600'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-center text-sm text-gray-600">
+                      当前选择: {CAPACITY_PRESETS[capacitySlider[0]].label} - {CAPACITY_PRESETS[capacitySlider[1]].label}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 功率档位选择器 - 在高级弹窗中 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">功率档位</label>
+                  <div className="px-3">
+                    <div className="relative mb-6">
+                      {/* 滑块轨道 */}
+                      <div 
+                        className="h-3 bg-gray-200 rounded-full relative cursor-pointer"
+                        onMouseDown={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const percent = (e.clientX - rect.left) / rect.width;
+                          const newIndex = Math.round(percent * (POWER_PRESETS.length - 1));
+                          
+                          // 判断点击的位置更接近哪个滑块
+                          const distToMin = Math.abs(newIndex - powerSlider[0]);
+                          const distToMax = Math.abs(newIndex - powerSlider[1]);
+                          
+                          if (distToMin <= distToMax) {
+                            // 更接近最小值滑块
+                            handlePowerSliderChange([newIndex, Math.max(newIndex, powerSlider[1])]);
+                          } else {
+                            // 更接近最大值滑块
+                            handlePowerSliderChange([Math.min(powerSlider[0], newIndex), newIndex]);
+                          }
+                        }}
+                      >
+                        {/* 激活区域 */}
+                        <div 
+                          className="absolute h-3 bg-gray-600 rounded-full pointer-events-none"
+                          style={{
+                            left: `${(powerSlider[0] / (POWER_PRESETS.length - 1)) * 100}%`,
+                            width: `${((powerSlider[1] - powerSlider[0]) / (POWER_PRESETS.length - 1)) * 100}%`
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最小值 */}
+                        <div 
+                          className="absolute w-6 h-6 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(powerSlider[0] / (POWER_PRESETS.length - 1)) * 100}% - 12px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = powerSlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([newValue, Math.max(newValue, powerSlider[1])]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = powerSlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([newValue, Math.max(newValue, powerSlider[1])]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最大值 */}
+                        <div 
+                          className="absolute w-6 h-6 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(powerSlider[1] / (POWER_PRESETS.length - 1)) * 100}% - 12px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = powerSlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([Math.min(powerSlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = powerSlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([Math.min(powerSlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                      </div>
+                      {/* 档位标签 */}
+                      <div className="flex justify-between mt-4 px-1">
+                        {POWER_PRESETS.map((preset, index) => (
+                          <button
+                            key={preset.value}
+                            onClick={() => {
+                              // 点击标签可以设置为单一值
+                              handlePowerSliderChange([index, index]);
+                            }}
+                            className={`text-xs transition-colors cursor-pointer py-1 ${
+                              index >= powerSlider[0] && index <= powerSlider[1]
+                                ? 'text-gray-800 font-semibold'
+                                : 'text-gray-400 hover:text-gray-600'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-center text-sm text-gray-600">
+                      当前选择: {POWER_PRESETS[powerSlider[0]].label} - {POWER_PRESETS[powerSlider[1]].label}
+                    </div>
+                  </div>
+                </div>
+
                 {/* 所有品牌 */}
                 {availableBrands.length > 0 && (
-                  <div>
+                  <div id="brands-section">
                     <label className="block text-sm font-medium text-gray-700 mb-2">品牌选择</label>
                     <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                       {availableBrands.map(brand => (
@@ -669,43 +1067,183 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
-                    容量 (mAh)
+                    容量档位
                   </label>
                   <div className="text-xs text-gray-500">
-                    {filters.capacityRange.min.toLocaleString()} - {filters.capacityRange.max.toLocaleString()} mAh
+                    {CAPACITY_PRESETS[capacitySlider[0]].label} - {CAPACITY_PRESETS[capacitySlider[1]].label}
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">最小值</label>
-                      <input
-                        type="number"
-                        placeholder="最小值"
-                        value={filters.capacityRange.min || ''}
-                        onChange={(e) => setFilters(prev => ({
-                          ...prev,
-                          capacityRange: { ...prev.capacityRange, min: e.target.value === '' ? capacityRange.min : Number(e.target.value) }
-                        }))}
-                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isMobile ? 'py-3' : 'py-2'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">最大值</label>
-                      <input
-                        type="number"
-                        placeholder="最大值"
-                        value={filters.capacityRange.max || ''}
-                        onChange={(e) => setFilters(prev => ({
-                          ...prev,
-                          capacityRange: { ...prev.capacityRange, max: e.target.value === '' ? capacityRange.max : Number(e.target.value) }
-                        }))}
-                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isMobile ? 'py-3' : 'py-2'
-                        }`}
-                      />
+                <div className="space-y-4">
+                  {/* 容量档位选择器 */}
+                  <div className="px-3">
+                    <div className="relative mb-6">
+                      {/* 滑块轨道 */}
+                      <div 
+                        className="h-2 bg-gray-200 rounded-full relative cursor-pointer"
+                        onMouseDown={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const percent = (e.clientX - rect.left) / rect.width;
+                          const newIndex = Math.round(percent * (CAPACITY_PRESETS.length - 1));
+                          
+                          // 判断点击的位置更接近哪个滑块
+                          const distToMin = Math.abs(newIndex - capacitySlider[0]);
+                          const distToMax = Math.abs(newIndex - capacitySlider[1]);
+                          
+                          if (distToMin <= distToMax) {
+                            // 更接近最小值滑块
+                            handleCapacitySliderChange([newIndex, Math.max(newIndex, capacitySlider[1])]);
+                          } else {
+                            // 更接近最大值滑块
+                            handleCapacitySliderChange([Math.min(capacitySlider[0], newIndex), newIndex]);
+                          }
+                        }}
+                      >
+                        {/* 激活区域 */}
+                        <div 
+                          className="absolute h-2 bg-gray-600 rounded-full pointer-events-none"
+                          style={{
+                            left: `${(capacitySlider[0] / (CAPACITY_PRESETS.length - 1)) * 100}%`,
+                            width: `${((capacitySlider[1] - capacitySlider[0]) / (CAPACITY_PRESETS.length - 1)) * 100}%`
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最小值 */}
+                        <div 
+                          className="absolute w-5 h-5 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(capacitySlider[0] / (CAPACITY_PRESETS.length - 1)) * 100}% - 10px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = capacitySlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([newValue, Math.max(newValue, capacitySlider[1])]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = capacitySlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([newValue, Math.max(newValue, capacitySlider[1])]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最大值 */}
+                        <div 
+                          className="absolute w-5 h-5 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(capacitySlider[1] / (CAPACITY_PRESETS.length - 1)) * 100}% - 10px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = capacitySlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([Math.min(capacitySlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = capacitySlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (CAPACITY_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(CAPACITY_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handleCapacitySliderChange([Math.min(capacitySlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                      </div>
+                      {/* 档位标签 */}
+                      <div className="flex justify-between mt-4 px-1">
+                        {CAPACITY_PRESETS.map((preset, index) => (
+                          <button
+                            key={preset.value}
+                            onClick={() => {
+                              // 点击标签可以设置为单一值
+                              handleCapacitySliderChange([index, index]);
+                            }}
+                            className={`text-xs transition-colors cursor-pointer ${
+                              index >= capacitySlider[0] && index <= capacitySlider[1]
+                                ? 'text-gray-800 font-semibold'
+                                : 'text-gray-400 hover:text-gray-600'
+                            } ${isMobile ? 'text-[10px] py-1' : ''}`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -715,43 +1253,183 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
-                    最大功率 (W)
+                    最大功率档位
                   </label>
                   <div className="text-xs text-gray-500">
-                    {filters.powerRange.min} - {filters.powerRange.max} W
+                    {POWER_PRESETS[powerSlider[0]].label} - {POWER_PRESETS[powerSlider[1]].label}
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">最小值</label>
-                      <input
-                        type="number"
-                        placeholder="最小值"
-                        value={filters.powerRange.min || ''}
-                        onChange={(e) => setFilters(prev => ({
-                          ...prev,
-                          powerRange: { ...prev.powerRange, min: e.target.value === '' ? powerRange.min : Number(e.target.value) }
-                        }))}
-                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isMobile ? 'py-3' : 'py-2'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">最大值</label>
-                      <input
-                        type="number"
-                        placeholder="最大值"
-                        value={filters.powerRange.max || ''}
-                        onChange={(e) => setFilters(prev => ({
-                          ...prev,
-                          powerRange: { ...prev.powerRange, max: e.target.value === '' ? powerRange.max : Number(e.target.value) }
-                        }))}
-                        className={`w-full px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isMobile ? 'py-3' : 'py-2'
-                        }`}
-                      />
+                <div className="space-y-4">
+                  {/* 功率档位选择器 */}
+                  <div className="px-3">
+                    <div className="relative mb-6">
+                      {/* 滑块轨道 */}
+                      <div 
+                        className="h-2 bg-gray-200 rounded-full relative cursor-pointer"
+                        onMouseDown={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const percent = (e.clientX - rect.left) / rect.width;
+                          const newIndex = Math.round(percent * (POWER_PRESETS.length - 1));
+                          
+                          // 判断点击的位置更接近哪个滑块
+                          const distToMin = Math.abs(newIndex - powerSlider[0]);
+                          const distToMax = Math.abs(newIndex - powerSlider[1]);
+                          
+                          if (distToMin <= distToMax) {
+                            // 更接近最小值滑块
+                            handlePowerSliderChange([newIndex, Math.max(newIndex, powerSlider[1])]);
+                          } else {
+                            // 更接近最大值滑块
+                            handlePowerSliderChange([Math.min(powerSlider[0], newIndex), newIndex]);
+                          }
+                        }}
+                      >
+                        {/* 激活区域 */}
+                        <div 
+                          className="absolute h-2 bg-gray-600 rounded-full pointer-events-none"
+                          style={{
+                            left: `${(powerSlider[0] / (POWER_PRESETS.length - 1)) * 100}%`,
+                            width: `${((powerSlider[1] - powerSlider[0]) / (POWER_PRESETS.length - 1)) * 100}%`
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最小值 */}
+                        <div 
+                          className="absolute w-5 h-5 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(powerSlider[0] / (POWER_PRESETS.length - 1)) * 100}% - 10px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = powerSlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([newValue, Math.max(newValue, powerSlider[1])]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = powerSlider[0];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([newValue, Math.max(newValue, powerSlider[1])]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                        
+                        {/* 滑块手柄 - 最大值 */}
+                        <div 
+                          className="absolute w-5 h-5 bg-white border-2 border-gray-600 rounded-full shadow-md -top-1.5 cursor-pointer z-20"
+                          style={{ 
+                            left: `calc(${(powerSlider[1] / (POWER_PRESETS.length - 1)) * 100}% - 10px)`,
+                            touchAction: 'none'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const startX = e.clientX;
+                            const startValue = powerSlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const deltaX = e.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([Math.min(powerSlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+                            const startValue = powerSlider[1];
+                            const trackRect = e.currentTarget.parentElement!.getBoundingClientRect();
+                            
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const touch = e.touches[0];
+                              const deltaX = touch.clientX - startX;
+                              const deltaPercent = deltaX / trackRect.width;
+                              const deltaSteps = deltaPercent * (POWER_PRESETS.length - 1);
+                              const newValue = Math.max(0, Math.min(POWER_PRESETS.length - 1, Math.round(startValue + deltaSteps)));
+                              
+                              handlePowerSliderChange([Math.min(powerSlider[0], newValue), newValue]);
+                            };
+                            
+                            const handleTouchEnd = () => {
+                              document.removeEventListener('touchmove', handleTouchMove);
+                              document.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            document.addEventListener('touchmove', handleTouchMove);
+                            document.addEventListener('touchend', handleTouchEnd);
+                          }}
+                        />
+                      </div>
+                      {/* 档位标签 */}
+                      <div className="flex justify-between mt-4 px-1">
+                        {POWER_PRESETS.map((preset, index) => (
+                          <button
+                            key={preset.value}
+                            onClick={() => {
+                              // 点击标签可以设置为单一值
+                              handlePowerSliderChange([index, index]);
+                            }}
+                            className={`text-xs transition-colors cursor-pointer ${
+                              index >= powerSlider[0] && index <= powerSlider[1]
+                                ? 'text-gray-800 font-semibold'
+                                : 'text-gray-400 hover:text-gray-600'
+                            } ${isMobile ? 'text-[10px] py-1' : ''}`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -774,7 +1452,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                       <input
                         type="number"
                         placeholder="最小值"
-                        value={filters.priceRange.min || ''}
+                        value={filters.priceRange.min === priceRange.min ? '' : (filters.priceRange.min || '')}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
                           priceRange: { ...prev.priceRange, min: e.target.value === '' ? priceRange.min : Number(e.target.value) }
@@ -789,7 +1467,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                       <input
                         type="number"
                         placeholder="最大值"
-                        value={filters.priceRange.max || ''}
+                        value={filters.priceRange.max === priceRange.max ? '' : (filters.priceRange.max || '')}
                         onChange={(e) => setFilters(prev => ({
                           ...prev,
                           priceRange: { ...prev.priceRange, max: e.target.value === '' ? priceRange.max : Number(e.target.value) }
