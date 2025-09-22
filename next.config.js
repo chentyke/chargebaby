@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    rules: {
-      'react/no-unescaped-entities': 'off', // 关闭中文引号警告
-    },
+    ignoreDuringBuilds: false, // 可以设置为true来在构建时忽略ESLint错误
   },
   images: {
     remotePatterns: [

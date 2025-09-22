@@ -205,6 +205,7 @@ interface ReviewSubmissionData {
   cover: string;
   type: string;
   title: string;
+  coverType?: string; // 可选字段，用于标记封面类型
 }
 
 // 上传图片到Notion的函数
