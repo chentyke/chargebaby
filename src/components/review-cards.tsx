@@ -6,6 +6,7 @@ import { NotionImage } from './notion-image';
 import { formatDate } from '@/lib/utils';
 import { useRef, useEffect, useState } from 'react';
 import { TurnstileWidget } from './turnstile-widget';
+import { ImageUpload } from './image-upload';
 
 interface ReviewCardsProps {
   subProjects: SubProject[] | undefined;
@@ -206,6 +207,26 @@ interface ReviewSubmissionData {
   title: string;
 }
 
+// 上传图片到Notion的函数
+async function uploadImageToNotion(file: File, turnstileToken: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('turnstileToken', turnstileToken);
+
+  const response = await fetch('/api/upload-image', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.error || '图片上传失败');
+  }
+
+  const result = await response.json();
+  return result.url;
+}
+
 interface ReviewManageModalProps {
   modelName: string;
   onClose: () => void;
@@ -222,6 +243,7 @@ function ReviewManageModal({ modelName, onClose }: ReviewManageModalProps) {
     type: '视频',
     title: ''
   });
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -339,6 +361,8 @@ function ReviewManageModal({ modelName, onClose }: ReviewManageModalProps) {
               modelName={modelName}
               formData={formData}
               setFormData={setFormData}
+              selectedImageFile={selectedImageFile}
+              setSelectedImageFile={setSelectedImageFile}
               isSubmitting={isSubmitting}
               setIsSubmitting={setIsSubmitting}
               submitMessage={submitMessage}
@@ -361,6 +385,8 @@ interface SubmissionTabProps {
   modelName: string;
   formData: ReviewSubmissionData;
   setFormData: React.Dispatch<React.SetStateAction<ReviewSubmissionData>>;
+  selectedImageFile: File | null;
+  setSelectedImageFile: (file: File | null) => void;
   isSubmitting: boolean;
   setIsSubmitting: (loading: boolean) => void;
   submitMessage: string;
@@ -374,6 +400,8 @@ function SubmissionTab({
   modelName, 
   formData, 
   setFormData, 
+  selectedImageFile,
+  setSelectedImageFile,
   isSubmitting, 
   setIsSubmitting, 
   submitMessage, 
@@ -395,13 +423,27 @@ function SubmissionTab({
     setSubmitMessage('');
 
     try {
+      let finalFormData = { ...formData };
+
+      // 如果有选择的图片文件，先上传图片
+      if (selectedImageFile && turnstileToken) {
+        setSubmitMessage('正在上传图片...');
+        try {
+          const imageUrl = await uploadImageToNotion(selectedImageFile, turnstileToken);
+          finalFormData.cover = imageUrl;
+          setSubmitMessage('图片上传成功，正在提交表单...');
+        } catch (imageError) {
+          throw new Error(`图片上传失败: ${imageError instanceof Error ? imageError.message : '未知错误'}`);
+        }
+      }
+
       const response = await fetch('/api/submit-review', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
+          ...finalFormData,
           turnstileToken
         }),
       });
@@ -416,7 +458,7 @@ function SubmissionTab({
         setSubmitMessage(errorData.error || '投稿失败，请稍后重试。');
       }
     } catch (error) {
-      setSubmitMessage('网络错误，请稍后重试。');
+      setSubmitMessage(error instanceof Error ? error.message : '网络错误，请稍后重试。');
     } finally {
       setIsSubmitting(false);
     }
@@ -527,21 +569,6 @@ function SubmissionTab({
         />
       </div>
 
-      {/* 封面图片 */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          封面图片链接
-        </label>
-        <input
-          type="url"
-          name="cover"
-          value={formData.cover}
-          onChange={handleInputChange}
-          placeholder="请输入封面图片链接（可选）"
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-full box-border"
-        />
-      </div>
-
       {/* Turnstile人机验证 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -556,8 +583,44 @@ function SubmissionTab({
           className="flex justify-center"
         />
         {!turnstileToken && (
-          <p className="text-xs text-gray-500 mt-1">请完成人机验证</p>
+          <p className="text-xs text-gray-500 mt-1">请先完成人机验证</p>
         )}
+      </div>
+
+      {/* 封面图片 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          封面图片
+        </label>
+        <ImageUpload
+          onFileSelect={setSelectedImageFile}
+          onUploadError={(error) => {
+            setSubmitMessage(`图片选择失败: ${error}`);
+          }}
+          currentImageUrl={formData.cover}
+          maxSize={20 * 1024 * 1024} // 20MB
+          acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']}
+          disabled={isSubmitting}
+          className="mb-2"
+        />
+        <p className="text-xs text-gray-500">
+          支持选择 JPG、PNG、WebP、GIF 格式的图片，最大 20MB。提交时将自动上传（可选）
+        </p>
+        
+        {/* 保留URL输入作为备选方案 */}
+        <div className="mt-3">
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            或者输入图片链接
+          </label>
+          <input
+            type="url"
+            name="cover"
+            value={formData.cover}
+            onChange={handleInputChange}
+            placeholder="请输入封面图片链接（可选）"
+            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs min-w-0 max-w-full box-border"
+          />
+        </div>
       </div>
 
       {/* 提交状态消息 */}
