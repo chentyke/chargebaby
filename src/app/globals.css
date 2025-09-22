@@ -204,6 +204,89 @@
   }
 }
 
+/* 安卓设备性能优化 */
+@supports (-webkit-appearance: none) {
+  /* 检测基于WebKit的安卓浏览器 */
+  @media (max-width: 768px) {
+    /* 禁用复杂的毛玻璃效果 */
+    .android-optimized .backdrop-blur-2xl,
+    .android-optimized .backdrop-blur-3xl,
+    .android-optimized .backdrop-blur-sm {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    /* 简化动画 */
+    .android-optimized * {
+      transition-duration: 0.1s !important;
+      animation-duration: 0.3s !important;
+    }
+    
+    /* 禁用复杂变换 */
+    .android-optimized .group:hover {
+      transform: none !important;
+    }
+    
+    /* 禁用hover效果 */
+    .android-optimized .hover-hover\:hover\:scale-\[1\.02\],
+    .android-optimized .hover-hover\:group-hover\:scale-110 {
+      transform: none !important;
+    }
+    
+    /* 简化阴影 */
+    .android-optimized .shadow-2xl,
+    .android-optimized .shadow-xl {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* 禁用复杂渐变，但保留文字渐变 */
+    .android-optimized .bg-gradient-to-br:not(.bg-clip-text),
+    .android-optimized .bg-gradient-to-tr:not(.bg-clip-text) {
+      background: rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    /* 为安卓设备的bg-clip-text提供备用样式 */
+    .android-optimized .bg-clip-text {
+      background: none !important;
+      color: #111827 !important; /* text-gray-900 */
+      -webkit-background-clip: unset !important;
+      background-clip: unset !important;
+      -webkit-text-fill-color: unset !important;
+    }
+    
+    /* 强制使用硬件加速，但简化变换 */
+    .android-optimized .group {
+      will-change: auto !important;
+    }
+  }
+}
+
+/* 基于body类的设备特定优化 */
+.android-device {
+  /* 减少重绘 */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  
+  /* 优化滚动 */
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+.android-device .slideInUp {
+  animation-duration: 0.4s !important;
+  animation-timing-function: ease-out !important;
+}
+
+/* 为低性能设备禁用复杂动画 */
+.performance-low .animate-slide-up,
+.performance-low .animate-fade-in,
+.performance-low .animate-scale-in {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 /* 共享图片转场效果 */
 [data-shared-image-id] {
   will-change: transform, opacity;

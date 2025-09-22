@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { ChargeBaby } from '@/types/chargebaby';
+import { isLowPerformanceDevice } from '@/utils/device-detection';
 
 interface PreloadResult {
   preloaded: number;
@@ -11,12 +12,24 @@ export function useImagePreloader(chargeBabies: ChargeBaby[], enabled: boolean =
   useEffect(() => {
     if (!enabled || !chargeBabies.length) return;
 
-    // 延迟预加载，避免阻塞首页渲染
-    const preloadTimer = setTimeout(() => {
-      preloadImages(chargeBabies);
-    }, 2000); // 2秒后开始预加载
+    // 检测设备性能，安卓设备延长预加载时间或禁用
+    const isLowPerf = isLowPerformanceDevice();
+    
+    if (isLowPerf) {
+      // 安卓设备延长预加载时间，减少对滑动性能的影响
+      const preloadTimer = setTimeout(() => {
+        preloadImages(chargeBabies.slice(0, 6)); // 只预加载前6个
+      }, 5000); // 5秒后开始预加载
+      
+      return () => clearTimeout(preloadTimer);
+    } else {
+      // 其他设备正常预加载
+      const preloadTimer = setTimeout(() => {
+        preloadImages(chargeBabies);
+      }, 2000); // 2秒后开始预加载
 
-    return () => clearTimeout(preloadTimer);
+      return () => clearTimeout(preloadTimer);
+    }
   }, [chargeBabies, enabled]);
 }
 

@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { getChargeBabies } from '@/lib/notion';
 import { SearchableProductsGrid } from '@/components/searchable-products-grid';
 import { Loading } from '@/components/ui/loading';
+import { DeviceOptimizedContainer } from '@/components/device-optimized-container';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative">
+    <DeviceOptimizedContainer className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative">
       {/* 统一背景装饰层 - 覆盖整个页面 */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/20 via-transparent to-purple-50/20 pointer-events-none"></div>
       
@@ -41,7 +42,7 @@ export default function HomePage() {
           </div>
         </header>
       </div>
-    </div>
+    </DeviceOptimizedContainer>
   );
 }
 
