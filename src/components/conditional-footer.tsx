@@ -1,10 +1,22 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { Footer } from './footer';
 
 export function ConditionalFooter() {
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // 确保组件在客户端挂载后才进行路径判断
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  // 在服务端渲染期间，不渲染Footer以避免hydration不匹配
+  if (!isMounted) {
+    return null;
+  }
   
   // 定义已知的非详情页面路径
   const knownPages = ['/ranking', '/compare', '/submit', '/'];
