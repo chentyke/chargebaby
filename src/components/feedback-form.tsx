@@ -1,22 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Send, Image, X } from 'lucide-react';
-
-// Turnstile 组件声明
-declare global {
-  interface Window {
-    turnstile: {
-      render: (element: string | HTMLElement, options: {
-        sitekey: string;
-        callback: (token: string) => void;
-        'error-callback'?: () => void;
-        'expired-callback'?: () => void;
-      }) => string;
-      reset: (widgetId?: string) => void;
-    };
-  }
-}
+import NextImage from 'next/image';
+import { TurnstileWidget } from './turnstile-widget';
 
 interface FeedbackData {
   title: string;
@@ -56,55 +43,6 @@ export function FeedbackForm() {
   const [submitError, setSubmitError] = useState('');
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
   const [turnstileToken, setTurnstileToken] = useState<string>('');
-  const [turnstileWidgetId, setTurnstileWidgetId] = useState<string>('');
-  const [isTurnstileLoaded, setIsTurnstileLoaded] = useState(false);
-
-  // 初始化 Turnstile
-  useEffect(() => {
-    const loadTurnstile = () => {
-      if (typeof window !== 'undefined' && window.turnstile) {
-        setIsTurnstileLoaded(true);
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        setIsTurnstileLoaded(true);
-      };
-      document.head.appendChild(script);
-    };
-
-    loadTurnstile();
-  }, []);
-
-  // 渲染 Turnstile 组件
-  useEffect(() => {
-    if (isTurnstileLoaded && typeof window !== 'undefined' && window.turnstile) {
-      const container = document.getElementById('turnstile-container');
-      if (container && !turnstileWidgetId) {
-        try {
-          const widgetId = window.turnstile.render(container, {
-            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAAkKkKKkKKkKkKKa', // 测试用的site key
-            callback: (token: string) => {
-              setTurnstileToken(token);
-            },
-            'error-callback': () => {
-              setTurnstileToken('');
-            },
-            'expired-callback': () => {
-              setTurnstileToken('');
-            },
-          });
-          setTurnstileWidgetId(widgetId);
-        } catch (error) {
-          console.error('Turnstile 初始化失败:', error);
-        }
-      }
-    }
-  }, [isTurnstileLoaded, turnstileWidgetId]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -450,10 +388,13 @@ export function FeedbackForm() {
                           <X className="w-6 h-6 text-red-500" />
                         </div>
                       ) : (
-                        <img
+                        <NextImage
                           src={selectedImage.previewUrl}
-                          alt={`预览 ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          alt={`预览图片 ${index + 1}: ${selectedImage.file.name}`}
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                          unoptimized // 因为是本地 blob URL
                         />
                       )}
                     </div>
@@ -511,7 +452,7 @@ export function FeedbackForm() {
                   className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 cursor-pointer transition-colors"
                 >
                   <div className="text-center">
-                    <Image className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                    <Image className="w-6 h-6 text-gray-400 mx-auto mb-1" aria-label="上传图片图标" />
                     <span className="text-sm text-gray-500">点击上传图片</span>
                     <p className="text-xs text-gray-400 mt-1">
                       支持 JPG、PNG、WebP、GIF 格式
@@ -541,14 +482,11 @@ export function FeedbackForm() {
               人机验证 <span className="text-red-500">*</span>
             </label>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              {isTurnstileLoaded ? (
-                <div id="turnstile-container" className="flex justify-center"></div>
-              ) : (
-                <div className="flex items-center justify-center py-4">
-                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2"></div>
-                  <span className="text-sm text-gray-600">加载验证组件中...</span>
-                </div>
-              )}
+              <TurnstileWidget
+                onVerify={(token) => setTurnstileToken(token)}
+                onError={() => setTurnstileToken('')}
+                className="flex justify-center"
+              />
               {!turnstileToken && (
                 <p className="text-xs text-gray-500 mt-2 text-center">
                   请完成人机验证后再提交反馈

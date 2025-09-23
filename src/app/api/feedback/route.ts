@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
               { text: { content: description } },
               ...(imageUrls.length > 0 ? [
                 { text: { content: '\n\n附件图片：\n' } },
-                ...imageUrls.map((url, index) => ({
+                ...imageUrls.map((url: string, index: number) => ({
                   text: {
                     content: `图片${index + 1}: ${url}\n`,
                     link: null
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             rich_text: contact ? [{ text: { content: contact } }] : []
           },
           '图片': {
-            files: imageUrls.map((url, index) => {
+            files: imageUrls.map((url: string, index: number) => {
               // 检查是否是notion-file:// 格式（Notion API上传的文件）
               if (url.startsWith('notion-file://')) {
                 const fileId = url.replace('notion-file://', '');
