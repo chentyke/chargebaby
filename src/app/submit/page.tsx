@@ -227,6 +227,23 @@ export default function SubmitPage() {
                 </div>
               </div>
             </Link>
+
+            {/* 反馈选项 */}
+            <Link href="/feedback">
+              <div className="group bg-white/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg shadow-black/5 p-6 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 cursor-pointer active:scale-[0.98]">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <AlertCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">问题反馈</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      反馈网站问题或提出改进建议
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </div>
