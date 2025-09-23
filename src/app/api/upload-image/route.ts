@@ -116,11 +116,9 @@ export async function POST(request: NextRequest) {
     console.log(`📝 Notion file upload created: ${uploadData.id}`);
 
     // 2. 上传文件到 Notion 使用 send endpoint
-    const fileBuffer = await file.arrayBuffer();
-    
-    // 创建 FormData 用于文件上传
+    // 直接使用原始文件，不转换为Buffer再转回Blob，避免数据损坏
     const uploadFormData = new FormData();
-    uploadFormData.append('file', new Blob([fileBuffer], { type: file.type }), file.name);
+    uploadFormData.append('file', file, file.name);
     
     const uploadResponse = await fetch(`${notionApiBase}/file_uploads/${uploadData.id}/send`, {
       method: 'POST',
@@ -142,8 +140,9 @@ export async function POST(request: NextRequest) {
     const uploadResult = await uploadResponse.json();
     console.log('Upload result:', uploadResult);
 
-    // 3. 文件上传成功，直接使用文件ID构建URL
-    const finalFileUrl = `https://prod-files-secure.s3.us-west-2.amazonaws.com/secure.notion-static.com/${uploadData.id}/${encodeURIComponent(file.name)}`;
+    // 3. 查询文件状态获取正确的URL
+    const fileStatus = await notionFetch<NotionFileUploadResponse>(`/file_uploads/${uploadData.id}`);
+    console.log('File status:', fileStatus);
 
     return NextResponse.json({
       success: true,
@@ -151,7 +150,8 @@ export async function POST(request: NextRequest) {
       filename: file.name,
       contentType: file.type,
       size: file.size,
-      url: finalFileUrl,
+      url: fileStatus.upload_url || `notion-file://${uploadData.id}`, // 使用文件ID引用
+      notionFileId: uploadData.id, // 添加Notion文件ID以供引用
       message: '图片上传成功'
     });
 
