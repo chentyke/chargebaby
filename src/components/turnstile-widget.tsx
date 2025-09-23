@@ -1,7 +1,7 @@
 'use client';
 
 import { Turnstile } from '@marsidev/react-turnstile';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface TurnstileWidgetProps {
   onVerify: (token: string) => void;
@@ -11,7 +11,12 @@ interface TurnstileWidgetProps {
 
 export function TurnstileWidget({ onVerify, onError, className }: TurnstileWidgetProps) {
   const [isVerified, setIsVerified] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const turnstileRef = useRef<any>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleVerify = (token: string) => {
     setIsVerified(true);
@@ -26,6 +31,17 @@ export function TurnstileWidget({ onVerify, onError, className }: TurnstileWidge
   const handleExpire = () => {
     setIsVerified(false);
   };
+
+  // 只在客户端挂载后渲染 Turnstile 组件
+  if (!isMounted) {
+    return (
+      <div className={className}>
+        <div className="w-80 h-16 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+          <span className="text-gray-500 text-sm">正在加载验证组件...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>

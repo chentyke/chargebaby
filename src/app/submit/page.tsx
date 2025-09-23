@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { ChargeBabySubmissionForm } from '@/components/chargebaby-submission-form';
@@ -12,6 +12,11 @@ export default function SubmitPage() {
   const [hasAgreed, setHasAgreed] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [showTurnstile, setShowTurnstile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleStartSubmission = () => {
     if (hasAgreed && !showTurnstile) {
@@ -32,6 +37,24 @@ export default function SubmitPage() {
     setTurnstileToken(null);
     alert('验证失败，请重试');
   };
+
+  // 在服务端渲染期间显示加载状态，避免hydration不匹配
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-50/20 via-transparent to-purple-50/20 pointer-events-none"></div>
+        
+        <div className="container py-6 sm:py-10 relative">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">正在加载...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (currentView === 'form') {
     return (
