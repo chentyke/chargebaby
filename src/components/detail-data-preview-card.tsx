@@ -385,15 +385,15 @@ export function DetailDataPreviewCard({ chargeBaby, productModel, variant = 'des
             href={`/${encodeURIComponent(productModel)}/detail`}
             className={`inline-flex items-center gap-1 font-medium text-gray-700 hover:text-gray-900 transition-all duration-200 group ${
               variant === 'mobile' 
-                ? 'text-[10px]' 
-                : 'text-xs'
+                ? 'text-xs' 
+                : 'text-sm'
             }`}
             onClick={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
           >
-            <span>查看更多</span>
+            <span>查看更多详细数据</span>
             <ArrowRight className={`group-hover:translate-x-0.5 transition-transform duration-200 ${
-              variant === 'mobile' ? 'w-2.5 h-2.5' : 'w-3 h-3'
+              variant === 'mobile' ? 'w-3 h-3' : 'w-4 h-4'
             }`} />
           </Link>
         </div>
