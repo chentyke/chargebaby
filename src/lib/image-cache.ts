@@ -122,8 +122,22 @@ export class ImageCache {
     const normalizedUrl = this.normalizeAwsUrl(url);
     const imageId = this.simpleHash(normalizedUrl);
     
-    const configHash = resolutionConfig ? 
-      this.simpleHash(JSON.stringify(resolutionConfig)) : 'orig';
+    // 标准化分辨率配置，确保相同配置生成相同的ETag
+    let configHash = 'orig';
+    if (resolutionConfig) {
+      const width = resolutionConfig.width || 'auto';
+      const height = resolutionConfig.height || 'auto';
+      const quality = resolutionConfig.quality || 85;
+      
+      // 将质量标准化为几个固定值，减少ETag碎片化
+      const normalizedQuality = quality >= 95 ? 95 : 
+                               quality >= 85 ? 85 : 
+                               quality >= 75 ? 75 : 65;
+      
+      const configString = `${width}x${height}:q${normalizedQuality}`;
+      configHash = this.simpleHash(configString);
+    }
+    
     return `"${imageId}-${configHash}"`;
   }
 

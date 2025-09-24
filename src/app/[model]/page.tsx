@@ -10,6 +10,8 @@ import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
 import { ReviewCards } from '@/components/review-cards';
 import { ICPBeian } from '@/components/icp-beian';
+import { PurchaseLinks } from '@/components/purchase-links';
+import { ShareButton } from '@/components/share-button';
 
 interface PageProps {
   params: Promise<{
@@ -93,26 +95,17 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                 <GitCompare className="w-5 h-5" />
                 <span>对比</span>
               </Link>
-              {finalImageUrl ? (
-                <a
-                  href={finalImageUrl}
-                  download={(title || 'chargebaby') + '.jpg'}
-                  className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="inline-block w-5 h-5" aria-hidden>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  </span>
-                  <span className="sr-only">保存图片</span>
-                </a>
-              ) : (
-                <SaveScreenshotButton
-                  targetSelector="#capture-root"
-                  filename={(title || 'chargebaby') + '.jpg'}
-                  showText={false}
-                />
-              )}
+              <ShareButton
+                title={`${title} - 充电宝测评`}
+                text={`${title}
+🔋 综合评分：${Math.round(overallRating ?? 0)}/100分
+⚡ 性能评分：${Math.round(performanceRating ?? 0)}/100分
+📱 体验评分：${Math.round(experienceRating ?? 0)}/100分
+${priceText ? `💰 官方定价：${priceText}` : ''}
+
+📊 详细测评数据和对比`}
+                showText={false}
+              />
             </div>
           </div>
 
@@ -256,6 +249,13 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               </div>
             )}
 
+            {/* 购买链接按钮 */}
+            <div className="px-4">
+              <div className="ml-0">
+                <PurchaseLinks chargeBaby={chargeBaby} variant="mobile" />
+              </div>
+            </div>
+
             {/* 相关评测卡片 */}
             <ReviewCards subProjects={chargeBaby.subProjects} modelName={productModel} />
 
@@ -299,26 +299,17 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                 <GitCompare className="w-5 h-5" />
                 <span>对比</span>
               </Link>
-              {finalImageUrl ? (
-                <a
-                  href={finalImageUrl}
-                  download={(title || 'chargebaby') + '.jpg'}
-                  className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="inline-block w-5 h-5 relative">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  </span>
-                  <span>保存图片</span>
-                </a>
-              ) : (
-                <SaveScreenshotButton
-                  targetSelector="#capture-root"
-                  filename={(title || 'chargebaby') + '.jpg'}
-                  showText
-                />
-              )}
+              <ShareButton
+                title={`${title} - 充电宝测评`}
+                text={`${title}
+🔋 综合评分：${Math.round(overallRating ?? 0)}/100分
+⚡ 性能评分：${Math.round(performanceRating ?? 0)}/100分
+📱 体验评分：${Math.round(experienceRating ?? 0)}/100分
+${priceText ? `💰 官方定价：${priceText}` : ''}
+
+📊 详细测评数据和对比`}
+                showText={true}
+              />
             </div>
           </div>
 
@@ -376,6 +367,13 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
                   ) : null}
                 </div>
               )}
+
+              {/* 购买链接按钮 */}
+              <div className="mt-8 flex-shrink-0">
+                <div className="ml-0">
+                  <PurchaseLinks chargeBaby={chargeBaby} variant="desktop" />
+                </div>
+              </div>
             </div>
 
             {/* 右侧：标题 + 评分数据 + 图文（可滚动） */}

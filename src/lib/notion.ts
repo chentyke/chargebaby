@@ -529,6 +529,8 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
       getFileProperty(props.Poster) ||
       getFileProperty(props.ShareImage) ||
       '',
+    taobaoLink: getUrlProperty(props.TaobaoLink) || getUrlProperty(props['淘宝链接']) || undefined,
+    jdLink: getUrlProperty(props.JDLink) || getUrlProperty(props['京东链接']) || undefined,
     createdAt: getDateProperty(props.CreatedAt) || new Date().toISOString(),
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
     // 详细技术规格数据
@@ -655,6 +657,27 @@ function getFileProperty(property: any): string {
 
 function getRichTextProperty(property: any): string {
   return property?.rich_text?.[0]?.text?.content || '';
+}
+
+function getUrlProperty(property: any): string {
+  // 处理 URL 类型字段
+  if (property?.url) {
+    return property.url;
+  }
+  
+  // 处理 Rich Text 类型字段（链接可能存储为富文本）
+  if (property?.rich_text && Array.isArray(property.rich_text) && property.rich_text.length > 0) {
+    const firstText = property.rich_text[0];
+    if (firstText?.text?.content) {
+      const content = firstText.text.content.trim();
+      // 检查内容是否看起来像URL
+      if (content.startsWith('http://') || content.startsWith('https://')) {
+        return content;
+      }
+    }
+  }
+  
+  return '';
 }
 
 function parseListProperty(text: string): string[] {

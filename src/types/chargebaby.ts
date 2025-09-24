@@ -119,6 +119,8 @@ export interface ChargeBaby {
   disadvantages: string[]; // 不足
   imageUrl: string; // 产品图片
   finalImageUrl?: string; // 成品图片（用于下载/分享）
+  taobaoLink?: string; // 淘宝购买链接
+  jdLink?: string; // 京东购买链接
   createdAt: string;
   updatedAt: string;
   detailData?: DetailData; // 详细技术数据
