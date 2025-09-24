@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
-import { Battery, ArrowLeft, FileText, GitCompare } from 'lucide-react';
+import { Battery, ArrowLeft, GitCompare } from 'lucide-react';
 import SaveScreenshotButton from '@/components/save-screenshot-button';
 import { getChargeBabyByModel } from '@/lib/notion';
 import { formatPrice, formatRating, getRatingProgress, formatDate } from '@/lib/utils';
@@ -12,6 +12,7 @@ import { ReviewCards } from '@/components/review-cards';
 import { ICPBeian } from '@/components/icp-beian';
 import { PurchaseLinks } from '@/components/purchase-links';
 import { ShareButton } from '@/components/share-button';
+import { DetailDataPreviewCard } from '@/components/detail-data-preview-card';
 import { Metadata } from 'next';
 
 interface PageProps {
@@ -188,10 +189,6 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
               <span>返回</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Link href={`/${encodeURIComponent(productModel)}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
-                <FileText className="w-5 h-5" />
-                <span>详细数据</span>
-              </Link>
               <Link href={`/compare?product=${encodeURIComponent(productModel)}&from=detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <GitCompare className="w-5 h-5" />
                 <span>对比</span>
@@ -317,6 +314,17 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
               </div>
             </div>
 
+            {/* 详细数据透视预览卡片 - 移动端 */}
+            {chargeBaby.detailData && (
+              <div className="h-64">
+                <DetailDataPreviewCard 
+                  chargeBaby={chargeBaby} 
+                  productModel={productModel}
+                  variant="mobile"
+                />
+              </div>
+            )}
+
             {/* 优势 / 不足 */}
             {(advantages?.length || disadvantages?.length) && (
               <div className="space-y-6">
@@ -392,10 +400,6 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
               <span>返回</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Link href={`/${encodeURIComponent(productModel)}/detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
-                <FileText className="w-5 h-5" />
-                <span>详细数据</span>
-              </Link>
               <Link href={`/compare?product=${encodeURIComponent(productModel)}&from=detail`} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                 <GitCompare className="w-5 h-5" />
                 <span>对比</span>
@@ -588,6 +592,17 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
                     </div>
                   </div>
                 </div>
+
+                {/* 详细数据透视预览卡片 */}
+                {chargeBaby.detailData && (
+                  <div className="h-80">
+                    <DetailDataPreviewCard 
+                      chargeBaby={chargeBaby} 
+                      productModel={productModel}
+                      variant="desktop"
+                    />
+                  </div>
+                )}
 
                 {/* 相关评测卡片 */}
                 <ReviewCards subProjects={chargeBaby.subProjects} modelName={productModel} />

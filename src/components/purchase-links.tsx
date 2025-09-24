@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, ExternalLink, LucideIcon } from 'lucide-react';
+import { ExternalLink, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChargeBaby } from '@/types/chargebaby';
 
@@ -20,13 +20,7 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
     color?: string;
   }> = [];
 
-  // 详细数据按钮（始终显示）
-  buttons.push({
-    label: '详细数据',
-    icon: FileText,
-    href: `/${encodeURIComponent(chargeBaby.model)}/detail`,
-    isInternal: true,
-  });
+  // 删除详细数据按钮，因为已经有透视预览卡片
 
   // 淘宝链接（如果存在）
   if (chargeBaby.taobaoLink) {
@@ -56,33 +50,34 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
   const getGridLayout = () => {
     const buttonCount = buttons.length;
     
+    if (buttonCount === 0) {
+      // 没有购买链接时，隐藏整个组件
+      return null;
+    }
+    
     if (buttonCount === 1) {
-      // 只有详细数据按钮：较窄的单列，左对齐
+      // 单个购买按钮：居中显示
       return {
         gridClass: 'grid-cols-1',
         containerClass: isMobile ? 'max-w-36' : 'max-w-44', // 根据设备调整宽度
-        buttonClass: 'justify-start' // 左对齐内容
-      };
-    }
-    
-    if (buttonCount === 2) {
-      // 两个按钮：紧凑的双列布局
-      return {
-        gridClass: 'grid-cols-2',
-        containerClass: isMobile ? 'max-w-64' : 'max-w-80', // 根据设备调整宽度
         buttonClass: 'justify-center' // 居中内容
       };
     }
     
-    // 三个按钮：标准布局
+    // 两个或更多按钮：双列或多列布局
     return {
-      gridClass: 'grid-cols-3',
-      containerClass: 'max-w-lg',
+      gridClass: buttonCount === 2 ? 'grid-cols-2' : 'grid-cols-3',
+      containerClass: buttonCount === 2 ? (isMobile ? 'max-w-64' : 'max-w-80') : 'max-w-lg',
       buttonClass: 'justify-center' // 居中内容
     };
   };
 
   const layout = getGridLayout();
+
+  // 如果没有任何购买链接，返回 null（隐藏组件）
+  if (!layout) {
+    return null;
+  }
 
   return (
     <div className={cn('w-full', className)}>
@@ -94,7 +89,6 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
       )}>
         {buttons.map((button) => {
           const Icon = button.icon;
-          const isDetailData = button.label === '详细数据';
           
           return (
             <a
@@ -116,10 +110,8 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
                   'text-sm py-3',
                   buttons.length === 1 ? 'px-5' : 'px-4'
                 ],
-                // 样式变体
-                isDetailData
-                  ? 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300'
-                  : button.color
+                // 购买链接样式
+                button.color || 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300'
               )}
             >
               <Icon className={cn(
@@ -138,16 +130,10 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
         })}
       </div>
       
-      {/* 根据按钮数量显示不同的提示信息 */}
-      {buttons.length === 1 && (
-        <div className="mt-2 text-xs text-gray-500">
-          查看详细测试数据和技术参数
-        </div>
-      )}
-      
-      {buttons.length === 2 && (
+      {/* 购买链接提示信息 */}
+      {buttons.length > 0 && (
         <div className="mt-2 text-xs text-gray-400 opacity-75">
-          点击查看详细数据或购买链接
+          点击查看购买链接
         </div>
       )}
     </div>
