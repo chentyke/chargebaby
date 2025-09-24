@@ -12,6 +12,7 @@ import { ReviewCards } from '@/components/review-cards';
 import { ICPBeian } from '@/components/icp-beian';
 import { PurchaseLinks } from '@/components/purchase-links';
 import { ShareButton } from '@/components/share-button';
+import { Metadata } from 'next';
 
 interface PageProps {
   params: Promise<{
@@ -20,6 +21,106 @@ interface PageProps {
   searchParams: Promise<{
     from?: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { model } = await params;
+  const chargeBaby = await getChargeBabyByModel(decodeURIComponent(model));
+
+  if (!chargeBaby) {
+    return {
+      title: '产品未找到 - 充电宝测评',
+      description: '抱歉，您访问的产品页面不存在。',
+    };
+  }
+
+  const {
+    title,
+    subtitle,
+    brand,
+    overallRating,
+    performanceRating,
+    experienceRating,
+    price,
+    imageUrl,
+    advantages = [],
+    disadvantages = []
+  } = chargeBaby;
+
+  // 构建页面标题
+  const pageTitle = `${title} - 充电宝测评`;
+  
+  // 构建描述
+  const priceText = typeof price === 'number' ? `¥${Math.round(price)}` : '价格待定';
+  const advantagesText = advantages.length > 0 ? `优势：${advantages.slice(0, 2).join('、')}` : '';
+  const disadvantagesText = disadvantages.length > 0 ? `不足：${disadvantages.slice(0, 1).join('、')}` : '';
+  
+  const description = [
+    `${brand ? `${brand} ` : ''}${title}${subtitle ? ` - ${subtitle}` : ''}`,
+    `🔋 综合评分 ${Math.round(overallRating ?? 0)}/100分`,
+    `⚡ 性能评分 ${Math.round(performanceRating ?? 0)}/100分`,
+    `📱 体验评分 ${Math.round(experienceRating ?? 0)}/100分`,
+    `💰 ${priceText}`,
+    advantagesText,
+    disadvantagesText
+  ].filter(Boolean).join(' | ');
+
+  return {
+    title: pageTitle,
+    description: description.slice(0, 160), // 限制描述长度
+    keywords: [
+      title,
+      brand,
+      '充电宝',
+      '移动电源',
+      '测评',
+      '评测',
+      '对比',
+      `${Math.round(overallRating ?? 0)}分`,
+      '快充',
+      'powerbank'
+    ].filter(Boolean).join(', '),
+    authors: [{ name: '充电宝测评' }],
+    creator: '充电宝测评',
+    publisher: '充电宝测评',
+    openGraph: {
+      title: pageTitle,
+      description: description.slice(0, 160),
+      url: `/${encodeURIComponent(model)}`,
+      siteName: '充电宝测评',
+      images: imageUrl ? [{
+        url: imageUrl,
+        width: 800,
+        height: 800,
+        alt: title,
+        type: 'image/png',
+      }] : [],
+      locale: 'zh_CN',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: pageTitle,
+      description: description.slice(0, 160),
+      images: imageUrl ? [imageUrl] : [],
+      creator: '@chargebaby_review',
+      site: '@chargebaby_review',
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    alternates: {
+      canonical: `/${encodeURIComponent(model)}`,
+    },
+  };
 }
 
 export default async function ChargeBabyDetailPage({ params, searchParams }: PageProps) {
