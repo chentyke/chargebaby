@@ -51,14 +51,16 @@ export class ImageCache {
   }
 
   /**
-   * 获取图片的缓存键，优化CDN缓存命中率
+   * 获取图片的缓存键，确保每个图片都有唯一键
    */
   private static getCacheKey(
     url: string, 
     resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
   ): string {
-    // 使用稳定的图片ID作为基础键
-    const imageId = this.extractNotionImageId(url);
+    // 使用完整URL的hash确保唯一性
+    const urlObj = new URL(url);
+    const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+    const imageId = this.simpleHash(baseUrl);
     
     // 标准化分辨率配置，减少缓存键变体
     let resolutionSuffix = '';
@@ -85,7 +87,10 @@ export class ImageCache {
     url: string,
     resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
   ): string {
-    const imageId = this.extractNotionImageId(url);
+    const urlObj = new URL(url);
+    const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+    const imageId = this.simpleHash(baseUrl);
+    
     const configHash = resolutionConfig ? 
       this.simpleHash(JSON.stringify(resolutionConfig)) : 'orig';
     return `"${imageId}-${configHash}"`;
