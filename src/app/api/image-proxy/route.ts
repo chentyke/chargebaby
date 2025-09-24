@@ -21,6 +21,10 @@ export async function GET(request: NextRequest) {
   const customWidth = searchParams.get('w') ? parseInt(searchParams.get('w')!) : null;
   const customHeight = searchParams.get('h') ? parseInt(searchParams.get('h')!) : null;
   const quality = searchParams.get('q') ? parseInt(searchParams.get('q')!) : 85;
+  
+  // 获取客户端的条件请求头
+  const ifNoneMatch = request.headers.get('if-none-match');
+  const ifModifiedSince = request.headers.get('if-modified-since');
 
   if (!imageUrl) {
     return NextResponse.json(
@@ -38,22 +42,40 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 生成缓存键，包含分辨率信息
+    // 标准化分辨率配置，减少缓存键变体
     const resolutionConfig = customWidth || customHeight ? 
       { width: customWidth, height: customHeight, quality } : 
       RESOLUTION_PRESETS[size];
     
-    // 首先尝试从缓存获取
+    // 生成稳定的ETag
+    const etag = ImageCache.generateETag(imageUrl, resolutionConfig);
+    
+    // 检查客户端缓存（304响应）
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          'ETag': etag,
+          'Cache-Control': 'public, max-age=2592000, s-maxage=2592000, immutable', // 30天缓存
+          'X-Cache-Status': 'CLIENT-HIT',
+        },
+      });
+    }
+    
+    // 首先尝试从服务端缓存获取
     const cached = ImageCache.get(imageUrl, resolutionConfig);
     if (cached) {
-      console.log(`📦 Serving ${size} image from cache: ${imageUrl.substring(0, 50)}...`);
+      console.log(`📦 Serving ${size} image from server cache: ${imageUrl.substring(0, 50)}...`);
       return new NextResponse(cached.buffer, {
         status: 200,
         headers: {
           'Content-Type': cached.contentType,
-          'Cache-Control': 'public, max-age=604800, s-maxage=604800', // 7天缓存
-          'X-Cache-Status': 'HIT',
+          'ETag': etag,
+          'Cache-Control': 'public, max-age=2592000, s-maxage=2592000, immutable', // 30天缓存
+          'Vary': 'Accept', // 告诉CDN可以基于Accept头缓存不同版本
+          'X-Cache-Status': 'SERVER-HIT',
           'X-Image-Size': size,
+          'Last-Modified': new Date(cached.timestamp).toUTCString(),
         },
       });
     }
@@ -67,7 +89,7 @@ export async function GET(request: NextRequest) {
       return await pendingRequests.get(cacheKey)!;
     }
 
-    console.log(`🌐 Fetching ${size} image from Notion: ${imageUrl.substring(0, 50)}...`);
+    console.log(`🌐 Fetching ${size} image from Notion: ${imageUrl.substring(0, 50)}... [CDN-MISS]`);
 
     // 创建新的请求 Promise
     const fetchPromise = fetchImageWithRetry(imageUrl, resolutionConfig, size);
@@ -85,7 +107,12 @@ export async function GET(request: NextRequest) {
     // 清理可能的pending请求
     const errorCacheKey = `${imageUrl}:${size}:${customWidth || ''}x${customHeight || ''}:q${quality}`;
     pendingRequests.delete(errorCacheKey);
-    return ImageCache.getPlaceholderResponse();
+    
+    // 返回带有适当缓存头的错误响应
+    const errorResponse = ImageCache.getPlaceholderResponse();
+    errorResponse.headers.set('Cache-Control', 'public, max-age=300'); // 5分钟缓存错误
+    errorResponse.headers.set('X-Cache-Status', 'ERROR');
+    return errorResponse;
   }
 }
 
@@ -172,8 +199,11 @@ async function fetchImageWithRetry(
         console.error('Last error:', lastError);
       }
       
-      // 返回占位图
-      return ImageCache.getPlaceholderResponse();
+      // 返回占位图，短时间缓存避免重复请求
+      const placeholderResponse = ImageCache.getPlaceholderResponse();
+      placeholderResponse.headers.set('Cache-Control', 'public, max-age=300'); // 5分钟
+      placeholderResponse.headers.set('X-Cache-Status', 'FETCH-ERROR');
+      return placeholderResponse;
     }
 
     const originalBuffer = await response.arrayBuffer();
@@ -237,15 +267,23 @@ async function fetchImageWithRetry(
     ImageCache.set(imageUrl, processedBuffer, outputContentType, resolutionConfig);
     console.log(`✅ Image cached successfully: ${imageUrl.substring(0, 50)}...`);
 
+    // 生成稳定的ETag用于CDN缓存
+    const responseETag = ImageCache.generateETag(imageUrl, resolutionConfig);
+    const lastModified = new Date().toUTCString();
+    
     // 返回处理后的图片数据
     return new NextResponse(processedBuffer, {
       status: 200,
       headers: {
         'Content-Type': outputContentType,
-        'Cache-Control': 'public, max-age=604800, s-maxage=604800', // 7天缓存
-        'X-Cache-Status': 'MISS',
+        'ETag': responseETag,
+        'Cache-Control': 'public, max-age=2592000, s-maxage=2592000, immutable', // 30天缓存
+        'Vary': 'Accept', // 支持内容协商
+        'X-Cache-Status': 'CDN-MISS',
         'X-Original-Size': originalBuffer.byteLength.toString(),
         'X-Compressed-Size': processedBuffer.byteLength.toString(),
+        'X-Image-ID': ImageCache.generateETag(imageUrl, resolutionConfig).replace(/"/g, ''),
+        'Last-Modified': lastModified,
       },
     });
 

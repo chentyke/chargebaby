@@ -11,34 +11,84 @@ const IMAGE_CACHE_TTL = 7 * 24 * 60 * 60; // 7天缓存
 
 export class ImageCache {
   /**
-   * 获取图片的缓存键，支持分辨率区分
+   * 提取Notion图片的稳定ID
+   */
+  private static extractNotionImageId(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      
+      // 从路径中提取文件ID（Notion图片路径格式）
+      const pathMatch = pathname.match(/\/([a-f0-9-]{36})\//);
+      if (pathMatch) {
+        return pathMatch[1];
+      }
+      
+      // 备选方案：使用文件名部分
+      const fileMatch = pathname.match(/\/([^/]+)\.[^.]+$/);
+      if (fileMatch) {
+        return fileMatch[1];
+      }
+      
+      // 最后备选：使用整个路径的hash
+      return this.simpleHash(pathname);
+    } catch {
+      return this.simpleHash(url);
+    }
+  }
+
+  /**
+   * 简单hash函数
+   */
+  private static simpleHash(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  /**
+   * 获取图片的缓存键，优化CDN缓存命中率
    */
   private static getCacheKey(
     url: string, 
     resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
   ): string {
-    // 移除查询参数中的签名信息，保留基础URL
-    const urlObj = new URL(url);
-    const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+    // 使用稳定的图片ID作为基础键
+    const imageId = this.extractNotionImageId(url);
     
-    // 生成分辨率标识符
+    // 标准化分辨率配置，减少缓存键变体
     let resolutionSuffix = '';
     if (resolutionConfig) {
       const width = resolutionConfig.width || 'auto';
       const height = resolutionConfig.height || 'auto';
       const quality = resolutionConfig.quality || 85;
-      resolutionSuffix = `:${width}x${height}:q${quality}`;
+      
+      // 将质量标准化为几个固定值，减少碎片化
+      const normalizedQuality = quality >= 95 ? 95 : 
+                               quality >= 85 ? 85 : 
+                               quality >= 75 ? 75 : 65;
+      
+      resolutionSuffix = `:${width}x${height}:q${normalizedQuality}`;
     }
     
-    // 使用简单的hash而不是base64
-    const fullKey = baseUrl + resolutionSuffix;
-    let hash = 0;
-    for (let i = 0; i < fullKey.length; i++) {
-      const char = fullKey.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // 转换为32位整数
-    }
-    return `image:${Math.abs(hash).toString(36)}`;
+    return `image:${imageId}${resolutionSuffix}`;
+  }
+
+  /**
+   * 生成稳定的ETag
+   */
+  static generateETag(
+    url: string,
+    resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
+  ): string {
+    const imageId = this.extractNotionImageId(url);
+    const configHash = resolutionConfig ? 
+      this.simpleHash(JSON.stringify(resolutionConfig)) : 'orig';
+    return `"${imageId}-${configHash}"`;
   }
 
   /**
@@ -72,7 +122,7 @@ export class ImageCache {
     const resolutionInfo = resolutionConfig ? 
       ` (${resolutionConfig.width || 'auto'}x${resolutionConfig.height || 'auto'} q${resolutionConfig.quality || 85})` : 
       ' (original)';
-    console.log(`📸 Cached image${resolutionInfo}: ${cacheKey.substring(0, 20)}...`);
+    console.log(`📸 Cached image${resolutionInfo}: ${cacheKey} | Size: ${(buffer.byteLength / 1024).toFixed(1)}KB`);
   }
 
   /**

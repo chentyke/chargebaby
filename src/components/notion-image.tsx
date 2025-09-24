@@ -103,22 +103,31 @@ export function NotionImage({
     );
   }
 
-  // 生成图片URL的函数
+  // 标准化参数，减少缓存碎片化
+  const normalizeQuality = (q: number): number => {
+    if (q >= 95) return 95;
+    if (q >= 85) return 85;
+    if (q >= 75) return 75;
+    return 65;
+  };
+
+  // 生成图片URL的函数，优化CDN缓存
   const generateImageUrl = (targetSize?: string) => {
     const params = new URLSearchParams();
     params.set('url', src);
     
-    if (targetSize && targetSize !== 'original') {
+    // 只在必要时添加size参数
+    if (targetSize && targetSize !== 'medium') { // medium是默认值，不需要传递
       params.set('size', targetSize);
-    } else if (targetSize === 'original') {
-      params.set('size', 'original');
     }
     
-    if (quality !== 85 && targetSize !== 'original') {
-      params.set('q', quality.toString());
+    // 标准化质量参数，只在非默认值时添加
+    const normalizedQuality = normalizeQuality(quality);
+    if (normalizedQuality !== 85 && targetSize !== 'original') {
+      params.set('q', normalizedQuality.toString());
     }
     
-    // 如果指定了自定义宽高，优先使用
+    // 只在有自定义尺寸时添加宽高参数
     if (props.width && !props.fill && targetSize !== 'original') {
       params.set('w', props.width.toString());
     }
@@ -126,7 +135,15 @@ export function NotionImage({
       params.set('h', props.height.toString());
     }
     
-    return `/api/image-proxy?${params.toString()}`;
+    // 按照固定顺序排列参数，确保 URL 稳定
+    const sortedParams = new URLSearchParams();
+    ['url', 'size', 'w', 'h', 'q'].forEach(key => {
+      if (params.has(key)) {
+        sortedParams.set(key, params.get(key)!);
+      }
+    });
+    
+    return `/api/image-proxy?${sortedParams.toString()}`;
   };
 
   // 创建图片组件的函数
