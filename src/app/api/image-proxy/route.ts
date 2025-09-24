@@ -72,7 +72,6 @@ export async function GET(request: NextRequest) {
           'Content-Type': cached.contentType,
           'ETag': etag,
           'Cache-Control': 'public, max-age=2592000, s-maxage=2592000, immutable', // 30天缓存
-          'Vary': 'Accept', // 告诉CDN可以基于Accept头缓存不同版本
           'X-Cache-Status': 'SERVER-HIT',
           'X-Image-Size': size,
           'Last-Modified': new Date(cached.timestamp).toUTCString(),
@@ -80,8 +79,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 为不同分辨率创建独立的缓存键
-    const cacheKey = `${imageUrl}:${size}:${customWidth || ''}x${customHeight || ''}:q${quality}`;
+    // 生成稳定的缓存键用于请求去重（也使用规范化URL）
+    const normalizedUrl = ImageCache.normalizeAwsUrl(imageUrl);
+    const cacheKey = `${normalizedUrl}:${size}:${customWidth || ''}x${customHeight || ''}:q${quality}`;
     
     // 检查是否已有相同的请求正在处理（防止重复获取）
     if (pendingRequests.has(cacheKey)) {
@@ -104,8 +104,9 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('Image proxy error:', error);
-    // 清理可能的pending请求
-    const errorCacheKey = `${imageUrl}:${size}:${customWidth || ''}x${customHeight || ''}:q${quality}`;
+    // 清理可能的pending请求  
+    const normalizedUrl = ImageCache.normalizeAwsUrl(imageUrl);
+    const errorCacheKey = `${normalizedUrl}:${size}:${customWidth || ''}x${customHeight || ''}:q${quality}`;
     pendingRequests.delete(errorCacheKey);
     
     // 返回带有适当缓存头的错误响应
@@ -123,6 +124,27 @@ async function fetchImageWithRetry(
   size: keyof typeof RESOLUTION_PRESETS
 ): Promise<NextResponse> {
   try {
+    // 检查AWS签名URL是否可能已过期
+    try {
+      const urlObj = new URL(imageUrl);
+      if (urlObj.host.includes('amazonaws.com')) {
+        const expiresParam = urlObj.searchParams.get('X-Amz-Expires');
+        const dateParam = urlObj.searchParams.get('X-Amz-Date');
+        
+        if (expiresParam && dateParam) {
+          // 解析签名时间和过期时间
+          const signTime = new Date(dateParam.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/, '$1-$2-$3T$4:$5:$6Z'));
+          const expiresIn = parseInt(expiresParam);
+          const expiryTime = new Date(signTime.getTime() + expiresIn * 1000);
+          
+          if (new Date() > expiryTime) {
+            console.warn(`⚠️ AWS signed URL may have expired. Signed: ${signTime.toISOString()}, Expires: ${expiryTime.toISOString()}`);
+          }
+        }
+      }
+    } catch (urlError) {
+      console.log('URL validation error (continuing anyway):', urlError);
+    }
 
     // 尝试多种方式获取图片
     const fetchOptions: RequestInit[] = [
@@ -168,9 +190,9 @@ async function fetchImageWithRetry(
 
     for (const options of fetchOptions) {
       try {
-        // 创建一个10秒超时的AbortController
+        // 创建一个15秒超时的AbortController（增加超时时间）
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
         
         response = await fetch(imageUrl, {
           ...options,
@@ -183,11 +205,18 @@ async function fetchImageWithRetry(
           console.log(`✅ Successfully fetched image with method ${fetchOptions.indexOf(options) + 1}`);
           break;
         } else {
-          console.log(`❌ Method ${fetchOptions.indexOf(options) + 1} failed: ${response.status}`);
+          console.log(`❌ Method ${fetchOptions.indexOf(options) + 1} failed: ${response.status} ${response.statusText}`);
           response = null;
         }
       } catch (error) {
-        console.log(`❌ Method ${fetchOptions.indexOf(options) + 1} error:`, error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.log(`❌ Method ${fetchOptions.indexOf(options) + 1} error: ${errorMsg}`);
+        
+        // 如果是AbortError，说明是超时，继续尝试下一个方法
+        if (errorMsg.includes('aborted') || errorMsg.includes('timeout')) {
+          console.log(`⏱️ Request timeout, trying next method...`);
+        }
+        
         lastError = error as Error;
         response = null;
       }
@@ -278,7 +307,6 @@ async function fetchImageWithRetry(
         'Content-Type': outputContentType,
         'ETag': responseETag,
         'Cache-Control': 'public, max-age=2592000, s-maxage=2592000, immutable', // 30天缓存
-        'Vary': 'Accept', // 支持内容协商
         'X-Cache-Status': 'CDN-MISS',
         'X-Original-Size': originalBuffer.byteLength.toString(),
         'X-Compressed-Size': processedBuffer.byteLength.toString(),

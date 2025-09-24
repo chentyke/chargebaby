@@ -32,7 +32,6 @@ export function NotionImage({
   ...props 
 }: NotionImageProps) {
   const [imageError, setImageError] = useState(false);
-  const [useProxy, setUseProxy] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 2;
 
@@ -42,6 +41,9 @@ export function NotionImage({
     src.includes('www.notion.so') ||
     src.includes('notion.so')
   );
+
+  // 对于Notion图片始终使用代理，避免水合不一致
+  const useProxy = isNotionImage;
 
   // 生成占位符SVG
   const placeholderSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
@@ -63,27 +65,15 @@ export function NotionImage({
     if (retryCount < maxRetries) {
       setRetryCount(prev => prev + 1);
       
-      if (isNotionImage && !useProxy) {
-        // 第一次重试：切换到代理
-        setUseProxy(true);
-      } else {
-        // 其他重试：重新加载
-        setTimeout(() => {
-          setImageError(false);
-        }, 1000 * (retryCount + 1)); // 逐渐增加延迟
-      }
+      // 重新加载
+      setTimeout(() => {
+        setImageError(false);
+      }, 1000 * (retryCount + 1)); // 逐渐增加延迟
     } else {
       // 所有重试都失败了
       setImageError(true);
     }
   };
-
-  // 对于Notion图片，默认使用代理
-  useEffect(() => {
-    if (isNotionImage) {
-      setUseProxy(true);
-    }
-  }, [isNotionImage]);
 
   // 如果图片加载失败且重试次数用完，显示占位符
   if (imageError || !src) {
@@ -164,8 +154,8 @@ export function NotionImage({
     );
   };
 
-  // 如果是Notion图片且使用代理
-  if (isNotionImage && useProxy) {
+  // Notion图片使用代理
+  if (isNotionImage) {
     // 如果启用了响应式图片，生成srcSet
     if (responsive) {
       const srcSet = [
@@ -198,32 +188,7 @@ export function NotionImage({
       return createImageComponent(imgProps, imageKey);
     }
     
-    // 非响应式图片
-    const imageUrl = generateImageUrl(size);
-    const imageKey = `${imageUrl}-${retryCount}`;
-    
-    const imgProps = {
-      src: imageUrl,
-      alt: alt,
-      className: props.className || '',
-      style: props.fill ? { width: '100%', height: '100%', aspectRatio: '1' } : {
-        width: props.width,
-        height: props.height
-      },
-      onError: handleError,
-      loading: props.loading,
-      ...(props.fill ? { width: '100%', height: '100%' } : {
-        width: props.width,
-        height: props.height
-      })
-    };
-    
-    return createImageComponent(imgProps, imageKey);
-  }
-
-  // 对于所有其他情况，也要确保Notion图片使用代理
-  if (isNotionImage) {
-    // 如果是Notion图片但没有使用代理，强制使用代理
+    // 非响应式Notion图片
     const imageUrl = generateImageUrl(size);
     const imageKey = `${imageUrl}-${retryCount}`;
     

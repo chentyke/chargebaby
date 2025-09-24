@@ -51,16 +51,47 @@ export class ImageCache {
   }
 
   /**
+   * 规范化AWS签名URL，移除动态参数，确保缓存一致性
+   */
+  static normalizeAwsUrl(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      
+      // 对于AWS S3签名URL，移除所有动态参数
+      if (urlObj.host.includes('amazonaws.com')) {
+        // 只保留基础路径，移除所有查询参数
+        return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+      }
+      
+      // 对于其他URL，保留非动态参数
+      const stableParams = new URLSearchParams();
+      urlObj.searchParams.forEach((value, key) => {
+        // 移除已知的动态参数
+        if (!key.startsWith('X-Amz-') && 
+            key !== 'timestamp' && 
+            key !== 'expires' &&
+            key !== 'signature') {
+          stableParams.set(key, value);
+        }
+      });
+      
+      const queryString = stableParams.toString();
+      return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}${queryString ? '?' + queryString : ''}`;
+    } catch {
+      return url;
+    }
+  }
+
+  /**
    * 获取图片的缓存键，确保每个图片都有唯一键
    */
   private static getCacheKey(
     url: string, 
     resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
   ): string {
-    // 使用完整URL的hash确保唯一性
-    const urlObj = new URL(url);
-    const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
-    const imageId = this.simpleHash(baseUrl);
+    // 规范化URL，移除动态参数
+    const normalizedUrl = this.normalizeAwsUrl(url);
+    const imageId = this.simpleHash(normalizedUrl);
     
     // 标准化分辨率配置，减少缓存键变体
     let resolutionSuffix = '';
@@ -87,9 +118,9 @@ export class ImageCache {
     url: string,
     resolutionConfig?: { width?: number | null; height?: number | null; quality?: number } | null
   ): string {
-    const urlObj = new URL(url);
-    const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
-    const imageId = this.simpleHash(baseUrl);
+    // 使用相同的规范化逻辑确保ETag一致性
+    const normalizedUrl = this.normalizeAwsUrl(url);
+    const imageId = this.simpleHash(normalizedUrl);
     
     const configHash = resolutionConfig ? 
       this.simpleHash(JSON.stringify(resolutionConfig)) : 'orig';
