@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { success } = await validateCapToken(capToken);
+      const { success } = await validateCapToken(capToken, { keepToken: true });
       if (!success) {
         return NextResponse.json(
           { error: '人机验证失败，请重新验证' },
