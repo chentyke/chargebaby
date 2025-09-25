@@ -3,8 +3,9 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { ImageZoom } from './image-zoom';
+import { cn } from '@/lib/utils';
 
 interface MarkdownRendererProps {
   content: string;
@@ -12,6 +13,48 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
+  useEffect(() => {
+    if (!content || typeof window === 'undefined') {
+      return;
+    }
+
+    const toc = document.getElementById('table-of-contents') as HTMLDetailsElement | null;
+    if (!toc) {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    let previousMatch: boolean | null = null;
+
+    const applyState = (isMobile: boolean, force = false) => {
+      if (force || previousMatch !== isMobile) {
+        toc.open = !isMobile;
+        previousMatch = isMobile;
+      }
+    };
+
+    applyState(mediaQuery.matches, true);
+
+    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      const matches = 'matches' in event ? event.matches : mediaQuery.matches;
+      applyState(matches);
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === 'function') {
+        mediaQuery.removeEventListener('change', handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
+  }, [content]);
+
   if (!content) {
     return null;
   }
@@ -126,49 +169,23 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               </>
             );
           },
-          table: ({ children, ...props }: any) => (
-            <div className="overflow-x-auto mb-6 rounded-lg border border-gray-200 shadow-sm">
-              <table className="min-w-full" {...props}>
+          a: ({ href, children, ...props }: any) => {
+            const isHashLink = typeof href === 'string' && href.startsWith('#');
+            const anchorProps = {
+              href,
+              className: 'text-blue-600 hover:text-blue-800 underline',
+              ...(!isHashLink
+                ? { target: '_blank' as const, rel: 'noopener noreferrer' }
+                : {}),
+              ...props,
+            };
+
+            return (
+              <a {...anchorProps}>
                 {children}
-              </table>
-            </div>
-          ),
-          thead: ({ children, ...props }: any) => (
-            <thead className="bg-gray-50" {...props}>
-              {children}
-            </thead>
-          ),
-          tbody: ({ children, ...props }: any) => (
-            <tbody className="divide-y divide-gray-200 bg-white" {...props}>
-              {children}
-            </tbody>
-          ),
-          tr: ({ children, ...props }: any) => (
-            <tr className="hover:bg-gray-50/50 transition-colors" {...props}>
-              {children}
-            </tr>
-          ),
-          th: ({ children, ...props }: any) => (
-            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b border-gray-200" {...props}>
-              {children}
-            </th>
-          ),
-          td: ({ children, ...props }: any) => (
-            <td className="px-4 py-3 text-sm text-gray-700" {...props}>
-              {children}
-            </td>
-          ),
-          a: ({ href, children, ...props }: any) => (
-            <a
-              href={href}
-              className="text-blue-600 hover:text-blue-800 underline"
-              target="_blank"
-              rel="noopener noreferrer"
-              {...props}
-            >
-              {children}
-            </a>
-          ),
+              </a>
+            );
+          },
           strong: ({ children, ...props }: any) => (
             <strong className="font-semibold text-gray-900" {...props}>
               {children}
@@ -196,13 +213,33 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               {children}
             </span>
           ),
-          details: ({ children, ...props }: any) => (
-            <details className="mb-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm" {...props}>
-              {children}
-            </details>
-          ),
-          summary: ({ children, ...props }: any) => (
-            <summary className="font-semibold text-gray-900 cursor-pointer hover:text-gray-700 p-4 rounded-t-lg hover:bg-gray-100 transition-colors select-none" {...props}>
+          details: ({ children, node: _node, open, className, ...props }: any) => {
+            const normalizedProps: Record<string, any> = { ...props };
+            delete normalizedProps.open;
+
+            if (open === '' || open === true) {
+              normalizedProps.open = true;
+            }
+
+            const baseClass = className ? '' : 'mb-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm';
+            const combinedClassName = cn(baseClass, className);
+
+            return (
+              <details suppressHydrationWarning className={combinedClassName} {...normalizedProps}>
+                {children}
+              </details>
+            );
+          },
+          summary: ({ children, node: _node, className, ...props }: any) => (
+            <summary
+              className={cn(
+                className?.includes('notion-toc-summary')
+                  ? ''
+                  : 'font-semibold text-gray-900 cursor-pointer hover:text-gray-700 p-4 rounded-t-lg hover:bg-gray-100 transition-colors select-none',
+                className
+              )}
+              {...props}
+            >
               <span className="inline-flex items-center">
                 <span className="toggle-arrow mr-2 text-gray-500">▶</span>
                 {children}

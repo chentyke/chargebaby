@@ -117,9 +117,12 @@ export default function SubmitPage() {
                   <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-blue-800 font-medium mb-1">测试流程参考</p>
-                    <p className="text-blue-700 text-sm">
+                    <p className="text-blue-700 text-sm mb-2">
                       在开始之前，请阅读我们提供的测试流程参考指南。预计标准测试流程需要6小时～2天。在已有完整数据的情况下，预计填写此收集表需要10～15分钟。
                     </p>
+                    <Link href="/powerbankdoc" target="_blank" className="text-blue-600 text-sm hover:text-blue-700 underline">
+                      查看移动电源测试指南 →
+                    </Link>
                   </div>
                 </div>
               </div>

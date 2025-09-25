@@ -144,3 +144,27 @@ export function throttle<T extends (...args: any[]) => any>(
     }
   };
 }
+
+/**
+ * Generate a stable anchor slug for headings, keeping support for CJK characters.
+ */
+export function slugifyHeading(input: string): string {
+  const text = input.trim();
+  if (!text) {
+    return '';
+  }
+
+  const normalized = text
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/[^\w\s\u3400-\u4dbf\u4e00-\u9fff-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  if (normalized) {
+    return normalized;
+  }
+
+  return text.replace(/\s+/g, '-');
+}

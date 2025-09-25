@@ -11,20 +11,24 @@ async function notionFetch<T>(path: string, init?: RequestInit, retries = 3): Pr
   if (!notionApiKey) throw new Error('NOTION_API_KEY is not set');
   
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
   
   try {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
+        console.log(`Notion API request attempt ${attempt}/${retries}: ${notionApiBase}${path}`);
+        
         const res = await fetch(`${notionApiBase}${path}`, {
           ...init,
           headers: {
             'Authorization': `Bearer ${notionApiKey}`,
             'Notion-Version': notionVersion,
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
             ...(init?.headers || {}),
           },
-          cache: 'no-store', // 禁用 Next.js fetch 缓存，完全依赖我们的应用缓存
+          cache: 'no-store',
           signal: controller.signal,
         });
         
@@ -43,7 +47,9 @@ async function notionFetch<T>(path: string, init?: RequestInit, retries = 3): Pr
         }
         
         // 等待后重试（指数退避）
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        const delay = Math.pow(2, attempt) * 1000;
+        console.log(`Waiting ${delay}ms before retry ${attempt + 1}`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
     
@@ -186,11 +192,26 @@ export async function getPageBlocks(pageId: string): Promise<any[]> {
         block.children = await getPageBlocks(block.id);
       }
     }
-    
+
     return blocks;
   } catch (error) {
     console.error('Error fetching page blocks:', error);
     return [];
+  }
+}
+
+export async function getPageTitle(pageId: string): Promise<string | null> {
+  try {
+    const page = await notionFetch<any>(`/pages/${pageId}`);
+    const titleFragments: any[] = page?.properties?.title?.title || [];
+    const title = titleFragments
+      .map(fragment => fragment?.plain_text || fragment?.text?.content || '')
+      .join('')
+      .trim();
+    return title || null;
+  } catch (error) {
+    console.error('Error fetching page title:', error);
+    return null;
   }
 }
 
