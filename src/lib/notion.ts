@@ -588,7 +588,7 @@ function parseDetailData(props: any): DetailData {
     selfChargingTime: formatNumber(getNumberProperty(props['自充时间（min）'])),
     avgSelfChargingPower: formatNumber(getNumberProperty(props['平均自充功率（W）']) || getNumberProperty(props['平均自充功率'])),
     maxSelfChargingPower: formatNumber(getNumberProperty(props['最大自充电功率']) || getNumberProperty(props['最大自充电功率（W）'])),
-    energy20min: formatNumber(getNumberProperty(props['20分钟充入能量']) || getNumberProperty(props['20分钟充入能量（Wh）'])),
+    energy20min: formatNumber(getNumberProperty(props['20分钟充入能量（Wh）'])),
     
     // 输出性能
     maxContinuousOutputPower: formatNumber(getNumberProperty(props['最大持续输出平均功率（W）'])),
