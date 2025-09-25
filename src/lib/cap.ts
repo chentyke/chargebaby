@@ -2,10 +2,26 @@ import Cap from '@cap.js/server';
 
 type ChallengeData = Cap.ChallengeData;
 
-const challenges = new Map<string, ChallengeData>();
-const tokens = new Map<string, number>();
+type CapGlobals = {
+  __capInstance?: Cap;
+  __capChallenges?: Map<string, ChallengeData>;
+  __capTokens?: Map<string, number>;
+};
 
-export const cap = new Cap({
+const globalRef = globalThis as CapGlobals;
+
+const challenges = globalRef.__capChallenges ?? new Map<string, ChallengeData>();
+const tokens = globalRef.__capTokens ?? new Map<string, number>();
+
+if (!globalRef.__capChallenges) {
+  globalRef.__capChallenges = challenges;
+}
+
+if (!globalRef.__capTokens) {
+  globalRef.__capTokens = tokens;
+}
+
+const capInstance = globalRef.__capInstance ?? new Cap({
   noFSState: true,
   storage: {
     challenges: {
@@ -64,6 +80,12 @@ export const cap = new Cap({
     },
   },
 });
+
+if (!globalRef.__capInstance) {
+  globalRef.__capInstance = capInstance;
+}
+
+export const cap = capInstance;
 
 export async function validateCapToken(token: string | null | undefined, options?: Parameters<typeof cap.validateToken>[1]) {
   if (!token) {
