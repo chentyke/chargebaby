@@ -241,7 +241,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               {...props}
             >
               <span className="inline-flex items-center">
-                <span className="toggle-arrow mr-2 text-gray-500">▶</span>
+                <span className="toggle-arrow mr-2 text-gray-500">{'▶︎'}</span>
                 {children}
               </span>
             </summary>

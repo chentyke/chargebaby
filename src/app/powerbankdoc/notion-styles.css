@@ -418,7 +418,7 @@
 }
 
 .notion-toggle summary::before {
-  content: "▶";
+  content: "▶︎";
   margin-right: 0.5rem;
   transition: transform 0.15s ease;
   color: rgba(55, 53, 47, 0.6);
