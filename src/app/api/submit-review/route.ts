@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyTurnstileToken } from '@/lib/turnstile';
+import { validateCapToken } from '@/lib/cap';
 
 const notionApiBase = 'https://api.notion.com/v1';
 const notionVersion = process.env.NOTION_VERSION || '2022-06-28';
@@ -15,7 +15,7 @@ interface ReviewSubmissionData {
   coverType?: 'uploaded' | 'external'; // 新增：标记封面类型
   type: string;
   title: string;
-  turnstileToken?: string;
+  capToken?: string;
 }
 
 async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -185,28 +185,28 @@ export async function POST(request: NextRequest) {
 
     const data: ReviewSubmissionData = await request.json();
 
-    // Turnstile验证（本地开发环境跳过）
+    // Cap 验证（本地开发环境跳过）
     const isLocalhost = process.env.NODE_ENV === 'development' || 
                        request.headers.get('host')?.includes('localhost') ||
                        request.headers.get('host')?.includes('127.0.0.1');
 
     if (!isLocalhost) {
-      if (!data.turnstileToken) {
+      if (!data.capToken) {
         return NextResponse.json(
           { error: '缺少人机验证，请刷新页面重试' },
           { status: 400 }
         );
       }
 
-      const isValidToken = await verifyTurnstileToken(data.turnstileToken);
-      if (!isValidToken) {
+      const { success } = await validateCapToken(data.capToken);
+      if (!success) {
         return NextResponse.json(
           { error: '人机验证失败，请重试' },
           { status: 400 }
         );
       }
     } else {
-      console.log('🔧 Development mode: Skipping Turnstile verification for review submission');
+      console.log('🔧 Development mode: Skipping Cap verification for review submission');
     }
 
     // 基本验证

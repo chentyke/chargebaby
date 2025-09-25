@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Send, Image, X } from 'lucide-react';
 import NextImage from 'next/image';
-import { TurnstileWidget } from './turnstile-widget';
+import { CapWidget } from './cap-widget';
 
 interface FeedbackData {
   title: string;
@@ -42,7 +42,7 @@ export function FeedbackForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState('');
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
-  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const [capToken, setCapToken] = useState<string>('');
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -73,10 +73,10 @@ export function FeedbackForm() {
     return emailRegex.test(contact) || wechatRegex.test(contact) || contact.includes('微信') || contact.includes('手机');
   };
 
-  const uploadImageToServer = async (file: File, turnstileToken: string): Promise<string> => {
+  const uploadImageToServer = async (file: File, capToken: string): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('turnstileToken', turnstileToken);
+    formData.append('capToken', capToken);
     
     const response = await fetch('/api/upload-image', {
       method: 'POST',
@@ -159,8 +159,8 @@ export function FeedbackForm() {
       return;
     }
 
-    // 检查Turnstile验证
-    if (!turnstileToken) {
+    // 检查 Cap 验证
+    if (!capToken) {
       setSubmitError('请先完成人机验证');
       setSubmitStatus('error');
       return;
@@ -182,7 +182,7 @@ export function FeedbackForm() {
           const selectedImage = selectedImages[i];
           
           try {
-            const url = await uploadImageToServer(selectedImage.file, turnstileToken);
+            const url = await uploadImageToServer(selectedImage.file, capToken);
             imageUrls.push(url);
             
             // 更新单个图片状态
@@ -240,7 +240,7 @@ export function FeedbackForm() {
         });
         setSelectedImages([]);
         setErrors({});
-        setTurnstileToken(''); // 重置验证token
+        setCapToken(''); // 重置验证token
       } else {
         setSubmitStatus('error');
         setSubmitError(result.error || '提交失败，请稍后重试');
@@ -476,18 +476,18 @@ export function FeedbackForm() {
             </div>
           )}
 
-          {/* 人机验证 */}
+          {/* Cap 人机验证 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               人机验证 <span className="text-red-500">*</span>
             </label>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <TurnstileWidget
-                onVerify={(token) => setTurnstileToken(token)}
-                onError={() => setTurnstileToken('')}
+              <CapWidget
+                onVerify={(token) => setCapToken(token)}
+                onError={() => setCapToken('')}
                 className="flex justify-center"
               />
-              {!turnstileToken && (
+              {!capToken && (
                 <p className="text-xs text-gray-500 mt-2 text-center">
                   请完成人机验证后再提交反馈
                 </p>
@@ -499,7 +499,7 @@ export function FeedbackForm() {
           <div className="flex justify-center sm:justify-end">
             <button
               type="submit"
-              disabled={isSubmitting || !turnstileToken}
+              disabled={isSubmitting || !capToken}
               className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? (

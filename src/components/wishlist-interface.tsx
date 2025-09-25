@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Heart, Plus, Clock, TrendingUp, Users } from 'lucide-react';
 import { WishlistProduct, WISHLIST_STATUS_LABELS, WISHLIST_STATUS_COLORS } from '@/types/chargebaby';
-import { TurnstileWidget } from './turnstile-widget';
+import { CapWidget } from './cap-widget';
 // 简单的时间格式化工具
 function formatRelativeTime(dateString: string): string {
   try {
@@ -37,8 +37,8 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [votingProducts, setVotingProducts] = useState<Set<string>>(new Set());
   const [selectedStatus, setSelectedStatus] = useState<WishlistProduct['status'] | 'all'>('all');
-  const [showTurnstile, setShowTurnstile] = useState<string | null>(null);
-  const [turnstileTokens, setTurnstileTokens] = useState<Map<string, string>>(new Map());
+  const [pendingVerification, setPendingVerification] = useState<string | null>(null);
+  const [capTokens, setCapTokens] = useState<Map<string, string>>(new Map());
 
   // 按状态筛选产品
   const filteredProducts = selectedStatus === 'all' 
@@ -58,9 +58,9 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
   const handleVote = async (productId: string) => {
     if (votingProducts.has(productId)) return;
 
-    const token = turnstileTokens.get(productId);
+    const token = capTokens.get(productId);
     if (!token) {
-      setShowTurnstile(productId);
+      setPendingVerification(productId);
       return;
     }
 
@@ -70,7 +70,7 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
       const response = await fetch('/api/wishlist/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, turnstileToken: token }),
+        body: JSON.stringify({ productId, capToken: token }),
       });
 
       if (response.ok) {
@@ -90,15 +90,15 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
     }
   };
 
-  const handleTurnstileVerify = (productId: string, token: string) => {
-    setTurnstileTokens(prev => new Map(prev).set(productId, token));
-    setShowTurnstile(null);
+  const handleCapVerify = (productId: string, token: string) => {
+    setCapTokens(prev => new Map(prev).set(productId, token));
+    setPendingVerification(null);
     // 自动执行投票
     setTimeout(() => handleVote(productId), 100);
   };
 
-  const handleTurnstileError = () => {
-    setShowTurnstile(null);
+  const handleCapError = () => {
+    setPendingVerification(null);
     alert('验证失败，请重试');
   };
 
@@ -140,8 +140,8 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
         </button>
       </div>
 
-      {/* Turnstile 验证弹窗 */}
-      {showTurnstile && (
+      {/* Cap 验证弹窗 */}
+      {pendingVerification && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 m-4 max-w-md w-full">
             <div className="text-center mb-4">
@@ -149,14 +149,14 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
               <p className="text-gray-600 text-sm">请完成安全验证后继续点赞</p>
             </div>
             <div className="flex justify-center mb-4">
-              <TurnstileWidget 
-                onVerify={(token) => handleTurnstileVerify(showTurnstile, token)}
-                onError={handleTurnstileError}
+              <CapWidget 
+                onVerify={(token) => handleCapVerify(pendingVerification, token)}
+                onError={handleCapError}
               />
             </div>
             <div className="text-center">
               <button
-                onClick={() => setShowTurnstile(null)}
+                onClick={() => setPendingVerification(null)}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
                 取消

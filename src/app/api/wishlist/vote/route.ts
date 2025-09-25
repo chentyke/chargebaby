@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { voteForWishlistProduct } from '@/lib/notion';
-import { verifyTurnstileToken } from '@/lib/turnstile';
+import { validateCapToken } from '@/lib/cap';
 
 export async function POST(request: NextRequest) {
   try {
-    const { productId, turnstileToken } = await request.json();
+    const { productId, capToken } = await request.json();
 
     if (!productId) {
       return NextResponse.json(
@@ -13,25 +13,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!turnstileToken) {
+    if (!capToken) {
       return NextResponse.json(
         { error: '缺少验证令牌' },
         { status: 400 }
       );
     }
 
-    // 验证 Turnstile token
-    const isValidToken = await verifyTurnstileToken(turnstileToken);
-    if (!isValidToken) {
+    // 验证 Cap token
+    const validation = await validateCapToken(capToken);
+    if (!validation.success) {
       return NextResponse.json(
         { error: '验证失败，请重新验证' },
         { status: 403 }
       );
     }
 
-    const success = await voteForWishlistProduct(productId);
+    const voteSuccess = await voteForWishlistProduct(productId);
 
-    if (success) {
+    if (voteSuccess) {
       return NextResponse.json({ success: true });
     } else {
       return NextResponse.json(

@@ -5,7 +5,7 @@ import { Play, FileText, ExternalLink, Calendar, User, Plus, Minus, X, Mail, Sen
 import { NotionImage } from './notion-image';
 import { formatDate } from '@/lib/utils';
 import { useRef, useEffect, useState } from 'react';
-import { TurnstileWidget } from './turnstile-widget';
+import { CapWidget } from './cap-widget';
 import { ImageUpload } from './image-upload';
 
 interface ReviewCardsProps {
@@ -209,7 +209,7 @@ interface ReviewSubmissionData {
 }
 
 // 上传图片到Notion的函数
-async function uploadImageToNotion(file: File, turnstileToken: string): Promise<{fileId: string, url: string}> {
+async function uploadImageToNotion(file: File, capToken: string): Promise<{fileId: string, url: string}> {
   const formData = new FormData();
   formData.append('file', file);
   
@@ -218,11 +218,11 @@ async function uploadImageToNotion(file: File, turnstileToken: string): Promise<
                      (window.location.hostname === 'localhost' || 
                       window.location.hostname === '127.0.0.1');
 
-  // 只在非本地环境下添加 turnstile token
-  if (!isLocalhost && turnstileToken) {
-    formData.append('turnstileToken', turnstileToken);
+  // 只在非本地环境下添加 Cap token
+  if (!isLocalhost && capToken) {
+    formData.append('capToken', capToken);
   } else if (isLocalhost) {
-    console.log('🔧 Development mode: Skipping Turnstile token for image upload');
+    console.log('🔧 Development mode: Skipping Cap token for image upload');
   }
 
   const response = await fetch('/api/upload-image', {
@@ -258,7 +258,7 @@ function ReviewManageModal({ modelName, onClose }: ReviewManageModalProps) {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [capToken, setCapToken] = useState<string | null>(null);
 
   // 防止背景滚动和键盘导航
   useEffect(() => {
@@ -379,8 +379,8 @@ function ReviewManageModal({ modelName, onClose }: ReviewManageModalProps) {
               setIsSubmitting={setIsSubmitting}
               submitMessage={submitMessage}
               setSubmitMessage={setSubmitMessage}
-              turnstileToken={turnstileToken}
-              setTurnstileToken={setTurnstileToken}
+              capToken={capToken}
+              setCapToken={setCapToken}
               onClose={onClose}
             />
           ) : (
@@ -404,8 +404,8 @@ interface SubmissionTabProps {
   submitMessage: string;
   setSubmitMessage: (message: string) => void;
   onClose: () => void;
-  turnstileToken: string | null;
-  setTurnstileToken: (token: string | null) => void;
+  capToken: string | null;
+  setCapToken: (token: string | null) => void;
 }
 
 function SubmissionTab({ 
@@ -418,8 +418,8 @@ function SubmissionTab({
   setIsSubmitting, 
   submitMessage, 
   setSubmitMessage, 
-  turnstileToken,
-  setTurnstileToken,
+  capToken,
+  setCapToken,
   onClose 
 }: SubmissionTabProps) {
   // 检测是否为本地开发环境
@@ -429,8 +429,8 @@ function SubmissionTab({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 检查Turnstile验证（本地环境跳过）
-    if (!isLocalhost && !turnstileToken) {
+    // 检查 Cap 验证（本地环境跳过）
+    if (!isLocalhost && !capToken) {
       setSubmitMessage('请完成人机验证后再提交。');
       return;
     }
@@ -445,7 +445,7 @@ function SubmissionTab({
       if (selectedImageFile) {
         setSubmitMessage('正在上传图片...');
         try {
-          const uploadResult = await uploadImageToNotion(selectedImageFile, turnstileToken || '');
+          const uploadResult = await uploadImageToNotion(selectedImageFile, capToken || '');
           // 传递文件ID而不是URL，用于Notion数据库
           finalFormData.cover = uploadResult.fileId;
           finalFormData.coverType = 'uploaded'; // 标记为上传的文件
@@ -462,7 +462,7 @@ function SubmissionTab({
         },
         body: JSON.stringify({
           ...finalFormData,
-          turnstileToken
+          capToken
         }),
       });
 
@@ -608,7 +608,7 @@ function SubmissionTab({
         </p>
       </div>
 
-      {/* Turnstile人机验证 */}
+      {/* Cap 人机验证 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           人机验证 {!isLocalhost && <span className="text-red-500">*</span>}
@@ -621,15 +621,15 @@ function SubmissionTab({
           </div>
         ) : (
           <>
-            <TurnstileWidget
-              onVerify={setTurnstileToken}
+            <CapWidget
+              onVerify={setCapToken}
               onError={() => {
-                setTurnstileToken(null);
+                setCapToken(null);
                 setSubmitMessage('人机验证失败，请重试');
               }}
               className="flex justify-center"
             />
-            {!turnstileToken && (
+            {!capToken && (
               <p className="text-xs text-gray-500 mt-1">请完成人机验证</p>
             )}
           </>
@@ -651,12 +651,12 @@ function SubmissionTab({
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button
           type="submit"
-          disabled={isSubmitting || (!isLocalhost && !turnstileToken)}
+          disabled={isSubmitting || (!isLocalhost && !capToken)}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-all duration-200 font-medium shadow-sm active:scale-95 min-h-[44px]"
         >
           <Send className="w-4 h-4" />
           {isSubmitting ? '提交中...' : 
-           (!isLocalhost && !turnstileToken) ? '请先完成验证' : '提交投稿'}
+           (!isLocalhost && !capToken) ? '请先完成验证' : '提交投稿'}
         </button>
         <button
           type="button"

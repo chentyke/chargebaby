@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { ChargeBabySubmissionForm } from '@/components/chargebaby-submission-form';
-import { TurnstileWidget } from '@/components/turnstile-widget';
+import { CapWidget } from '@/components/cap-widget';
 import { TestTube, Eye, FileText, Users, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 export default function SubmitPage() {
   const [currentView, setCurrentView] = useState<'home' | 'form'>('home');
   const [hasAgreed, setHasAgreed] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [showTurnstile, setShowTurnstile] = useState(false);
+  const [capToken, setCapToken] = useState<string | null>(null);
+  const [showVerification, setShowVerification] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
   useEffect(() => {
@@ -19,22 +19,22 @@ export default function SubmitPage() {
   }, []);
 
   const handleStartSubmission = () => {
-    if (hasAgreed && !showTurnstile) {
-      setShowTurnstile(true);
-    } else if (hasAgreed && turnstileToken) {
+    if (hasAgreed && !showVerification) {
+      setShowVerification(true);
+    } else if (hasAgreed && capToken) {
       setCurrentView('form');
     }
   };
 
-  const handleTurnstileVerify = (token: string) => {
-    setTurnstileToken(token);
+  const handleCapVerify = (token: string) => {
+    setCapToken(token);
     setTimeout(() => {
       setCurrentView('form');
     }, 500);
   };
 
-  const handleTurnstileError = () => {
-    setTurnstileToken(null);
+  const handleCapError = () => {
+    setCapToken(null);
     alert('验证失败，请重试');
   };
 
@@ -156,17 +156,17 @@ export default function SubmitPage() {
             </div>
           </div>
 
-          {/* Turnstile 验证 */}
-          {showTurnstile && (
+          {/* Cap 验证 */}
+          {showVerification && (
             <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg shadow-black/5 p-6 mb-8">
               <div className="text-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">安全验证</h3>
                 <p className="text-gray-600 text-sm">请完成安全验证后继续</p>
               </div>
               <div className="flex justify-center">
-                <TurnstileWidget 
-                  onVerify={handleTurnstileVerify}
-                  onError={handleTurnstileError}
+                <CapWidget 
+                  onVerify={handleCapVerify}
+                  onError={handleCapError}
                 />
               </div>
             </div>
@@ -176,14 +176,14 @@ export default function SubmitPage() {
           <div className="text-center mb-8">
             <button
               onClick={handleStartSubmission}
-              disabled={!hasAgreed || (showTurnstile && !turnstileToken)}
+              disabled={!hasAgreed || (showVerification && !capToken)}
               className={`px-8 py-3 rounded-xl font-medium text-lg transition-all duration-300 ${
-                hasAgreed && (!showTurnstile || turnstileToken)
+                hasAgreed && (!showVerification || capToken)
                   ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg active:scale-[0.98]'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {showTurnstile && !turnstileToken ? '请先完成验证' : '开始提交数据'}
+              {showVerification && !capToken ? '请先完成验证' : '开始提交数据'}
             </button>
           </div>
 
