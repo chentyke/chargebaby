@@ -5,7 +5,13 @@ import { SearchableProductsGrid } from '@/components/searchable-products-grid';
 import { Loading } from '@/components/ui/loading';
 import { DeviceOptimizedContainer } from '@/components/device-optimized-container';
 
-export default function HomePage() {
+interface HomePageProps {
+  searchParams: Promise<{
+    view?: 'grid' | 'list';
+  }>;
+}
+
+export default function HomePage({ searchParams }: HomePageProps) {
   return (
     <DeviceOptimizedContainer className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative">
       {/* 统一背景装饰层 - 覆盖整个页面 */}
@@ -37,7 +43,7 @@ export default function HomePage() {
             
             {/* 集成搜索区域 */}
             <Suspense fallback={<Loading text="加载中..." />}>
-              <ProductsGrid />
+              <ProductsGrid searchParams={searchParams} />
             </Suspense>
           </div>
         </header>
@@ -46,11 +52,12 @@ export default function HomePage() {
   );
 }
 
-async function ProductsGrid() {
+async function ProductsGrid({ searchParams }: { searchParams: Promise<{ view?: 'grid' | 'list' }> }) {
   try {
     const chargeBabies = await getChargeBabies();
+    const { view } = await searchParams;
     
-    return <SearchableProductsGrid chargeBabies={chargeBabies} />;
+    return <SearchableProductsGrid chargeBabies={chargeBabies} initialViewMode={view} />;
   } catch (error) {
     console.error('Error loading products:', error);
     

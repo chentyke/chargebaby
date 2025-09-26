@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, GitCompare, X, Trophy, Plus, Filter, Clock, Hash } from 'lucide-react';
+import { Search, GitCompare, X, Trophy, Plus, Filter, Clock, Hash, MessageCircle, Grid3X3, List } from 'lucide-react';
 import { FilterComponent } from './filter-component';
 import { ChargeBaby, SortOption } from '@/types/chargebaby';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { 
   getSearchHistory, 
@@ -21,14 +22,21 @@ import {
 } from '@/utils/search-tags';
 import { isAnyFieldMatch } from '@/utils/pinyin-matcher';
 
+import type { ViewMode } from '@/utils/view-mode-storage';
+
+// Re-export ViewMode for other components
+export type { ViewMode };
+
 interface SearchCompareToolbarProps {
   onSearch: (query: string) => void;
   chargeBabies: ChargeBaby[];
   onFilterChange: (filteredBabies: ChargeBaby[], sortBy: SortOption, hasFilters: boolean) => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
   className?: string;
 }
 
-export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, className = '' }: SearchCompareToolbarProps) {
+export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, viewMode = 'grid', onViewModeChange, className = '' }: SearchCompareToolbarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
@@ -458,7 +466,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         <div className="overflow-hidden">
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex items-center gap-3 px-4 min-w-max">
-              <button className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 text-blue-600 transition-all duration-300 flex-shrink-0">
+              <button className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-gray-50/80 via-gray-50/60 to-gray-50/40 backdrop-blur-2xl rounded-2xl border border-gray-200/50 text-gray-600 transition-all duration-300 flex-shrink-0">
                 <Search className="w-5 h-5" />
               </button>
             </div>
@@ -480,10 +488,39 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {/* 搜索按钮 */}
               <button 
                 onClick={toggleSearch}
-                className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 text-blue-600 hover-hover:hover:text-blue-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-blue-100/80 hover-hover:hover:via-blue-100/60 hover-hover:hover:to-blue-100/40 transition-all duration-300 flex-shrink-0 touch-manipulation active:scale-95 active:bg-blue-100/60"
+                className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-gray-50/80 via-gray-50/60 to-gray-50/40 backdrop-blur-2xl rounded-2xl border border-gray-200/50 text-gray-600 hover-hover:hover:text-gray-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-gray-100/80 hover-hover:hover:via-gray-100/60 hover-hover:hover:to-gray-100/40 transition-all duration-300 flex-shrink-0 touch-manipulation active:scale-95 active:bg-gray-100/60"
               >
                 <Search className="w-5 h-5" />
               </button>
+
+              {/* 视图切换按钮 - 移动端动态图标 */}
+              {onViewModeChange && (
+                <button
+                  onClick={() => onViewModeChange(viewMode === 'grid' ? 'list' : 'grid')}
+                  className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-gray-50/80 via-gray-50/60 to-gray-50/40 backdrop-blur-2xl rounded-2xl border border-gray-200/50 text-gray-600 hover-hover:hover:text-gray-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-gray-100/80 hover-hover:hover:via-gray-100/60 hover-hover:hover:to-gray-100/40 transition-all duration-300 flex-shrink-0 touch-manipulation active:scale-95 active:bg-gray-100/60 group"
+                >
+                  <div className="relative w-5 h-5">
+                    {/* 网格图标 */}
+                    <Grid3X3 
+                      className={cn(
+                        "w-5 h-5 absolute top-0 left-0 transition-all duration-300 transform",
+                        viewMode === 'grid' 
+                          ? "opacity-100 rotate-0 scale-100" 
+                          : "opacity-0 rotate-180 scale-75"
+                      )} 
+                    />
+                    {/* 列表图标 */}
+                    <List 
+                      className={cn(
+                        "w-5 h-5 absolute top-0 left-0 transition-all duration-300 transform",
+                        viewMode === 'list' 
+                          ? "opacity-100 rotate-0 scale-100" 
+                          : "opacity-0 -rotate-180 scale-75"
+                      )} 
+                    />
+                  </div>
+                </button>
+              )}
 
               {/* 激活筛选显示 - 移动端紧凑模式 */}
               {activeFilter && (
@@ -503,6 +540,15 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
                   </button>
                 </div>
               )}
+
+              {/* 微信群按钮 */}
+              <button 
+                onClick={() => handleNavigation('/wechat')}
+                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-green-50/80 via-green-50/60 to-green-50/40 backdrop-blur-2xl rounded-2xl border border-green-200/50 text-green-600 hover-hover:hover:text-green-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-green-100/80 hover-hover:hover:via-green-100/60 hover-hover:hover:to-green-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0 active:scale-95 active:bg-green-100/60"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span className="text-sm font-medium">微信群</span>
+              </button>
 
               {/* 对比按钮 */}
               <button 
@@ -525,7 +571,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
               {/* 投稿按钮 */}
               <button 
                 onClick={() => handleNavigation('/submit')}
-                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-green-50/80 via-green-50/60 to-green-50/40 backdrop-blur-2xl rounded-2xl border border-green-200/50 text-green-600 hover-hover:hover:text-green-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-green-100/80 hover-hover:hover:via-green-100/60 hover-hover:hover:to-green-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0 active:scale-95 active:bg-green-100/60"
+                className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 text-blue-600 hover-hover:hover:text-blue-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-blue-100/80 hover-hover:hover:via-blue-100/60 hover-hover:hover:to-blue-100/40 transition-all duration-300 touch-manipulation whitespace-nowrap flex-shrink-0 active:scale-95 active:bg-blue-100/60"
               >
                 <Plus className="w-5 h-5" />
                 <span className="text-sm font-medium">投稿</span>
@@ -545,14 +591,14 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         <div className="space-y-3">
           {/* 搜索框容器 */}
           <div className="relative">
-            <div className="flex items-center h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 px-4 gap-3 w-full animate-scale-in">
+            <div className="flex items-center h-12 bg-gradient-to-br from-gray-50/80 via-gray-50/60 to-gray-50/40 backdrop-blur-2xl rounded-2xl border border-gray-200/50 px-4 gap-3 w-full animate-scale-in">
               <button
                 onClick={toggleSearch}
-                className="p-1 text-blue-600 hover-hover:hover:text-blue-600 transition-colors flex-shrink-0"
+                className="p-1 text-gray-600 hover-hover:hover:text-gray-600 transition-colors flex-shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
-              <Search className="w-5 h-5 text-blue-600 flex-shrink-0" />
+              <Search className="w-5 h-5 text-gray-600 flex-shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
@@ -562,12 +608,12 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
                 onKeyDown={handleKeyDown}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="flex-1 bg-transparent text-blue-900 placeholder-blue-500/70 focus:outline-none text-sm"
+                className="flex-1 bg-transparent text-gray-900 placeholder-gray-500/70 focus:outline-none text-sm"
               />
               {/* 筛选按钮 */}
               <button
                 onClick={toggleFilter}
-                className="flex items-center justify-center w-8 h-8 text-blue-600 hover-hover:hover:text-blue-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-blue-100/50 hover-hover:hover:via-blue-100/30 hover-hover:hover:to-blue-100/20 rounded-lg transition-all duration-300 flex-shrink-0"
+                className="flex items-center justify-center w-8 h-8 text-gray-600 hover-hover:hover:text-gray-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-gray-100/50 hover-hover:hover:via-gray-100/30 hover-hover:hover:to-gray-100/20 rounded-lg transition-all duration-300 flex-shrink-0"
               >
                 <Filter className="w-4 h-4" />
               </button>
@@ -617,8 +663,8 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
         <div className="flex justify-center items-center gap-4">
           {/* 搜索框 - 灵动岛主体 */}
           <div className="relative">
-            <div className="flex items-center h-12 bg-gradient-to-br from-blue-50/80 via-blue-50/60 to-blue-50/40 backdrop-blur-2xl rounded-2xl border border-blue-200/50 shadow-lg shadow-black/5 px-4 gap-3 w-80">
-              <Search className="w-5 h-5 text-blue-600 flex-shrink-0" />
+            <div className="flex items-center h-12 bg-gradient-to-br from-gray-50/80 via-gray-50/60 to-gray-50/40 backdrop-blur-2xl rounded-2xl border border-gray-200/50 shadow-lg shadow-black/5 px-4 gap-3 w-80">
+              <Search className="w-5 h-5 text-gray-600 flex-shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
@@ -628,12 +674,12 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
                 onKeyDown={handleKeyDown}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="flex-1 bg-transparent text-blue-900 placeholder-blue-500/70 focus:outline-none text-sm"
+                className="flex-1 bg-transparent text-gray-900 placeholder-gray-500/70 focus:outline-none text-sm"
               />
               {searchQuery && (
                 <button
                   onClick={clearSearch}
-                  className="p-1 text-blue-400 hover-hover:hover:text-blue-600 transition-colors flex-shrink-0"
+                  className="p-1 text-gray-400 hover-hover:hover:text-gray-600 transition-colors flex-shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -663,8 +709,45 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             </div>
           )}
 
+          {/* 视图切换按钮 - 桌面端胶囊型 */}
+          {onViewModeChange && (
+            <div className="flex items-center h-12 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 px-1">
+              <button
+                onClick={() => onViewModeChange('grid')}
+                className={cn(
+                  "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
+                  viewMode === 'grid'
+                    ? "bg-gray-100 shadow-sm text-gray-900"
+                    : "text-gray-500 hover-hover:hover:text-gray-700 hover-hover:hover:bg-gray-50"
+                )}
+              >
+                <Grid3X3 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onViewModeChange('list')}
+                className={cn(
+                  "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
+                  viewMode === 'list'
+                    ? "bg-gray-100 shadow-sm text-gray-900"
+                    : "text-gray-500 hover-hover:hover:text-gray-700 hover-hover:hover:bg-gray-50"
+                )}
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {/* 功能按钮组 */}
           <div className="flex items-center gap-2">
+            {/* 微信群按钮 */}
+            <Link 
+              href="/wechat"
+              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-green-600 hover-hover:hover:text-green-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-green-50/40 hover-hover:hover:via-green-50/30 hover-hover:hover:to-green-50/20 transition-all duration-300 group"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm font-medium whitespace-nowrap">微信群</span>
+            </Link>
+
             {/* 对比按钮 */}
             <Link 
               href="/compare"
@@ -686,7 +769,7 @@ export function SearchCompareToolbar({ onSearch, chargeBabies, onFilterChange, c
             {/* 投稿按钮 */}
             <Link 
               href="/submit"
-              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-green-600 hover-hover:hover:text-green-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-green-50/40 hover-hover:hover:via-green-50/30 hover-hover:hover:to-green-50/20 transition-all duration-300 group"
+              className="flex items-center gap-2 h-12 px-4 bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 text-blue-600 hover-hover:hover:text-blue-700 hover-hover:hover:bg-gradient-to-br hover-hover:hover:from-blue-50/40 hover-hover:hover:via-blue-50/30 hover-hover:hover:to-blue-50/20 transition-all duration-300 group"
             >
               <Plus className="w-5 h-5" />
               <span className="text-sm font-medium whitespace-nowrap">投稿</span>

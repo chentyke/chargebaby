@@ -21,6 +21,7 @@ interface PageProps {
   }>;
   searchParams: Promise<{
     from?: string;
+    view?: 'grid' | 'list';
   }>;
 }
 
@@ -126,7 +127,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ChargeBabyDetailPage({ params, searchParams }: PageProps) {
   const { model } = await params;
-  const { from } = await searchParams;
+  const { from, view } = await searchParams;
   const chargeBaby = await getChargeBabyByModel(decodeURIComponent(model));
 
   if (!chargeBaby) {
@@ -171,8 +172,13 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
       })()
     : null;
 
-  // 根据来源决定返回地址
-  const backHref = from === 'ranking' ? '/ranking' : '/';
+  // 根据来源决定返回地址，并携带视图模式参数
+  const getBackHref = () => {
+    const basePath = from === 'ranking' ? '/ranking' : '/';
+    return view ? `${basePath}?view=${view}` : basePath;
+  };
+  
+  const backHref = getBackHref();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative animate-slide-up">

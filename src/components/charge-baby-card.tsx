@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import { Battery } from 'lucide-react';
 import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { cn } from '@/lib/utils';
 import { NotionImage } from './notion-image';
 import { usePerformanceOptimization, useOptimizedClassName, useOptimizedStyle } from '@/hooks/usePerformanceOptimization';
+import { saveScrollPosition, getStoredViewMode } from '@/utils/view-mode-storage';
 
 interface ChargeBabyCardProps {
   chargeBaby: ChargeBaby;
@@ -11,9 +13,10 @@ interface ChargeBabyCardProps {
   index?: number;
   sortBy?: SortOption;
   hasActiveFilters?: boolean;
+  currentViewMode?: 'grid' | 'list';
 }
 
-export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasActiveFilters = false }: ChargeBabyCardProps) {
+export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasActiveFilters = false, currentViewMode }: ChargeBabyCardProps) {
   const {
     id,
     brand,
@@ -25,8 +28,24 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
     detailData,
   } = chargeBaby;
 
+  const router = useRouter();
+  const pathname = usePathname();
+
   // 性能优化配置
   const perfConfig = usePerformanceOptimization();
+
+  // 处理导航到详情页面
+  const handleNavigation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // 保存当前滚动位置
+    const viewMode = currentViewMode || getStoredViewMode();
+    saveScrollPosition(pathname, viewMode);
+    
+    // 导航到详情页面，携带必要的参数
+    const detailUrl = `/${encodeURIComponent(model)}?view=${viewMode}`;
+    router.push(detailUrl);
+  };
 
   // 格式化数字，保留最多两位小数
   const formatNumber = (num: number): number => {
@@ -277,6 +296,7 @@ export function ChargeBabyCard({ chargeBaby, className, index = 0, sortBy, hasAc
   return (
     <Link 
       href={`/${encodeURIComponent(model)}`}
+      onClick={handleNavigation}
       prefetch={index < 8} // 预取前8个项目的页面
     >
       {cardContent}

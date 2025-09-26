@@ -961,10 +961,10 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
       {/* 筛选按钮 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center ${isMobile ? 'justify-center w-12 h-12' : 'gap-2 h-12 px-4'} bg-gradient-to-br from-violet-50/80 via-violet-50/60 to-violet-50/40 backdrop-blur-2xl rounded-2xl border border-violet-200/50 transition-all duration-300 group ${
+        className={`flex items-center ${isMobile ? 'justify-center w-12 h-12' : 'gap-2 h-12 px-4'} bg-gradient-to-br from-white/95 via-white/90 to-white/80 backdrop-blur-2xl rounded-2xl border border-white/50 shadow-lg shadow-black/5 transition-all duration-300 group ${
           hasActiveFilters 
-            ? 'text-green-600 hover:text-green-700 hover:bg-gradient-to-br hover:from-green-100/80 hover:via-green-100/60 hover:to-green-100/40' 
-            : 'text-violet-600 hover:text-violet-700 hover:bg-gradient-to-br hover:from-violet-100/80 hover:via-violet-100/60 hover:to-violet-100/40'
+            ? 'text-green-600 hover:text-green-700 hover:bg-gradient-to-br hover:from-green-50/40 hover:via-green-50/30 hover:to-green-50/20' 
+            : 'text-violet-600 hover:text-violet-700 hover:bg-gradient-to-br hover:from-violet-50/40 hover:via-violet-50/30 hover:to-violet-50/20'
         }`}
       >
         <Filter className="w-5 h-5" />

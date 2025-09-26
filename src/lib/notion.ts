@@ -97,8 +97,8 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
     const cached = serverCache.get<ChargeBaby[]>(CACHE_KEYS.CHARGE_BABIES);
     if (cached) {
       console.log('📦 Serving charge babies from cache');
-      // 将WeChat组件移到最前面
-      return moveWeChatToFirst(cached);
+      // 过滤掉WeChat产品
+      return filterOutWeChat(cached);
     }
 
     console.log('🌐 Fetching charge babies from Notion API');
@@ -112,8 +112,8 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
       fetchChargeBabiesFromNotion
     );
 
-    // 将WeChat组件移到最前面
-    return moveWeChatToFirst(data);
+    // 过滤掉WeChat产品
+    return filterOutWeChat(data);
   } catch (error) {
     console.error('Error fetching charge babies from Notion:', error);
     
@@ -121,7 +121,7 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
     const staleCache = serverCache.get<ChargeBaby[]>(CACHE_KEYS.CHARGE_BABIES);
     if (staleCache) {
       console.log('⚠️  Serving stale cache due to API error');
-      return moveWeChatToFirst(staleCache);
+      return filterOutWeChat(staleCache);
     }
     
     return [];
@@ -129,16 +129,10 @@ export async function getChargeBabies(): Promise<ChargeBaby[]> {
 }
 
 /**
- * 将WeChat组件移动到数组最前面
+ * 过滤掉WeChat产品
  */
-function moveWeChatToFirst(chargeBabies: ChargeBaby[]): ChargeBaby[] {
-  const wechatIndex = chargeBabies.findIndex(item => item.model === 'WeChat');
-  if (wechatIndex > 0) {
-    const wechatItem = chargeBabies[wechatIndex];
-    const otherItems = chargeBabies.filter((_, index) => index !== wechatIndex);
-    return [wechatItem, ...otherItems];
-  }
-  return chargeBabies;
+function filterOutWeChat(chargeBabies: ChargeBaby[]): ChargeBaby[] {
+  return chargeBabies.filter(item => item.model !== 'WeChat');
 }
 
 /**
@@ -155,8 +149,21 @@ export async function getChargeBabyByModel(model: string): Promise<ChargeBaby | 
       return cached;
     }
 
-    // 先获取所有数据，然后查找匹配的型号
-    const allChargeBabies = await getChargeBabies();
+    // 对于WeChat特殊处理，直接从原始数据获取（不使用过滤后的数据）
+    let allChargeBabies: ChargeBaby[];
+    if (model === 'WeChat') {
+      // 直接获取原始数据，不经过过滤
+      const cached = serverCache.get<ChargeBaby[]>(CACHE_KEYS.CHARGE_BABIES);
+      if (cached) {
+        allChargeBabies = cached;
+      } else {
+        allChargeBabies = await fetchChargeBabiesFromNotion();
+      }
+    } else {
+      // 其他产品使用过滤后的数据
+      allChargeBabies = await getChargeBabies();
+    }
+    
     const found = allChargeBabies.find(cb => cb.model === model);
     
     if (found) {

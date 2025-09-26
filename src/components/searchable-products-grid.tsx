@@ -1,21 +1,31 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { ChargeBabyCard } from '@/components/charge-baby-card';
-import { SearchCompareToolbar } from '@/components/search-compare-toolbar';
+import { ChargeBabyListCard } from '@/components/charge-baby-list-card';
+import { SearchCompareToolbar, ViewMode } from '@/components/search-compare-toolbar';
 import { useImagePreloader } from '@/hooks/useImagePreloader';
+import { cn } from '@/lib/utils';
+import { getStoredViewMode, setStoredViewMode, getStoredScrollPosition } from '@/utils/view-mode-storage';
 
 interface SearchableProductsGridProps {
   chargeBabies: ChargeBaby[];
+  initialViewMode?: 'grid' | 'list';
 }
 
-export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridProps) {
+export function SearchableProductsGrid({ chargeBabies, initialViewMode }: SearchableProductsGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredByFilter, setFilteredByFilter] = useState<ChargeBaby[]>(chargeBabies);
   const [currentSortBy, setCurrentSortBy] = useState<SortOption>('updatedAt');
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [isClient, setIsClient] = useState(false);
+  const [scrollRestored, setScrollRestored] = useState(false);
+
+  const pathname = usePathname();
 
   // 启用智能图片预加载
   useImagePreloader(chargeBabies, true);
@@ -54,10 +64,51 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
     setHasActiveFilters(hasFilters);
   }, []);
 
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
+    setViewMode(mode);
+    setStoredViewMode(mode); // 持久化保存
+  }, []);
+
+  // 客户端初始化：优先使用 URL 参数，否则从 localStorage 恢复视图模式
+  useEffect(() => {
+    setIsClient(true);
+    const finalViewMode = initialViewMode || getStoredViewMode();
+    setViewMode(finalViewMode);
+    
+    // 如果 URL 参数指定了视图模式，也要保存到 localStorage
+    if (initialViewMode) {
+      setStoredViewMode(initialViewMode);
+    }
+  }, [initialViewMode]);
+
   // 当chargeBabies变化时更新筛选状态
   useEffect(() => {
     setFilteredByFilter(chargeBabies);
   }, [chargeBabies]);
+
+  // 滚动位置恢复 - 在组件挂载和视图模式确定后执行
+  useEffect(() => {
+    if (!isClient || !viewMode || scrollRestored) {
+      return;
+    }
+
+    // 延迟恢复滚动位置，确保DOM已渲染
+    const restoreScroll = () => {
+      const savedScrollY = getStoredScrollPosition(pathname, viewMode);
+      if (savedScrollY !== null) {
+        window.scrollTo({
+          top: savedScrollY,
+          behavior: 'auto'
+        });
+        setScrollRestored(true);
+      }
+    };
+
+    // 使用setTimeout确保在所有渲染完成后执行
+    const timeoutId = setTimeout(restoreScroll, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isClient, viewMode, pathname, scrollRestored]);
 
   return (
     <div className="space-y-8">
@@ -66,6 +117,8 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
         onSearch={handleSearch}
         chargeBabies={chargeBabies}
         onFilterChange={handleFilterChange}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
         className="mb-8 animate-slide-up"
       />
 
@@ -83,19 +136,51 @@ export function SearchableProductsGrid({ chargeBabies }: SearchableProductsGridP
         </div>
       )}
 
-      {/* 产品网格 */}
+      {/* 产品展示区域 */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {filteredProducts.map((chargeBaby, index) => (
-            <ChargeBabyCard
-              key={chargeBaby.id}
-              chargeBaby={chargeBaby}
-              index={index}
-              sortBy={currentSortBy}
-              hasActiveFilters={hasActiveFilters}
-            />
-          ))}
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {filteredProducts.map((chargeBaby, index) => (
+              <ChargeBabyCard
+                key={chargeBaby.id}
+                chargeBaby={chargeBaby}
+                index={index}
+                sortBy={currentSortBy}
+                hasActiveFilters={hasActiveFilters}
+                currentViewMode={viewMode}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm animate-fade-in">
+            {/* 桌面端：两列布局，移动端：单列布局 */}
+            <div className="md:grid md:grid-cols-2">
+              {filteredProducts.map((chargeBaby, index) => {
+                const isLastItem = index === filteredProducts.length - 1;
+                const isSecondLastItem = index === filteredProducts.length - 2;
+                
+                return (
+                  <ChargeBabyListCard
+                    key={chargeBaby.id}
+                    chargeBaby={chargeBaby}
+                    index={index}
+                    sortBy={currentSortBy}
+                    hasActiveFilters={hasActiveFilters}
+                    currentViewMode={viewMode}
+                    className={cn(
+                      // 移动端：除最后一项外都有下边框
+                      !isLastItem && "border-b border-gray-200",
+                      // 桌面端：右列（奇数索引，从0开始计数）添加左边框
+                      index % 2 === 1 && "md:border-l md:border-l-gray-200",
+                      // 桌面端：非最后一行的项目都有下边框
+                      index < filteredProducts.length - 2 && "md:border-b md:border-b-gray-200"
+                    )}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )
       ) : searchQuery ? (
         <div className="text-center py-20">
           <div className="space-y-4 animate-scale-in">
