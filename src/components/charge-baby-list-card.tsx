@@ -161,10 +161,10 @@ export function ChargeBabyListCard({ chargeBaby, className, index = 0, sortBy, h
                           {formatNumber(detailData.weight)}g
                         </span>
                       )}
-                      {/* 过滤掉包含mAh的标签，最多显示2个 */}
+                      {/* 过滤掉包含mAh和Max的标签，最多显示2个 */}
                       {tags && Array.isArray(tags) && 
                         tags
-                          .filter(tag => !tag.toLowerCase().includes('mah'))
+                          .filter(tag => !tag.toLowerCase().includes('mah') && !tag.toLowerCase().includes('max'))
                           .slice(0, 2)
                           .map((tag, tagIndex) => (
                             <span key={tagIndex} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">
@@ -172,8 +172,8 @@ export function ChargeBabyListCard({ chargeBaby, className, index = 0, sortBy, h
                             </span>
                           ))}
                       {/* 显示剩余标签数量 */}
-                      {tags && Array.isArray(tags) && tags.filter(tag => !tag.toLowerCase().includes('mah')).length > 2 && (
-                        <span className="text-gray-400">+{tags.filter(tag => !tag.toLowerCase().includes('mah')).length - 2}</span>
+                      {tags && Array.isArray(tags) && tags.filter(tag => !tag.toLowerCase().includes('mah') && !tag.toLowerCase().includes('max')).length > 2 && (
+                        <span className="text-gray-400">+{tags.filter(tag => !tag.toLowerCase().includes('mah') && !tag.toLowerCase().includes('max')).length - 2}</span>
                       )}
                     </div>
                   </div>
