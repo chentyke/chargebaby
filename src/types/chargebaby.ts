@@ -197,7 +197,7 @@ export interface FilterOptions {
     max: number;
   };
   brands: string[];
-  features: string[];
+  features: ProductFeature[];
   protocols: string[];
   sortBy: SortOption;
   sortOrder: 'asc' | 'desc';
@@ -205,13 +205,15 @@ export interface FilterOptions {
 
 // 产品特性类型
 export const PRODUCT_FEATURES = [
-  '小米协议',
-  'OPPO协议', 
-  '自带线',
-  '伸缩线'
+  { value: '小米协议', label: '小米协议' },
+  { value: 'OPPO协议', label: 'OPPO协议' },
+  { value: '自带线', label: '自带线' },
+  { value: '伸缩线', label: '伸缩线' },
+  { value: 'AC输入', label: 'AC输入(自带插脚)' },
+  { value: '早期版本', label: '早期产品' }
 ] as const;
 
-export type ProductFeature = typeof PRODUCT_FEATURES[number];
+export type ProductFeature = (typeof PRODUCT_FEATURES)[number]['value'];
 
 // 充电协议类型现在从数据中动态获取，不再使用硬编码常量
 

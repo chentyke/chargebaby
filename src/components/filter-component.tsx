@@ -910,26 +910,26 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                   <label className="block text-sm font-medium text-gray-700 mb-2">产品特性</label>
                   <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
                     {PRODUCT_FEATURES.map(feature => (
-                      <label key={feature} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <label key={feature.value} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                         <input
                           type="checkbox"
-                          checked={filters.features.includes(feature)}
+                          checked={filters.features.includes(feature.value)}
                           onChange={(e) => {
                             if (e.target.checked) {
                               setFilters(prev => ({
                                 ...prev,
-                                features: [...prev.features, feature]
+                                features: [...prev.features, feature.value]
                               }));
                             } else {
                               setFilters(prev => ({
                                 ...prev,
-                                features: prev.features.filter(f => f !== feature)
+                                features: prev.features.filter(f => f !== feature.value)
                               }));
                             }
                           }}
                           className="mr-2 rounded text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-700">{feature}</span>
+                        <span className="text-sm text-gray-700">{feature.label}</span>
                       </label>
                     ))}
                   </div>
@@ -1562,22 +1562,22 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                 <label className={`block font-medium text-gray-700 mb-3 ${isMobile ? 'text-sm' : 'text-sm'}`}>产品特性</label>
                 <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   {PRODUCT_FEATURES.map(feature => (
-                    <label key={feature} className={`flex items-center hover:bg-gray-50 rounded-lg cursor-pointer ${
+                    <label key={feature.value} className={`flex items-center hover:bg-gray-50 rounded-lg cursor-pointer ${
                       isMobile ? 'p-3 border border-gray-100' : 'p-2'
                     }`}>
                       <input
                         type="checkbox"
-                        checked={filters.features.includes(feature)}
+                        checked={filters.features.includes(feature.value)}
                         onChange={(e) => {
                           if (e.target.checked) {
                             setFilters(prev => ({
                               ...prev,
-                              features: [...prev.features, feature]
+                              features: [...prev.features, feature.value]
                             }));
                           } else {
                             setFilters(prev => ({
                               ...prev,
-                              features: prev.features.filter(f => f !== feature)
+                              features: prev.features.filter(f => f !== feature.value)
                             }));
                           }
                         }}
@@ -1585,7 +1585,7 @@ export function FilterComponent({ chargeBabies, onFilterChange, isMobile = false
                           isMobile ? 'mr-3 w-4 h-4' : 'mr-2'
                         }`}
                       />
-                      <span className="text-sm text-gray-700 flex-1">{feature}</span>
+                      <span className="text-sm text-gray-700 flex-1">{feature.label}</span>
                     </label>
                   ))}
                 </div>

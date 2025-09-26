@@ -255,10 +255,10 @@ export function FeedbackForm() {
   };
 
   const getInputClassName = (fieldName: string) => {
-    return `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-      errors[fieldName] 
-        ? 'border-red-300 focus:ring-red-500' 
-        : 'border-gray-200 focus:border-blue-300'
+    return `w-full rounded-2xl border px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 ${
+      errors[fieldName]
+        ? 'border-red-300 bg-white text-slate-900'
+        : 'border-slate-200/70 bg-white/80 text-slate-900'
     }`;
   };
 
@@ -274,123 +274,117 @@ export function FeedbackForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 px-4 sm:py-8 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-4 py-4 sm:px-6 border-b border-gray-200">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">用户反馈</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            帮助我们改进产品，您的反馈对我们非常重要
-          </p>
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-3xl space-y-10 px-4 sm:px-6">
+      <div className="space-y-3">
+        <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">用户反馈</h1>
+        <p className="text-sm text-slate-600">请尽量完整描述问题或建议，方便我们快速定位与跟进。</p>
+      </div>
+
+      <div className="space-y-10">
+        {/* 反馈标题 */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            反馈标题 <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            className={getInputClassName('title')}
+            placeholder="简单描述您的反馈内容"
+            required
+          />
+          {renderError('title')}
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6">
-          {/* 反馈标题 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              反馈标题 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className={getInputClassName('title')}
-              placeholder="简单描述您的反馈内容"
-              required
-            />
-            {renderError('title')}
-          </div>
-
-          {/* 反馈类型 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              反馈类型 <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {feedbackTypes.map((type) => (
-                <label
-                  key={type.value}
-                  className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
-                    formData.type === type.value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="type"
-                    value={type.value}
-                    checked={formData.type === type.value}
-                    onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as FeedbackData['type'] }))}
-                    className="sr-only"
-                  />
-                  <span className="text-sm font-medium text-gray-900">
-                    {type.label}
-                  </span>
+        {/* 反馈类型 */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            反馈类型 <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {feedbackTypes.map((type) => (
+              <label
+                key={type.value}
+                className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition-all ${
+                  formData.type === type.value
+                    ? 'border-slate-900 bg-slate-900 text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.65)]'
+                    : 'border-slate-200/70 bg-white/80 text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="type"
+                  value={type.value}
+                  checked={formData.type === type.value}
+                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as FeedbackData['type'] }))}
+                  className="sr-only"
+                />
+                <span>{type.label}</span>
                 </label>
-              ))}
-            </div>
-            {renderError('type')}
+            ))}
           </div>
+          {renderError('type')}
+        </div>
 
-          {/* 详细描述 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              详细描述 <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className={getInputClassName('description')}
-              rows={4}
-              placeholder="请详细描述您遇到的问题、建议或想法..."
-              required
-            />
-            {renderError('description')}
-          </div>
+        {/* 详细描述 */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            详细描述 <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            className={getInputClassName('description')}
+            rows={6}
+            placeholder="请详细描述您遇到的问题、建议或想法..."
+            required
+          />
+          {renderError('description')}
+        </div>
 
-          {/* 联系方式 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              联系方式
-              <span className="text-gray-500 text-xs ml-1">（可选，方便我们与您联系）</span>
-            </label>
-            <input
-              type="text"
-              value={formData.contact}
-              onChange={(e) => setFormData(prev => ({ ...prev, contact: e.target.value }))}
-              className={getInputClassName('contact')}
-              placeholder="邮箱、微信号或其他联系方式"
-            />
-            {renderError('contact')}
-          </div>
+        {/* 联系方式 */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            联系方式
+            <span className="ml-1 text-xs text-slate-500">（可选，方便我们与您联系）</span>
+          </label>
+          <input
+            type="text"
+            value={formData.contact}
+            onChange={(e) => setFormData(prev => ({ ...prev, contact: e.target.value }))}
+            className={getInputClassName('contact')}
+            placeholder="邮箱、微信号或其他联系方式"
+          />
+          {renderError('contact')}
+        </div>
 
-          {/* 图片上传 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              相关图片
-              <span className="text-gray-500 text-xs ml-1">（可选，最多3张，每张不超过20MB）</span>
-            </label>
-            
-            {/* 图片预览 */}
-            {selectedImages.length > 0 && (
-              <div className="space-y-2 mb-3">
-                {selectedImages.map((selectedImage, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    {/* 图片预览或状态图标 */}
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 relative flex-shrink-0">
-                      {selectedImage.uploading ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      ) : selectedImage.error ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <X className="w-6 h-6 text-red-500" />
-                        </div>
-                      ) : (
-                        <NextImage
-                          src={selectedImage.previewUrl}
-                          alt={`预览图片 ${index + 1}: ${selectedImage.file.name}`}
+        {/* 图片上传 */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            相关图片
+            <span className="ml-1 text-xs text-slate-500">（可选，最多3张，每张不超过20MB）</span>
+          </label>
+
+          {/* 图片预览 */}
+          {selectedImages.length > 0 && (
+            <div className="mb-3 space-y-2">
+              {selectedImages.map((selectedImage, index) => (
+                <div key={index} className="flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/80 p-3">
+                  {/* 图片预览或状态图标 */}
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                    {selectedImage.uploading ? (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-500 border-t-transparent"></div>
+                      </div>
+                    ) : selectedImage.error ? (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <X className="h-6 w-6 text-red-500" />
+                      </div>
+                    ) : (
+                      <NextImage
+                        src={selectedImage.previewUrl}
+                        alt={`预览图片 ${index + 1}: ${selectedImage.file.name}`}
                           fill
                           className="object-cover"
                           sizes="48px"
@@ -400,124 +394,116 @@ export function FeedbackForm() {
                     </div>
                     
                     {/* 文件信息 */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {selectedImage.file.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {(selectedImage.file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                      {selectedImage.uploading && (
-                        <p className="text-xs text-blue-600">上传中...</p>
-                      )}
-                      {selectedImage.error && (
-                        <p className="text-xs text-red-600">{selectedImage.error}</p>
-                      )}
-                      {selectedImage.uploadedUrl && !selectedImage.uploading && (
-                        <p className="text-xs text-green-600">上传成功</p>
-                      )}
-                      {!selectedImage.uploading && !selectedImage.error && !selectedImage.uploadedUrl && (
-                        <p className="text-xs text-gray-600">待上传</p>
-                      )}
-                    </div>
-                    
-                    {/* 删除按钮 */}
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      title="删除图片"
-                      disabled={selectedImage.uploading}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-900">
+                      {selectedImage.file.name}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {(selectedImage.file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                    {selectedImage.uploading && (
+                      <p className="text-xs text-slate-500">上传中...</p>
+                    )}
+                    {selectedImage.error && (
+                      <p className="text-xs text-red-600">{selectedImage.error}</p>
+                    )}
+                    {selectedImage.uploadedUrl && !selectedImage.uploading && (
+                      <p className="text-xs text-emerald-600">上传成功</p>
+                    )}
+                    {!selectedImage.uploading && !selectedImage.error && !selectedImage.uploadedUrl && (
+                      <p className="text-xs text-slate-500">待上传</p>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
 
-            {/* 上传按钮 */}
-            {selectedImages.length < 3 && (
-              <div className="relative">
-                <input
+                  {/* 删除按钮 */}
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="p-1 text-slate-400 transition-colors hover:text-red-500"
+                    title="删除图片"
+                    disabled={selectedImage.uploading}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 上传按钮 */}
+          {selectedImages.length < 3 && (
+            <div className="relative">
+              <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleImageUpload}
                   className="sr-only"
                   id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 cursor-pointer transition-colors"
-                >
-                  <div className="text-center">
-                    <Image className="w-6 h-6 text-gray-400 mx-auto mb-1" aria-label="上传图片图标" />
-                    <span className="text-sm text-gray-500">点击上传图片</span>
-                    <p className="text-xs text-gray-400 mt-1">
-                      支持 JPG、PNG、WebP、GIF 格式
-                    </p>
-                  </div>
-                </label>
-              </div>
-            )}
-          </div>
-
-          {/* 状态消息 */}
-          {submitStatus === 'success' && (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800">反馈提交成功！感谢您的建议，我们会认真处理。</p>
-            </div>
-          )}
-
-          {submitStatus === 'error' && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800">{submitError}</p>
-            </div>
-          )}
-
-          {/* Cap 人机验证 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              人机验证 <span className="text-red-500">*</span>
-            </label>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <CapWidget
-                onVerify={(token) => setCapToken(token)}
-                onError={() => setCapToken('')}
-                className="flex justify-center"
               />
-              {!capToken && (
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  请完成人机验证后再提交反馈
-                </p>
-              )}
+              <label
+                htmlFor="image-upload"
+                className="flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300/80 px-6 py-10 text-center text-sm text-slate-500 transition hover:border-slate-400"
+              >
+                <Image className="mb-2 h-6 w-6 text-slate-400" aria-label="上传图片图标" />
+                <span>点击上传图片</span>
+                <p className="mt-1 text-xs text-slate-400">支持 JPG、PNG、WebP、GIF 格式</p>
+              </label>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* 提交按钮 */}
-          <div className="flex justify-center sm:justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting || !capToken}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  提交中...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  提交反馈
-                </>
-              )}
-            </button>
+        {/* 状态消息 */}
+        {submitStatus === 'success' && (
+          <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/80 p-4 text-sm text-emerald-700">
+            反馈提交成功！感谢您的建议，我们会认真处理。
           </div>
-        </form>
+        )}
+
+        {submitStatus === 'error' && (
+          <div className="rounded-2xl border border-red-200/70 bg-red-50/80 p-4 text-sm text-red-700">
+            {submitError}
+          </div>
+        )}
+
+        {/* Cap 人机验证 */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            人机验证 <span className="text-red-500">*</span>
+          </label>
+          <CapWidget
+            onVerify={(token) => setCapToken(token)}
+            onError={() => setCapToken('')}
+            className="flex justify-center"
+          />
+          {!capToken && (
+            <p className="mt-2 text-center text-xs text-slate-500">
+              请完成人机验证后再提交反馈
+            </p>
+          )}
+        </div>
+
+        {/* 提交按钮 */}
+        <div className="flex justify-center sm:justify-end">
+          <button
+            type="submit"
+            disabled={isSubmitting || !capToken}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                提交中...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                提交反馈
+              </>
+            )}
+          </button>
         </div>
       </div>
-    </div>
+    </form>
   );
 }
