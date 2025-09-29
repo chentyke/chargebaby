@@ -13,7 +13,8 @@ interface DetailDataPreviewCardProps {
   variant?: 'desktop' | 'mobile';
 }
 
-const WH_TO_MAH_CONVERSION = 1000 / 3.6;
+const WH_TO_MAH_CONVERSION = 1000 / 5;
+const DISPLAY_VOLTAGE = '5V';
 
 function formatMaxDischargeCapacity(value?: number | null): ReactNode {
   if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -25,7 +26,7 @@ function formatMaxDischargeCapacity(value?: number | null): ReactNode {
   return (
     <>
       {`${value}Wh`}
-      <span className="ml-1 text-gray-400">({mahValue}mAh 3.6V)</span>
+      <span className="ml-1 text-gray-400">({mahValue}mAh {DISPLAY_VOLTAGE})</span>
     </>
   );
 }
