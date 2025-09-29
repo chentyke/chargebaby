@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
@@ -11,6 +11,23 @@ interface DetailDataPreviewCardProps {
   chargeBaby: ChargeBaby;
   productModel: string;
   variant?: 'desktop' | 'mobile';
+}
+
+const WH_TO_MAH_CONVERSION = 1000 / 3.6;
+
+function formatMaxDischargeCapacity(value?: number | null): ReactNode {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return '-';
+  }
+
+  const mahValue = Math.floor(value * WH_TO_MAH_CONVERSION);
+
+  return (
+    <>
+      {`${value}Wh`}
+      <span className="ml-1 text-gray-400">({mahValue}mAh 3.6V)</span>
+    </>
+  );
 }
 
 export function DetailDataPreviewCard({ chargeBaby, productModel, variant = 'desktop' }: DetailDataPreviewCardProps) {
@@ -241,7 +258,11 @@ export function DetailDataPreviewCard({ chargeBaby, productModel, variant = 'des
           </h2>
           <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
             <DataItem label="容量级别" value={`${detailData.capacityLevel}mAh`} variant={variant} />
-            <DataItem label="最大放电容量" value={`${detailData.maxDischargeCapacity}Wh`} variant={variant} />
+            <DataItem
+              label="最大放电容量"
+              value={formatMaxDischargeCapacity(detailData.maxDischargeCapacity)}
+              variant={variant}
+            />
             <DataItem label="自充能量" value={`${detailData.selfChargingEnergy}Wh`} variant={variant} />
             <DataItem label="放电容量达成率" value={`${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%`} variant={variant} />
             <DataItem label="最大能量转换率" value={`${(detailData.maxEnergyConversionRate * 100).toFixed(1)}%`} variant={variant} />
@@ -404,8 +425,9 @@ export function DetailDataPreviewCard({ chargeBaby, productModel, variant = 'des
 }
 
 // 数据项组件
-function DataItem({ label, value, variant = 'desktop' }: { label: string; value: string | number; variant?: 'desktop' | 'mobile' }) {
+function DataItem({ label, value, variant = 'desktop' }: { label: string; value?: ReactNode; variant?: 'desktop' | 'mobile' }) {
   const isMobile = variant === 'mobile';
+  const displayValue = value ?? '-';
   
   if (isMobile) {
     // 移动端：水平布局，节省空间
@@ -414,7 +436,7 @@ function DataItem({ label, value, variant = 'desktop' }: { label: string; value:
         <div className="text-[10px] font-medium text-gray-700 flex-shrink-0">
           <TitleWithTooltip title={label} />
         </div>
-        <div className="text-[10px] text-gray-900 font-semibold text-right">{value || '-'}</div>
+        <div className="text-[10px] text-gray-900 font-semibold text-right">{displayValue}</div>
       </div>
     );
   }
@@ -425,7 +447,7 @@ function DataItem({ label, value, variant = 'desktop' }: { label: string; value:
       <div className="text-xs font-medium text-gray-700 mb-1">
         <TitleWithTooltip title={label} />
       </div>
-      <div className="text-sm text-gray-900 font-semibold">{value || '-'}</div>
+      <div className="text-sm text-gray-900 font-semibold">{displayValue}</div>
     </div>
   );
 }

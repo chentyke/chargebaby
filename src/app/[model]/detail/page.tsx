@@ -5,6 +5,24 @@ import { getChargeBabyByModel } from '@/lib/notion';
 import { DetailData } from '@/types/chargebaby';
 import { PageHeader } from '@/components/ui/back-button';
 import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
+import type { ReactNode } from 'react';
+
+const WH_TO_MAH_CONVERSION = 1000 / 3.6;
+
+function formatMaxDischargeCapacity(value?: number | null): ReactNode {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return '-';
+  }
+
+  const mahValue = Math.floor(value * WH_TO_MAH_CONVERSION);
+
+  return (
+    <>
+      {`${value}Wh`}
+      <span className="ml-1 text-gray-400">({mahValue}mAh 3.6V)</span>
+    </>
+  );
+}
 
 interface PageProps {
   params: Promise<{
@@ -45,7 +63,10 @@ export default async function DetailDataPage({ params }: PageProps) {
           {/* 电池容量 */}
           <DataSection title="电池容量" data={detailData}>
             <DataItem label="容量级别" value={`${detailData.capacityLevel}mAh`} />
-            <DataItem label="最大放电容量" value={`${detailData.maxDischargeCapacity}Wh`} />
+            <DataItem
+              label="最大放电容量"
+              value={formatMaxDischargeCapacity(detailData.maxDischargeCapacity)}
+            />
             <DataItem label="自充能量" value={`${detailData.selfChargingEnergy}Wh`} />
             <DataItem label="放电容量达成率" value={`${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%`} />
             <DataItem label="最大能量转换率" value={`${(detailData.maxEnergyConversionRate * 100).toFixed(1)}%`} />
@@ -97,13 +118,15 @@ function DataSection({ title, children, data }: { title: string; children: React
 }
 
 // 数据项组件
-function DataItem({ label, value }: { label: string; value: string | number }) {
+function DataItem({ label, value }: { label: string; value?: ReactNode }) {
+  const displayValue = value ?? '-';
+
   return (
     <div className="flex flex-col">
       <div className="text-sm font-medium text-gray-700">
         <TitleWithTooltip title={label} />
       </div>
-      <div className="text-base text-gray-900 mt-1">{value || '-'}</div>
+      <div className="text-base text-gray-900 mt-1">{displayValue}</div>
     </div>
   );
 }

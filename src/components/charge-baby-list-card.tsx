@@ -4,6 +4,7 @@ import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { cn } from '@/lib/utils';
 import { NotionImage } from './notion-image';
 import { saveScrollPosition, getStoredViewMode } from '@/utils/view-mode-storage';
+import type { ReactNode } from 'react';
 
 interface ChargeBabyListCardProps {
   chargeBaby: ChargeBaby;
@@ -59,18 +60,35 @@ export function ChargeBabyListCard({ chargeBaby, className, index = 0, sortBy, h
   };
 
   // 获取功率信息
-  const getPowerInfo = () => {
-    const maxOutput = detailData?.maxOutputPower || 0;
+  const getPowerInfo = (): ReactNode | null => {
     const maxSelfCharging = detailData?.maxSelfChargingPower || 0;
-    const maxPower = Math.max(maxOutput, maxSelfCharging);
-    if (!maxPower) return null;
-    return `${formatNumber(maxPower)}W`;
-  };
+    const maxOutput = detailData?.maxOutputPower || 0;
 
-  // 获取协议信息
-  const getProtocolInfo = () => {
-    if (!chargeBaby.protocols || !Array.isArray(chargeBaby.protocols)) return null;
-    return chargeBaby.protocols.slice(0, 2).join(', ');
+    if (!maxSelfCharging && !maxOutput) return null;
+
+    const parts: ReactNode[] = [];
+
+    if (maxSelfCharging) {
+      parts.push(
+        <span key="in">{`${formatNumber(maxSelfCharging)}W(IN)`}</span>
+      );
+    }
+
+    if (maxSelfCharging && maxOutput) {
+      parts.push(
+        <span key="separator" className="mx-1 text-gray-400 font-normal">
+          ｜
+        </span>
+      );
+    }
+
+    if (maxOutput) {
+      parts.push(
+        <span key="out">{`${formatNumber(maxOutput)}W(OUT)`}</span>
+      );
+    }
+
+    return <>{parts}</>;
   };
 
   // 获取评分颜色 - 仅使用黑灰色调
@@ -136,19 +154,15 @@ export function ChargeBabyListCard({ chargeBaby, className, index = 0, sortBy, h
                       <span className="font-semibold text-gray-700">{getCapacityInfo()}</span>
                     </div>
                   )}
-                  {getPowerInfo() && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-gray-400">功率</span>
-                      <span className="font-semibold text-gray-700">{getPowerInfo()}</span>
-                    </div>
-                  )}
                 </div>
-                
-                {/* 协议信息 - 始终显示此行 */}
-                <div className="flex items-center gap-1 text-xs">
-                  <span className="text-gray-400">协议</span>
-                  <span className="text-gray-600 truncate">{getProtocolInfo() || ''}</span>
-                </div>
+                {getPowerInfo() && (
+                  <div className="flex items-center text-xs">
+                    <span className="text-gray-400">功率</span>
+                    <span className="ml-1 font-semibold text-gray-700">
+                      {getPowerInfo()}
+                    </span>
+                  </div>
+                )}
 
                 {/* 标签信息 */}
                 {(detailData?.weight || (tags && Array.isArray(tags) && tags.length > 0)) && (
