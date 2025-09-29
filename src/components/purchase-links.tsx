@@ -3,6 +3,11 @@
 import { ExternalLink, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChargeBaby } from '@/types/chargebaby';
+import { Tooltip } from '@/components/ui/tooltip';
+
+const PRODUCT_SAMPLE_TOOLTIP = `我们是一个以在校学生为主的业余团队，因此没有足够的财力自行大量购买各类设备进行测试。因此非常感谢第三方能为我们提供评测样机。这让我们有机会接触到更多产品，为大家带来更丰富的评测内容。
+
+虽然样机由第三方提供，但我们始终坚守评测的独立性、公平性与可靠性，所有测试流程均基于实际场景，数据真实客观，结论不受任何第三方因素干扰，力求为大家呈现最真实、有用的参考信息。`;
 
 interface PurchaseLinksProps {
   className?: string;
@@ -132,8 +137,16 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
       
       {/* 购买链接提示信息 */}
       {buttons.length > 0 && (
-        <div className="mt-2 text-xs text-gray-400 opacity-75">
-          点击查看购买链接
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span className="text-gray-400 opacity-75">点击查看商品详情页面</span>
+          {chargeBaby.productSource && (
+            <span className="inline-flex items-center gap-1 text-sm text-gray-600">
+              <span>产品测试样机由</span>
+              <span className="font-medium text-gray-600">{chargeBaby.productSource}</span>
+              <span>提供</span>
+              <Tooltip content={PRODUCT_SAMPLE_TOOLTIP} className="-ml-1" />
+            </span>
+          )}
         </div>
       )}
     </div>

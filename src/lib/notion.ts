@@ -559,6 +559,12 @@ function parseNotionPageToChargeBaby(page: NotionPage): ChargeBaby {
       '',
     taobaoLink: getUrlProperty(props.TaobaoLink) || getUrlProperty(props['淘宝链接']) || undefined,
     jdLink: getUrlProperty(props.JDLink) || getUrlProperty(props['京东链接']) || undefined,
+    productSource:
+      getTextProperty(props.ProductSource) ||
+      getSelectProperty(props.ProductSource) ||
+      getTextProperty(props['样机提供方']) ||
+      getSelectProperty(props['样机提供方']) ||
+      undefined,
     createdAt: getDateProperty(props.CreatedAt) || new Date().toISOString(),
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
     // 详细技术规格数据
