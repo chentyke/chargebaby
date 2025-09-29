@@ -137,14 +137,28 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
       
       {/* 购买链接提示信息 */}
       {buttons.length > 0 && (
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <span className="text-gray-400 opacity-75">点击查看商品详情页面</span>
+        <div
+          className={cn(
+            'mt-2 flex flex-wrap items-center justify-between gap-2 text-xs',
+            isMobile && 'flex-col items-start gap-1 text-[11px] leading-4'
+          )}
+        >
+          <span className={cn('text-gray-400 opacity-75', isMobile && 'text-gray-500 opacity-90')}>
+            点击查看商品详情页面
+          </span>
           {chargeBaby.productSource && (
-            <span className="inline-flex items-center gap-1 text-sm text-gray-600">
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 text-gray-600',
+                isMobile
+                  ? 'text-[11px] leading-4 bg-white/90 px-2 py-1 rounded-md border border-gray-200 shadow-sm'
+                  : 'text-sm'
+              )}
+            >
               <span>产品测试样机由</span>
               <span className="font-medium text-gray-600">{chargeBaby.productSource}</span>
               <span>提供</span>
-              <Tooltip content={PRODUCT_SAMPLE_TOOLTIP} className="-ml-1" />
+              <Tooltip content={PRODUCT_SAMPLE_TOOLTIP} className={cn('-ml-1', isMobile && '-ml-0')} />
             </span>
           )}
         </div>

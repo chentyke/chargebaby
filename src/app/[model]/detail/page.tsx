@@ -42,8 +42,12 @@ export default async function DetailDataPage({ params }: PageProps) {
   const { title, detailData } = chargeBaby;
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container py-6 sm:py-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/60 relative">
+      <div
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50/40 via-transparent to-purple-50/30 pointer-events-none"
+        aria-hidden="true"
+      />
+      <div className="relative container py-6 sm:py-10">
         <PageHeader 
           backButton={{ href: `/${encodeURIComponent(model)}`, text: "返回详情" }}
           title={`${title} - 详细测试数据`}
