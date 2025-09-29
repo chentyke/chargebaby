@@ -139,7 +139,7 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
       {buttons.length > 0 && (
         <div
           className={cn(
-            'mt-2 flex flex-wrap items-center justify-between gap-2 text-xs',
+            'mt-1.5 flex flex-wrap items-start justify-between gap-1.5 text-xs',
             isMobile && 'flex-col items-start gap-1 text-[11px] leading-4'
           )}
         >
