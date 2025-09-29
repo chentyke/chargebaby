@@ -149,10 +149,10 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
           {chargeBaby.productSource && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 text-gray-600',
+                'inline-flex items-center gap-1',
                 isMobile
-                  ? 'text-[11px] leading-4 bg-white/90 px-2 py-1 rounded-md border border-gray-200 shadow-sm'
-                  : 'text-sm'
+                  ? 'text-[11px] leading-4 text-gray-600'
+                  : 'text-sm text-gray-600'
               )}
             >
               <span>产品测试样机由</span>

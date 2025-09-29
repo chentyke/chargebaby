@@ -124,26 +124,31 @@ export function Tooltip({ content, className = '' }: TooltipProps) {
         {isVisible && (
           <>
             {/* 背景遮罩 */}
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+            <div
+              className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm"
               onClick={() => setIsVisible(false)}
             />
-            {/* 模态框 */}
-            <div className="fixed inset-x-4 top-1/2 transform -translate-y-1/2 z-[9999]">
-              <div className="bg-white rounded-xl shadow-2xl max-h-80 overflow-y-auto border border-gray-200">
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-4">
+            {/* 底部弹出卡片 */}
+            <div className="fixed inset-x-0 bottom-0 z-[9999] px-4 pb-6">
+              <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
+                <div className="flex items-center justify-center py-3">
+                  <span className="h-1 w-12 rounded-full bg-gray-200" aria-hidden="true" />
+                </div>
+                <div className="relative px-5 pb-5">
+                  <div className="flex items-start justify-between gap-3">
                     <h3 className="text-base font-semibold text-gray-900">数据说明</h3>
                     <button
+                      type="button"
                       onClick={() => setIsVisible(false)}
-                      className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                      className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                      aria-label="关闭说明"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
-                  <div className="text-gray-700 leading-relaxed text-sm tooltip-content">
+                  <div className="mt-3 max-h-[60vh] overflow-y-auto text-sm leading-relaxed text-gray-700 tooltip-content">
                     {content}
                   </div>
                 </div>
