@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Battery, Trophy } from 'lucide-react';
@@ -143,6 +143,29 @@ function ProductSelector({
   isMobile?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      searchInputRef.current?.focus();
+    } else {
+      setSearchTerm('');
+    }
+  }, [isOpen]);
+
+  const normalizedTerm = searchTerm.trim().toLowerCase();
+  const filteredProducts = normalizedTerm
+    ? availableProducts.filter((product) => {
+        const candidateTexts = [
+          product.displayName,
+          product.title,
+          product.brand,
+          product.model,
+        ];
+        return candidateTexts.some((text) => text?.toLowerCase().includes(normalizedTerm));
+      })
+    : availableProducts;
 
   return (
     <div className="relative">
@@ -162,8 +185,17 @@ function ProductSelector({
             className="fixed inset-0 z-30"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-40 max-h-80 overflow-y-auto">
-            <div className="p-2">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-40 max-h-80 overflow-hidden flex flex-col">
+            <div className="p-2 border-b border-gray-100">
+              <input
+                ref={searchInputRef}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="搜索型号、品牌..."
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400 focus:ring-0"
+              />
+            </div>
+            <div className="p-2 overflow-y-auto">
               <button
                 onClick={() => {
                   onSelect(null);
@@ -173,7 +205,12 @@ function ProductSelector({
               >
                 不选择
               </button>
-              {availableProducts.map((product) => (
+              {filteredProducts.length === 0 && (
+                <div className="px-3 py-4 text-center text-sm text-gray-400">
+                  未找到匹配的充电宝
+                </div>
+              )}
+              {filteredProducts.map((product) => (
                 <button
                   key={product.id}
                   onClick={() => {
@@ -425,4 +462,3 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
     </div>
   );
 }
-
