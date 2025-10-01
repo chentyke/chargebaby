@@ -10,11 +10,12 @@ import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
 import { ReviewCards } from '@/components/review-cards';
 import { ICPBeian } from '@/components/icp-beian';
-import { PurchaseLinks } from '@/components/purchase-links';
+import { PurchaseLinks, PRODUCT_SAMPLE_TOOLTIP } from '@/components/purchase-links';
 import { ShareButton } from '@/components/share-button';
 import { DetailDataPreviewCard } from '@/components/detail-data-preview-card';
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface PageProps {
   params: Promise<{
@@ -173,6 +174,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
         return `${y}年${m}月发售`;
       })()
     : null;
+  const sampleProviderText = chargeBaby.productSource || detailData?.dataSource || null;
 
   // 根据来源决定返回地址，并携带视图模式参数
   const getBackHref = () => {
@@ -318,7 +320,7 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
                   {productModel && <span>{productModel}</span>}
                 </div>
                 {/* 标签与发布日期紧凑显示 */}
-                {((Array.isArray(tags) && tags.length > 0) || releaseMonthText) && (
+                {((Array.isArray(tags) && tags.length > 0) || sampleProviderText) && (
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
                     {Array.isArray(tags) &&
                       tags.slice(0, 3).map((tag: string) => (
@@ -329,8 +331,13 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
                           {tag}
                         </span>
                       ))}
-                    {releaseMonthText && (
-                      <span className="text-[10px] text-gray-500">{releaseMonthText}</span>
+                    {sampleProviderText && (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-gray-500">
+                        <span>本次测试样机由</span>
+                        <span className="font-medium text-gray-600">{sampleProviderText}</span>
+                        <span>提供</span>
+                        <Tooltip content={PRODUCT_SAMPLE_TOOLTIP} className="ml-0.5" />
+                      </span>
                     )}
                   </div>
                 )}
@@ -377,12 +384,19 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
               </div>
             </div>
 
-            {(priceText || mobilePurchaseButtons.length > 0) && (
+            {(priceText || releaseMonthText || mobilePurchaseButtons.length > 0) && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                {priceText && (
+                {(priceText || releaseMonthText) && (
                   <div className="flex-shrink-0 text-sm text-gray-600">
-                    <span className="text-gray-500">官方定价</span>
-                    <span className="ml-2 text-lg font-semibold text-gray-900">{priceText}</span>
+                    <div>
+                      <span className="text-gray-500">官方定价</span>
+                      {priceText && (
+                        <span className="ml-2 text-lg font-semibold text-gray-900">{priceText}</span>
+                      )}
+                    </div>
+                    {releaseMonthText && (
+                      <div className="mt-0.5 text-[11px] text-gray-500">{releaseMonthText}</div>
+                    )}
                   </div>
                 )}
                 {mobilePurchaseButtons.length > 0 && (
@@ -683,9 +697,13 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
                   </div>
                   {(priceText || releaseMonthText) && (
                     <div className="mt-2 text-sm text-gray-700">
-                      <span>官方定价 </span>
-                      {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
-                      {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
+                      <div>
+                        <span>官方定价 </span>
+                        {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
+                      </div>
+                      {releaseMonthText && (
+                        <div className="mt-1 text-xs text-gray-500">{releaseMonthText}</div>
+                      )}
                     </div>
                   )}
                 </div>

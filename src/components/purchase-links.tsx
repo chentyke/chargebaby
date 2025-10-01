@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { ChargeBaby } from '@/types/chargebaby';
 import { Tooltip } from '@/components/ui/tooltip';
 
-const PRODUCT_SAMPLE_TOOLTIP = `我们是一个以在校学生为主的业余团队，因此没有足够的财力自行大量购买各类设备进行测试。因此非常感谢第三方能为我们提供评测样机。这让我们有机会接触到更多产品，为大家带来更丰富的评测内容。
+export const PRODUCT_SAMPLE_TOOLTIP = `我们是一个以在校学生为主的业余团队，因此没有足够的财力自行大量购买各类设备进行测试。因此非常感谢第三方能为我们提供评测样机。这让我们有机会接触到更多产品，为大家带来更丰富的评测内容。
 
 虽然样机由第三方提供，但我们始终坚守评测的独立性、公平性与可靠性，所有测试流程均基于实际场景，数据真实客观，结论不受任何第三方因素干扰，力求为大家呈现最真实、有用的参考信息。`;
 
