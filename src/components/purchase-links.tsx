@@ -34,7 +34,7 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
       icon: ExternalLink,
       href: chargeBaby.taobaoLink,
       isInternal: false,
-      color: 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200',
+      color: 'bg-orange-500 text-white border-orange-600 hover:bg-orange-600',
     });
   }
 
@@ -45,7 +45,7 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
       icon: ExternalLink,
       href: chargeBaby.jdLink,
       isInternal: false,
-      color: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200',
+      color: 'bg-red-500 text-white border-red-600 hover:bg-red-600',
     });
   }
 
@@ -102,31 +102,32 @@ export function PurchaseLinks({ className, chargeBaby, variant = 'mobile' }: Pur
               target={button.isInternal ? '_self' : '_blank'}
               rel={button.isInternal ? undefined : 'noopener noreferrer'}
               className={cn(
-                'flex items-center gap-2 py-3 px-4 rounded-lg text-sm font-medium',
+                'flex items-center gap-2 py-3 px-4 rounded-full text-sm font-semibold',
                 'border transition-all duration-200 relative min-h-[44px]',
-                'hover:shadow-sm active:scale-[0.98] active:duration-75',
+                'hover:shadow-md active:scale-[0.98] active:duration-75',
                 // 动态对齐方式
                 layout.buttonClass,
-                // 移动端优化
+                // 移动端优化 - 类似小红书的打开按钮
                 isMobile ? [
-                  'text-xs py-2.5',
-                  buttons.length === 1 ? 'px-4' : 'px-3'
+                  'text-sm py-3',
+                  buttons.length === 1 ? 'px-8' : 'px-4',
+                  'shadow-sm'
                 ] : [
                   'text-sm py-3',
                   buttons.length === 1 ? 'px-5' : 'px-4'
                 ],
-                // 购买链接样式
-                button.color || 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300'
+                // 购买链接样式 - 更突出的配色
+                button.color || 'bg-blue-500 border-blue-600 text-white hover:bg-blue-600'
               )}
             >
               <Icon className={cn(
                 'flex-shrink-0',
-                isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'
+                isMobile ? 'w-4 h-4' : 'w-4 h-4'
               )} />
               <span className={cn(
-                'font-medium',
+                'font-semibold',
                 // 根据按钮数量调整文字显示
-                isMobile && buttons.length === 3 ? 'text-[11px]' : 'whitespace-nowrap'
+                isMobile && buttons.length === 3 ? 'text-xs' : 'whitespace-nowrap'
               )}>
                 {button.label}
               </span>

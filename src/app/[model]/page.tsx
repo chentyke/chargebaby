@@ -14,6 +14,7 @@ import { PurchaseLinks } from '@/components/purchase-links';
 import { ShareButton } from '@/components/share-button';
 import { DetailDataPreviewCard } from '@/components/detail-data-preview-card';
 import { Metadata } from 'next';
+import type { ReactNode } from 'react';
 
 interface PageProps {
   params: Promise<{
@@ -155,6 +156,7 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
     disadvantages,
     imageUrl,
     finalImageUrl,
+    detailData,
     articleContent,
   } = chargeBaby;
 
@@ -179,6 +181,74 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
   };
   
   const backHref = getBackHref();
+  const numberFormatter = new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 1 });
+  const formatSpec = (value?: number | string | null, unit?: string) => {
+    if (value === null || value === undefined) {
+      return '-';
+    }
+
+    if (typeof value === 'number') {
+      if (Number.isNaN(value)) {
+        return '-';
+      }
+      const formatted = numberFormatter.format(value);
+      return unit ? `${formatted}${unit}` : formatted;
+    }
+
+    const textValue = String(value).trim();
+    if (!textValue) {
+      return '-';
+    }
+
+    return unit && /^\d+(\.\d+)?$/.test(textValue)
+      ? `${textValue}${unit}`
+      : textValue;
+  };
+
+  const quickSpecs: Array<{ key: string; label: string; value: string; helper?: string }> = [
+    {
+      key: 'weight',
+      label: '重量',
+      value: formatSpec(detailData?.weight, 'g'),
+    },
+    {
+      key: 'volume',
+      label: '体积',
+      value: formatSpec(detailData?.volume, 'cm³'),
+    },
+    {
+      key: 'max-discharge',
+      label: '最大放电能量',
+      value: formatSpec(detailData?.maxDischargeCapacity, 'Wh'),
+    },
+    {
+      key: 'self-charging-time',
+      label: '自充电时间',
+      value: formatSpec(detailData?.selfChargingTime, '分钟'),
+    },
+    {
+      key: 'max-output',
+      label: '最大输出功率',
+      value: formatSpec(detailData?.maxOutputPower, 'W'),
+    },
+  ];
+
+  const mobilePurchaseButtons = [
+    chargeBaby.taobaoLink
+      ? {
+          key: 'taobao',
+          label: '淘宝',
+          href: chargeBaby.taobaoLink,
+        }
+      : null,
+    chargeBaby.jdLink
+      ? {
+          key: 'jd',
+          label: '京东',
+          href: chargeBaby.jdLink,
+        }
+      : null,
+  ].filter(Boolean) as Array<{ key: string; label: string; href: string }>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100/50 relative animate-slide-up">
@@ -213,124 +283,234 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
             </div>
           </div>
 
-          <div id="capture-root" className="space-y-8">
-            {/* 产品图片 */}
-            <div className="relative aspect-square overflow-hidden max-w-[320px] mx-auto" data-detail-image>
-              {imageUrl ? (
-                <NotionImage
-                  src={imageUrl}
-                  alt={title}
-                  fill
-                  className="object-contain animate-fade-in"
-                  sizes="320px"
-                  priority
-                  enableZoom
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center animate-fade-in">
-                  <Battery className="w-24 h-24 text-gray-300" />
-                </div>
-              )}
-            </div>
+          <div id="capture-root" className="space-y-4">
+            {/* 产品图片和标题左右放置 */}
+            <div className="flex gap-4 items-start">
+              {/* 产品图片 - 小尺寸 */}
+              <div className="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg" data-detail-image>
+                {imageUrl ? (
+                  <NotionImage
+                    src={imageUrl}
+                    alt={title}
+                    fill
+                    className="object-contain animate-fade-in"
+                    sizes="96px"
+                    priority
+                    enableZoom
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center animate-fade-in bg-gray-100">
+                    <Battery className="w-12 h-12 text-gray-300" />
+                  </div>
+                )}
+              </div>
 
-            {/* 标题与标签 */}
-            <div className="text-center">
-              {(brand || productModel) && (
-                <div className="text-sm text-gray-600 mb-1">{brand ? `${brand} ${productModel}` : productModel}</div>
-              )}
-              <h1 className="text-3xl font-extrabold text-gray-900 leading-tight">
-                {title}
-              </h1>
-              {subtitle && (
-                <div className="text-base text-gray-600 mt-1">{subtitle}</div>
-              )}
-              <div className="flex flex-wrap gap-2 mt-3 justify-center">
-                {Array.isArray(tags) && tags.slice(0, 3).map((tag: string) => (
-                  <span key={tag} className="px-3 py-1 rounded-md text-xs bg-gray-100 text-gray-700 border border-gray-200">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              {(priceText || releaseMonthText) && (
-                <div className="mt-3 text-sm text-gray-700">
-                  <span>官方定价 </span>
-                  {priceText && <span className="font-extrabold text-gray-900">{priceText}</span>}
-                  {releaseMonthText && <span className="ml-2 text-gray-600">{releaseMonthText}</span>}
+              {/* 标题和基本信息 */}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-extrabold text-gray-900 leading-tight">
+                  {title}
+                </h1>
+                {subtitle && (
+                  <div className="text-xs text-gray-600 mt-1 line-clamp-2">{subtitle}</div>
+                )}
+                <div className="text-[11px] text-gray-500 mt-1">
+                  {brand && <span>{brand} </span>}
+                  {productModel && <span>{productModel}</span>}
                 </div>
-              )}
-            </div>
-
-            {/* 综合评分 */}
-            <div>
-              <div className="text-gray-900 font-semibold text-center">
-                <TitleWithTooltip title="综合评分" className="justify-center" />
-              </div>
-              <div className="mt-2 flex items-baseline gap-2 justify-center">
-                <div className="text-4xl font-extrabold tracking-tight text-gray-900">
-                  {Math.round(overallRating ?? 0)}
-                </div>
-                <div className="text-2xl text-gray-400">/100</div>
-              </div>
-              <div className="mt-3">
-                <ProgressSegmentBar value={overallRating ?? 0} labels={gradeLabels} labelsOnTop />
+                {/* 标签与发布日期紧凑显示 */}
+                {((Array.isArray(tags) && tags.length > 0) || releaseMonthText) && (
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    {Array.isArray(tags) &&
+                      tags.slice(0, 3).map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700 border border-gray-200"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    {releaseMonthText && (
+                      <span className="text-[10px] text-gray-500">{releaseMonthText}</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* 性能评分卡片 */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg text-gray-900 font-semibold mb-2">
-                <TitleWithTooltip title="性能评分" />
-              </div>
-              <div className="text-center mb-4">
-                <div className="text-4xl font-extrabold text-gray-900 leading-none">
-                  {Math.round(performanceRating ?? 0)}
-                  <span className="text-2xl text-gray-400">/100</span>
+            {/* 关键规格展示 */}
+            <div className="-mx-4 border-y border-gray-200/20 py-3">
+              <div className="overflow-x-auto scrollbar-hide px-4">
+                <div className="flex min-w-max divide-x divide-gray-200/20 text-center">
+                  {quickSpecs.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex min-w-[96px] flex-col items-center justify-center px-4"
+                    >
+                      <span className="text-xs text-gray-500">{item.label}</span>
+                      <span className="mt-1 text-base font-semibold text-gray-700 leading-tight">{item.value}</span>
+                      {item.helper && (
+                        <span className="mt-0.5 text-[11px] text-gray-400">{item.helper}</span>
+                      )}
+                    </div>
+                  ))}
+                  {detailData ? (
+                    <Link
+                      href={`/${encodeURIComponent(model)}/detail`}
+                      className="flex min-w-[132px] flex-col items-center justify-center px-4 text-center text-gray-600"
+                    >
+                      <span className="text-xs text-gray-500">详细数据</span>
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+                        查看全部
+                        <span className="text-sm">→</span>
+                      </span>
+                      <span className="mt-1 text-[11px] text-gray-400">
+                        {detailData.dataSource ? `数据源：${detailData.dataSource}` : '完整测试明细'}
+                      </span>
+                    </Link>
+                  ) : (
+                    <div className="flex min-w-[132px] flex-col items-center justify-center px-4 text-gray-400">
+                      <span className="text-xs">详细数据</span>
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-dashed border-gray-300 px-3 py-1 text-xs font-medium">暂无更多</span>
+                    </div>
+                  )}
                 </div>
-                <div className="mt-3">
-                  <ProgressSegmentBar value={performanceRating ?? 0} labels={perfLevelLabels} labelsOnTop />
-                </div>
-              </div>
-              <div className="h-px bg-gray-200 my-3" />
-              <div className="space-y-4">
-                <ItemBarInline label="自充能力" value={selfChargingCapability} max={40} />
-                <ItemBarInline label="输出能力" value={outputCapability} max={35} />
-                <ItemBarInline label="能量" value={energy} max={20} />
               </div>
             </div>
 
-            {/* 体验评分卡片 */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="text-lg text-gray-900 font-semibold mb-2">
-                <TitleWithTooltip title="体验评分" />
-              </div>
-              <div className="text-center mb-4">
-                <div className="text-4xl font-extrabold text-gray-900 leading-none">
-                  {Math.round(experienceRating ?? 0)}
-                  <span className="text-2xl text-gray-400">/100</span>
-                </div>
-                <div className="mt-3">
-                  <ProgressSegmentBar value={experienceRating ?? 0} labels={expLevelLabels} labelsOnTop />
-                </div>
-              </div>
-              <div className="h-px bg-gray-200 my-3" />
-              <div className="space-y-4">
-                <ItemBarInline label="便携性" value={portability} max={40} />
-                <ItemBarInline label="充电协议" value={chargingProtocols} max={30} />
-                <ItemBarInline label="多接口使用" value={multiPortUsage} max={20} />
-              </div>
-            </div>
+            {(priceText || mobilePurchaseButtons.length > 0) && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {priceText && (
+                  <div className="flex-shrink-0 text-sm text-gray-600">
+                    <span className="text-gray-500">官方定价</span>
+                    <span className="ml-2 text-lg font-semibold text-gray-900">{priceText}</span>
+                  </div>
+                )}
+                {mobilePurchaseButtons.length > 0 && (
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    {mobilePurchaseButtons.map((btn) => {
+                      const themedClass =
+                        btn.key === 'taobao'
+                          ? 'border-orange-100 bg-orange-50 text-orange-600 hover:border-orange-200 hover:bg-orange-100 hover:text-orange-700'
+                          : btn.key === 'jd'
+                          ? 'border-red-100 bg-red-50 text-red-600 hover:border-red-200 hover:bg-red-100 hover:text-red-700'
+                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700';
 
-            {/* 详细数据透视预览卡片 - 移动端 */}
-            {chargeBaby.detailData && (
-              <div className="h-64">
-                <DetailDataPreviewCard 
-                  chargeBaby={chargeBaby} 
-                  productModel={productModel}
-                  variant="mobile"
-                />
+                      return (
+                        <a
+                          key={btn.key}
+                          href={btn.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center justify-center rounded-xl px-3.5 py-2 text-sm font-medium shadow-sm transition-colors ${themedClass}`}
+                        >
+                          {btn.label}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
+            {/* 横向滚动的评分卡片区域 - 限位滚动 */}
+            <div className="-mx-4">
+              <div className="overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+                <div className="flex gap-4 pb-4" style={{ paddingLeft: '1rem', paddingRight: '1rem' }}>
+                  {/* 综合评分卡片 - 圆环样式 */}
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5 flex-shrink-0 snap-center w-[calc(100vw-2rem)] max-w-[320px] flex flex-col gap-5">
+                    <div className="text-sm font-semibold text-gray-900">
+                      <TitleWithTooltip title="综合评分" />
+                    </div>
+                    <div className="flex flex-col items-center gap-3 text-center">
+                      <CircularRating
+                        value={overallRating ?? 0}
+                        size={112}
+                        centerContent={
+                          <span className="text-sm font-semibold text-gray-700">
+                            {gradeLabels[Math.min(gradeLabels.length - 1, Math.floor((overallRating ?? 0) / 20))]}
+                          </span>
+                        }
+                      />
+                      <div className="text-xs uppercase tracking-wide text-gray-500">综合得分</div>
+                      <div className="text-4xl font-extrabold text-gray-900 leading-tight">
+                        {Math.round(overallRating ?? 0)}
+                        <span className="ml-1 text-lg text-gray-400 align-top">/100</span>
+                      </div>
+                      {detailData?.dataSource && (
+                        <div className="text-xs text-gray-400">数据源：{detailData.dataSource}</div>
+                      )}
+                    </div>
+
+                    {/* 性能和体验评分简要显示 */}
+                    <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-4">
+                      <div className="text-center">
+                        <div className="text-xs text-gray-500">性能评分</div>
+                        <div className="mt-1 text-lg font-bold text-gray-900">
+                          {Math.round(performanceRating ?? 0)}
+                        </div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">
+                          {perfLevelLabels[Math.min(perfLevelLabels.length - 1, Math.floor((performanceRating ?? 0) / 20))]}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xs text-gray-500">体验评分</div>
+                        <div className="mt-1 text-lg font-bold text-gray-900">
+                          {Math.round(experienceRating ?? 0)}
+                        </div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">
+                          {expLevelLabels[Math.min(expLevelLabels.length - 1, Math.floor((experienceRating ?? 0) / 20))]}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 性能评分卡片 */}
+                  <div className="rounded-2xl border border-gray-200 bg-white p-4 flex-shrink-0 snap-center w-[calc(100vw-2rem)] max-w-[300px]">
+                    <div className="text-sm text-gray-900 font-semibold mb-2">
+                      <TitleWithTooltip title="性能评分" />
+                    </div>
+                    <div className="text-center mb-3">
+                      <div className="text-3xl font-extrabold text-gray-900 leading-none">
+                        {Math.round(performanceRating ?? 0)}
+                        <span className="text-lg text-gray-400">/100</span>
+                      </div>
+                      <div className="mt-2">
+                        <ProgressSegmentBar value={performanceRating ?? 0} labels={perfLevelLabels} labelsOnTop />
+                      </div>
+                    </div>
+                    <div className="h-px bg-gray-200 my-2" />
+                    <div className="space-y-2">
+                      <ItemBarInline label="自充能力" value={selfChargingCapability} max={40} />
+                      <ItemBarInline label="输出能力" value={outputCapability} max={35} />
+                      <ItemBarInline label="能量" value={energy} max={20} />
+                    </div>
+                  </div>
+
+                  {/* 体验评分卡片 */}
+                  <div className="rounded-2xl border border-gray-200 bg-white p-4 flex-shrink-0 snap-center w-[calc(100vw-2rem)] max-w-[300px]">
+                    <div className="text-sm text-gray-900 font-semibold mb-2">
+                      <TitleWithTooltip title="体验评分" />
+                    </div>
+                    <div className="text-center mb-3">
+                      <div className="text-3xl font-extrabold text-gray-900 leading-none">
+                        {Math.round(experienceRating ?? 0)}
+                        <span className="text-lg text-gray-400">/100</span>
+                      </div>
+                      <div className="mt-2">
+                        <ProgressSegmentBar value={experienceRating ?? 0} labels={expLevelLabels} labelsOnTop />
+                      </div>
+                    </div>
+                    <div className="h-px bg-gray-200 my-2" />
+                    <div className="space-y-2">
+                      <ItemBarInline label="便携性" value={portability} max={40} />
+                      <ItemBarInline label="充电协议" value={chargingProtocols} max={30} />
+                      <ItemBarInline label="多接口使用" value={multiPortUsage} max={20} />
+                    </div>
+                  </div>
+                  <div className="shrink-0 w-2" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
             {/* 优势 / 不足 */}
             {(advantages?.length || disadvantages?.length) && (
               <div className="space-y-6">
@@ -363,13 +543,6 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
                 ) : null}
               </div>
             )}
-
-            {/* 购买链接按钮 */}
-            <div className="px-4">
-              <div className="ml-0">
-                <PurchaseLinks chargeBaby={chargeBaby} variant="mobile" />
-              </div>
-            </div>
 
             {/* 相关评测卡片 */}
             <ReviewCards subProjects={chargeBaby.subProjects} modelName={productModel} />
@@ -718,6 +891,68 @@ function ItemBarInline({ label, value = 0, max }: { label: string; value?: numbe
       <div className="mt-2 h-2 w-full rounded-full bg-gray-200 overflow-hidden">
         <div className="h-full bg-gray-700" style={{ width }} />
       </div>
+    </div>
+  );
+}
+
+// 圆环评分组件
+function CircularRating({
+  value = 0,
+  size = 120,
+  showValue = true,
+  centerContent,
+}: {
+  value?: number;
+  size?: number;
+  showValue?: boolean;
+  centerContent?: ReactNode;
+}) {
+  const clampedValue = Math.max(0, Math.min(100, value));
+  const radius = (size - 12) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (clampedValue / 100) * circumference;
+  
+  // 使用灰色系，与其他卡片保持一致
+  const color = '#374151'; // gray-700
+  
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        {/* 背景圆环 */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#e5e7eb"
+          strokeWidth="6"
+          fill="none"
+        />
+        {/* 进度圆环 */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth="6"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
+      {centerContent ? (
+        <div className="absolute inset-0 flex items-center justify-center text-center">{centerContent}</div>
+      ) : (
+        showValue && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="text-3xl font-extrabold text-gray-900 leading-none">
+              {Math.round(clampedValue)}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">/ 100</div>
+          </div>
+        )
+      )}
     </div>
   );
 }
