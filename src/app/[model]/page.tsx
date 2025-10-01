@@ -174,7 +174,8 @@ export default async function ChargeBabyDetailPage({ params, searchParams }: Pag
         return `${y}年${m}月发售`;
       })()
     : null;
-  const sampleProviderText = chargeBaby.productSource || detailData?.dataSource || null;
+  const rawSampleProvider = chargeBaby.productSource?.trim();
+  const sampleProviderText = rawSampleProvider ? rawSampleProvider : null;
 
   // 根据来源决定返回地址，并携带视图模式参数
   const getBackHref = () => {
@@ -321,23 +322,26 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
                 </div>
                 {/* 标签与发布日期紧凑显示 */}
                 {((Array.isArray(tags) && tags.length > 0) || sampleProviderText) && (
-                  <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    {Array.isArray(tags) &&
-                      tags.slice(0, 3).map((tag: string) => (
-                        <span
-                          key={tag}
-                          className="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700 border border-gray-200"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                  <div className="mt-1.5 space-y-1">
+                    {Array.isArray(tags) && tags.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {tags.slice(0, 3).map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="px-2.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700 border border-gray-200"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     {sampleProviderText && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-gray-500">
+                      <div className="inline-flex items-center gap-1 text-[10px] leading-4 text-gray-500">
                         <span>本次测试样机由</span>
                         <span className="font-medium text-gray-600">{sampleProviderText}</span>
                         <span>提供</span>
                         <Tooltip content={PRODUCT_SAMPLE_TOOLTIP} className="ml-0.5" />
-                      </span>
+                      </div>
                     )}
                   </div>
                 )}
