@@ -621,7 +621,7 @@ function parseDetailData(props: any): DetailData {
     // 多接口功能
     dualPortOutput: formatNumber(getNumberProperty(props['双接口同时输出'])),
     hotSwap: formatNumber(getNumberProperty(props['多口插拔不断联'])),
-    passThrough: formatNumber(getNumberProperty(props['边冲边放'])),
+    passThrough: formatNumber(getNumberProperty(props['边充边放'])),
     customDirection: formatNumber(getNumberProperty(props['输入输出方向自定义'])),
     
     // 温度控制

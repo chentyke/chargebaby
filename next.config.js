@@ -18,6 +18,34 @@ const nextConfig = {
         hostname: 'localhost',
         port: '3000',
       },
+      {
+        protocol: 'https',
+        hostname: 'msecfs.opposhop.cn',
+      },
+      {
+        protocol: 'https',
+        hostname: 'image.suning.cn',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img10.360buyimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gd1.alicdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gd2.alicdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gd3.alicdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gd4.alicdn.com',
+      },
     ],
     // 不包含 Notion 域名，强制使用我们的代理
   },

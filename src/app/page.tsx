@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { Cable } from 'lucide-react';
 import { getChargeBabies } from '@/lib/notion';
 import { SearchableProductsGrid } from '@/components/searchable-products-grid';
 import { Loading } from '@/components/ui/loading';
@@ -28,7 +29,27 @@ export default function HomePage({ searchParams }: HomePageProps) {
       {/* 主要内容容器 - 无分割线 */}
       <div className="relative">
         {/* 页面标题和搜索区域 */}
-        <header className="pt-12 pb-8">
+        <header className="pt-10 sm:pt-12 pb-8 relative">
+          {/* 左上角切换按钮 */}
+          <div
+            className="px-4 sm:px-0 sm:absolute sm:top-0 sm:left-0"
+            style={{
+              paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 1rem)',
+              paddingRight: 'calc(env(safe-area-inset-right, 0px) + 1rem)'
+            }}
+          >
+            <div className="flex justify-start mb-6 sm:mb-0 sm:ml-4 sm:mt-4">
+              <Link
+                href="/cable"
+                aria-label="切换到数据线版"
+                className="relative inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 pr-10 sm:pr-12 rounded-lg sm:rounded-xl border border-white/60 bg-gradient-to-br from-white/95 via-white/80 to-white/60 backdrop-blur-md shadow-sm text-sm font-medium text-gray-700 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 after:content-['BETA'] after:absolute after:-top-2 after:-right-2 after:inline-flex after:items-center after:justify-center after:px-2 after:h-5 after:sm:h-6 after:text-[9px] after:sm:text-[10px] after:font-bold after:bg-gradient-to-br after:from-red-500 after:to-red-600 after:text-white after:rounded-full after:shadow after:border after:border-white/70 after:pointer-events-none after:z-10"
+              >
+                <Cable className="w-4 h-4 text-blue-500" />
+                <span className="text-sm">切换到数据线版</span>
+              </Link>
+            </div>
+          </div>
+
           <div className="container">
             <div className="text-center mb-8">
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-3 leading-tight">

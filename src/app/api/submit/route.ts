@@ -196,7 +196,7 @@ function createNotionProperties(data: SubmissionData) {
     if (line.startsWith('UFCS支持:')) extractedData.ufcsSupport = extractListValue(line);
     if (line.startsWith('私有协议支持:')) extractedData.privateProtocol = extractListValue(line);
     if (line.startsWith('潜在协议冲突:')) extractedData.potentialConflicts = extractValue(line);
-    if (line.startsWith('双接口边冲边放:')) extractedData.dualPassthrough = extractValue(line);
+    if (line.startsWith('双接口边充边放:')) extractedData.dualPassthrough = extractValue(line);
     if (line.startsWith('双接口输出能力:')) extractedData.dualOutput = extractValue(line);
     if (line.startsWith('双接口不断联能力:')) extractedData.dualNoDisconnect = extractListValue(line);
     if (line.startsWith('显示内容:')) extractedData.displayContent = extractListValue(line);
@@ -245,7 +245,7 @@ function createNotionProperties(data: SubmissionData) {
 
   // 多接口使用字段
   safeAddProperty('双接口输出能力', 'rich_text', ensureText(extractedData.dualOutput));
-  safeAddProperty('双接口边冲边放', 'rich_text', ensureText(extractedData.dualPassthrough));
+  safeAddProperty('双接口边充边放', 'rich_text', ensureText(extractedData.dualPassthrough));
   safeAddProperty('双接口不断联能力', 'rich_text', joinArray(extractedData.dualNoDisconnect));
 
   // 显示与功能字段

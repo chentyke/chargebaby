@@ -444,7 +444,7 @@ QC支持: ${formatList(formData.qcSupport)}
 UFCS支持: ${formatList(formData.ufcsSupport)}
 私有协议支持: ${formatList(formData.privateProtocolSupport)}
 潜在协议冲突: ${protocolConflictValue}
-双接口边冲边放: ${formData.dualPortPassthrough || '未填写'}
+双接口边充边放: ${formData.dualPortPassthrough || '未填写'}
 双接口输出能力: ${formData.dualPortOutputCapability || '未填写'}
 双接口不断联能力: ${formatList(formData.dualPortNoDisconnect)}
 显示内容: ${formatList(formData.displayContent)}
@@ -1315,7 +1315,7 @@ IoT能力: ${formatList(formData.iotCapabilities)}
 
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium text-gray-900">双接口边冲边放</Label>
+                <Label className="text-sm font-medium text-gray-900">双接口边充边放</Label>
                 <p className="text-xs text-muted-foreground mt-1">移动电源在自充电的同时进行输出的能力。</p>
               </div>
               <RadioGroup
@@ -1324,7 +1324,7 @@ IoT能力: ${formatList(formData.iotCapabilities)}
                 className="grid gap-3"
               >
                 {[
-                  '仅具有一个输出输出接口，或无法双接口边冲边放',
+                  '仅具有一个输出输出接口，或无法双接口边充边放',
                   '在任意条件下，充电功率等于输出功率。或输入/输出功率均小于15W',
                   '充电功率大于输出功率，且输入能达到仅输入模式的30%以上，输出能达到仅输出模式的30%以上',
                   '充电功率大于输出功率，且输入能达到仅输入模式的50%以上，输出能达到仅输出模式的50%以上',
@@ -1346,14 +1346,14 @@ IoT能力: ${formatList(formData.iotCapabilities)}
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-900">双接口使用时的"不断联"能力</Label>
-                <p className="text-xs text-muted-foreground mt-1">移动电源在双接口同时输出或边冲边放场景下的插拔不断联能力。（可进行多选）</p>
+                <p className="text-xs text-muted-foreground mt-1">移动电源在双接口同时输出或边充边放场景下的插拔不断联能力。（可进行多选）</p>
               </div>
               <div className="grid gap-3">
                 {[
-                  '仅具有一个输出输出接口，或无法双接口同时使用/边冲边放',
-                  '具有双接口同时输出或边冲边放能力，但任意条件下插拔接口均会造成断联',
+                  '仅具有一个输出输出接口，或无法双接口同时使用/边充边放',
+                  '具有双接口同时输出或边充边放能力，但任意条件下插拔接口均会造成断联',
                   '同时输出时，接口插拔不断联',
-                  '边冲边放时，接口插拔不断联'
+                  '边充边放时，接口插拔不断联'
                 ].map(option => (
                   <div key={option} className="flex items-center space-x-3">
                     <Checkbox

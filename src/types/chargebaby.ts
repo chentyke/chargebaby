@@ -42,7 +42,7 @@ export interface DetailData {
   // 多接口功能
   dualPortOutput: number; // 双接口同时输出
   hotSwap: number; // 多口插拔不断联
-  passThrough: number; // 边冲边放
+  passThrough: number; // 边充边放
   customDirection: number; // 输入输出方向自定义
   
   // 温度控制

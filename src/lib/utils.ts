@@ -11,7 +11,11 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * 格式化价格
  */
-export function formatPrice(price: number): string {
+export function formatPrice(price?: number | null): string {
+  if (price === null || price === undefined) {
+    return '价格待定';
+  }
+
   return new Intl.NumberFormat('zh-CN', {
     style: 'currency',
     currency: 'CNY',

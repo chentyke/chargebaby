@@ -155,6 +155,8 @@ export const serverCache = new ServerCache();
 export const CACHE_KEYS = {
   CHARGE_BABIES: 'charge-babies',
   CHARGE_BABY_BY_ID: (id: string) => `charge-baby-${id}`,
+  CABLES: 'cables',
+  CABLE_BY_ID: (id: string) => `cable-${id}`,
   WISHLIST_PRODUCTS: 'wishlist-products',
   WISHLIST_PRODUCT_BY_ID: (id: string) => `wishlist-product-${id}`,
 } as const;
