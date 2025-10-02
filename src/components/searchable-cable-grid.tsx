@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 import { Cable, CableSortOption } from '@/types/cable';
 import { CableCard } from '@/components/cable-card';
 import { CableListCard } from '@/components/cable-list-card';
-import { useImagePreloader } from '@/hooks/useImagePreloader';
+import { useGenericImagePreloader } from '@/hooks/useGenericImagePreloader';
 import { cn } from '@/lib/utils';
 import { getStoredViewMode, setStoredViewMode, getStoredScrollPosition } from '@/utils/view-mode-storage';
 
@@ -30,7 +30,7 @@ export function SearchableCableGrid({ cables, initialViewMode }: SearchableCable
   const router = useRouter();
 
   // 启用智能图片预加载
-  useImagePreloader(cables, true);
+  useGenericImagePreloader(cables, true);
 
   const filteredCables = useMemo(() => {
     const baseCables = filteredByFilter;
@@ -94,8 +94,8 @@ export function SearchableCableGrid({ cables, initialViewMode }: SearchableCable
     setViewMode(initialMode as ViewMode);
 
     // 恢复滚动位置
-    const scrollPosition = getStoredScrollPosition();
-    if (scrollPosition > 0) {
+    const scrollPosition = getStoredScrollPosition(pathname, initialMode as ViewMode);
+    if (scrollPosition && scrollPosition > 0) {
       setTimeout(() => {
         window.scrollTo({
           top: scrollPosition,
