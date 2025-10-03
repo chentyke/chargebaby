@@ -848,17 +848,13 @@ function ItemBar({ label, value = 0, max }: { label: string; value?: number; max
           {formatRating(actualValue)}/{max}
         </span>
       </div>
-      <div className="mt-1 h-2 w-full rounded-full bg-gray-200 overflow-visible relative flex items-center gap-1">
-        <div className="h-full bg-gray-700 rounded-full flex-1" style={{ width }} />
+      <div className="mt-1 flex items-center gap-1">
+        <div className="h-2 flex-1 rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-full bg-gray-700 rounded-full" style={{ width }} />
+        </div>
         {/* 超分绿条 */}
         {isOverMax && (
-          <div 
-            className="bg-green-500 rounded-sm flex-shrink-0"
-            style={{ 
-              width: '4px', 
-              height: '100%'
-            }}
-          />
+          <div className="bg-green-500 rounded-sm flex-shrink-0" style={{ width: '4px', height: '8px' }} />
         )}
       </div>
     </div>
@@ -934,11 +930,13 @@ function ItemBarInline({ label, value = 0, max }: { label: string; value?: numbe
       <div className="mt-1 text-lg md:text-xl font-bold text-gray-900 leading-none">
         {formatRating(actualValue)}/{max}
       </div>
-      <div className="mt-2 h-2 w-full rounded-full bg-gray-200 overflow-visible flex items-center gap-1">
-        <div className="h-full bg-gray-700 rounded-full flex-1" style={{ width }} />
+      <div className="mt-2 flex items-center gap-1">
+        <div className="h-2 flex-1 rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-full bg-gray-700 rounded-full" style={{ width }} />
+        </div>
         {/* 超分绿条 */}
         {isOverMax && (
-          <div className="bg-green-500 rounded-sm flex-shrink-0" style={{ width: '4px', height: '100%' }} />
+          <div className="bg-green-500 rounded-sm flex-shrink-0" style={{ width: '4px', height: '8px' }} />
         )}
       </div>
     </div>
