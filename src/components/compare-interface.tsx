@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, Battery, Trophy } from 'lucide-react';
 import { ChargeBaby } from '@/types/chargebaby';
 import { BackButton } from '@/components/ui/back-button';
+import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
 
 interface CompareInterfaceProps {
   chargeBabies: ChargeBaby[];
@@ -14,6 +16,10 @@ interface CompareInterfaceProps {
     from?: string;
   };
 }
+
+const gradeLabels = ['入门级', '进阶级', '高端级', '旗舰级', '超旗舰级'];
+const perfLevelLabels = ['低性能', '中性能', '中高性能', '高性能', '超高性能'];
+const expLevelLabels = ['低水平', '中水平', '中高水平', '高水平', '超高水平'];
 
 export function CompareInterface({ chargeBabies, searchParams }: CompareInterfaceProps) {
   const [selectedProducts, setSelectedProducts] = useState<(ChargeBaby | null)[]>([null, null, null]);
@@ -108,7 +114,7 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
       </div>
 
       {/* 产品展示区域 */}
-      <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-8 sm:py-16">
+      <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-6 sm:py-8">
         <div className={`grid gap-6 sm:gap-8 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
           {displayedProducts.map((product, index) => (
             <ProductDisplay key={index} product={product} isMobile={isMobile} />
@@ -119,7 +125,7 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
       {/* 详细对比表格 */}
       {hasValidComparison && (
         <div className="bg-white">
-          <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-8 sm:py-16">
+          <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-6 sm:py-8">
             <ComparisonTable products={displayedProducts} isMobile={isMobile} />
           </div>
         </div>
@@ -262,6 +268,15 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
             <p className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>选择充电宝</p>
           </div>
         </div>
+        {/* 灰色的查看详情按钮 */}
+        <div className="mt-4 sm:mt-6">
+          <button 
+            disabled 
+            className="w-full py-2.5 px-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-500 font-medium rounded-lg cursor-not-allowed"
+          >
+            查看详情
+          </button>
+        </div>
       </div>
     );
   }
@@ -286,9 +301,11 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
 
       {/* 产品信息 */}
       <div className="space-y-1 sm:space-y-2">
-        <h3 className={`font-bold text-gray-900 ${isMobile ? 'text-sm line-clamp-2' : 'text-lg sm:text-xl'}`}>
-          {product.displayName || product.title}
-        </h3>
+        <Link href={`/${encodeURIComponent(product.model)}`} className="block hover:opacity-80 transition-opacity">
+          <h3 className={`font-bold text-gray-900 hover:text-blue-600 transition-colors ${isMobile ? 'text-sm line-clamp-2' : 'text-lg sm:text-xl'}`}>
+            {product.displayName || product.title}
+          </h3>
+        </Link>
         {(product.brand || product.model) && (
           <p className={`text-gray-600 ${isMobile ? 'text-xs truncate' : 'text-sm sm:text-base'}`}>
             {product.brand && product.model ? `${product.brand} ${product.model}` : (product.model || product.brand)}
@@ -299,17 +316,236 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
             ¥{Math.round(product.price)}
           </p>
         )}
-        {product.overallRating && (
-          <div className={`inline-flex items-center gap-1 sm:gap-2 bg-purple-50 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 sm:px-4 py-1 sm:py-2'}`}>
-            <span className={`text-purple-600 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>综合评分</span>
-            <span className={`font-bold ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
-              <span className="text-purple-600">{formatNumber(product.overallRating)}</span><span className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>/100</span>
-            </span>
-          </div>
+        {/* 查看详情按钮 */}
+        <div className="pt-2 sm:pt-3">
+          <Link href={`/${encodeURIComponent(product.model)}`} className="block">
+            <button className="w-full py-2.5 px-4 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium rounded-lg transition-all duration-200">
+              查看详情
+            </button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CompactCircularRating({ value = 0, size = 72, strokeWidth = 5, children }: { value?: number; size?: number; strokeWidth?: number; children?: ReactNode }) {
+  const clampedValue = Math.max(0, Math.min(100, value));
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (clampedValue / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg className="-rotate-90 transform" width={size} height={size}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#e5e7eb"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#4b5563"
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="transition-[stroke-dashoffset] duration-500 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        {children ?? (
+          <>
+            <span className="text-lg font-semibold text-gray-900 leading-none">{Math.round(clampedValue)}</span>
+            <span className="text-[10px] text-gray-400">/100</span>
+          </>
         )}
       </div>
     </div>
   );
+}
+
+function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false }: { value?: number; labels: string[]; labelsOnTop?: boolean }) {
+  const clamped = Math.max(0, Math.min(100, value));
+  const count = labels.length;
+  const activeIndex = Math.min(count - 1, Math.floor(clamped / (100 / count)));
+  const segmentWidth = 100 / count;
+
+  return (
+    <div className="space-y-1">
+      {labelsOnTop && (
+        <div className="mb-1 flex justify-between text-[10px] text-gray-400">
+          {labels.map((label, index) => (
+            <span key={label} className={index === activeIndex ? 'text-gray-700 font-medium' : undefined}>
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
+        {Array.from({ length: count - 1 }).map((_, index) => (
+          <div
+            key={index}
+            className="absolute top-0 bottom-0 w-px bg-white/60"
+            style={{ left: `${(index + 1) * segmentWidth}%` }}
+          />
+        ))}
+        <div
+          className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-gray-700 via-gray-700 to-gray-500"
+          style={{ width: `${clamped}%` }}
+        />
+      </div>
+      {!labelsOnTop && (
+        <div className="flex justify-between text-[10px] text-gray-400">
+          {labels.map((label, index) => (
+            <span key={label} className={index === activeIndex ? 'text-gray-700 font-medium' : undefined}>
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScoreComparisonCard({ product }: { product: ChargeBaby | null }) {
+  const overallScore = product?.overallRating ?? null;
+
+  return (
+    <div className="flex flex-col gap-3 sm:gap-4">
+      <OverallScoreBlock score={overallScore} />
+      <DetailedScoreBlock
+        title="性能评分"
+        score={product?.performanceRating ?? null}
+        labels={perfLevelLabels}
+        metrics={[
+          { label: '自充能力', value: product?.selfChargingCapability ?? null, max: 40 },
+          { label: '输出能力', value: product?.outputCapability ?? null, max: 35 },
+          { label: '能量', value: product?.energy ?? null, max: 20 },
+        ]}
+      />
+      <DetailedScoreBlock
+        title="体验评分"
+        score={product?.experienceRating ?? null}
+        labels={expLevelLabels}
+        metrics={[
+          { label: '便携性', value: product?.portability ?? null, max: 40 },
+          { label: '充电协议', value: product?.chargingProtocols ?? null, max: 30 },
+          { label: '多接口使用', value: product?.multiPortUsage ?? null, max: 20 },
+        ]}
+      />
+    </div>
+  );
+}
+
+function OverallScoreBlock({ score }: { score?: number | null }) {
+  const hasScore = score != null;
+  const normalizedScore = hasScore ? Math.max(0, Math.min(100, score as number)) : 0;
+  const gradeLabel = hasScore
+    ? gradeLabels[Math.min(gradeLabels.length - 1, Math.floor(normalizedScore / 20))]
+    : '--';
+
+  return (
+    <div className="aspect-square rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col">
+      <div className="flex flex-1 items-center justify-center">
+        <CompactCircularRating value={normalizedScore} size={180} strokeWidth={8}>
+          {hasScore ? (
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xs font-medium text-gray-600">综合评分</span>
+              <span className="text-4xl font-bold text-gray-900 leading-none">
+                {Math.round(normalizedScore)}
+              </span>
+              <span className="text-xs font-medium text-gray-500">{gradeLabel}</span>
+            </div>
+          ) : (
+            <span className="text-sm text-gray-400">--</span>
+          )}
+        </CompactCircularRating>
+      </div>
+    </div>
+  );
+}
+
+function DetailedScoreBlock({
+  title,
+  score,
+  labels,
+  metrics,
+}: {
+  title: string;
+  score?: number | null;
+  labels: string[];
+  metrics: { label: string; value?: number | null; max: number }[];
+}) {
+  const hasScore = score != null;
+  const normalizedScore = hasScore ? Math.max(0, Math.min(100, score as number)) : 0;
+  const levelLabel = hasScore
+    ? labels[Math.min(labels.length - 1, Math.floor(normalizedScore / 20))]
+    : '--';
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col gap-3 sm:gap-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-gray-900">{title}</span>
+        {hasScore ? (
+          <div className="flex items-baseline gap-1 text-gray-900">
+            <span className="text-2xl font-bold">{formatNumber(normalizedScore)}</span>
+            <span className="text-sm text-gray-400">/100</span>
+          </div>
+        ) : (
+          <span className="text-sm text-gray-400">--</span>
+        )}
+      </div>
+
+      {hasScore && (
+        <>
+          <CompactProgressSegmentBar value={normalizedScore} labels={labels} labelsOnTop />
+          <div className="text-[11px] text-gray-500">{levelLabel}</div>
+        </>
+      )}
+
+      <div className="h-px bg-gray-100" />
+
+      <div className="space-y-2">
+        {metrics.map((metric) => (
+          <MetricRow key={metric.label} label={metric.label} value={metric.value} max={metric.max} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MetricRow({ label, value, max }: { label: string; value?: number | null; max: number }) {
+  const hasValue = value != null;
+  const safeValue = hasValue ? Math.max(0, Math.min(max, value as number)) : 0;
+  const progress = getMetricProgress(value, max);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between text-[12px] text-gray-600">
+        <TitleWithTooltip title={label} />
+        {hasValue ? (
+          <span className="font-medium text-gray-800">{formatNumber(safeValue)}/{max}</span>
+        ) : (
+          <span className="text-gray-400">--</span>
+        )}
+      </div>
+      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-full bg-gray-600" style={{ width: `${progress}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function getMetricProgress(value: number | null | undefined, max: number) {
+  if (value == null || max <= 0) return 0;
+  return Math.max(0, Math.min(100, (value / max) * 100));
 }
 
 // 格式化数字，保留最多两位小数
@@ -318,145 +554,301 @@ function formatNumber(num: number): number {
   return Math.round(num * 100) / 100;
 }
 
-function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)[]; isMobile?: boolean }) {
-  const comparisonData = [
+// 通用数据卡片组件
+interface DataItem {
+  label: string;
+  value: string;
+}
+
+function DataCard({ 
+  title, 
+  items, 
+  isEmpty = false 
+}: { 
+  title: string; 
+  items: DataItem[]; 
+  isEmpty?: boolean;
+}) {
+  if (isEmpty) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-8 flex items-center justify-center min-h-[280px] transition-all hover:border-gray-300">
+        <span className="text-gray-400 text-lg">-</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300">
+      <h3 className="text-base font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">{title}</h3>
+      <div className="space-y-6">
+        {items.map((item) => (
+          <div key={item.label}>
+            <div className="text-xs font-medium text-gray-500 mb-2.5 uppercase tracking-wide">
+              <TitleWithTooltip title={item.label} />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 leading-tight">{item.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PhysicalSpecsCard({ product }: { product: ChargeBaby | null }) {
+  if (!product?.detailData) {
+    return <DataCard title="物理规格" items={[]} isEmpty={true} />;
+  }
+
+  const { detailData } = product;
+  const items: DataItem[] = [
     {
-      category: "基本信息",
-      items: [
-        { label: "型号", key: "model", format: (model: any, product: any) => {
-          if (!product) return '-';
-          const brand = product.brand;
-          const modelName = model || product.model;
-          return brand && modelName ? `${brand} ${modelName}` : (modelName || '-');
-        }},
-        { label: "发布时间", key: "releaseDate", format: (date: any) => {
-          if (!date) return '-';
-          const d = new Date(date);
-          return `${d.getFullYear()}年${d.getMonth() + 1}月`;
-        }},
-        { label: "官方定价", key: "price", format: (price: any) => price ? `¥${Math.round(price)}` : '-' },
-      ]
+      label: '尺寸',
+      value: detailData.length && detailData.width && detailData.thickness
+        ? `${formatNumber(detailData.length)} x ${formatNumber(detailData.width)} x ${formatNumber(detailData.thickness)} cm`
+        : '-'
     },
     {
-      category: "综合评分",
-      items: [
-        { label: "综合评分", key: "overallRating", format: (rating: any) => rating != null ? { score: formatNumber(rating), isRating: true } : '-' },
-        { label: "性能评分", key: "performanceRating", format: (rating: any) => rating != null ? { score: formatNumber(rating), isRating: true } : '-' },
-        { label: "体验评分", key: "experienceRating", format: (rating: any) => rating != null ? { score: formatNumber(rating), isRating: true } : '-' },
-      ]
+      label: '重量',
+      value: detailData.weight ? `${formatNumber(detailData.weight)}g` : '-'
     },
     {
-      category: "性能参数",
-      items: [
-        { label: "自充能力", key: "selfChargingCapability", format: (val: any) => val != null ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
-        { label: "输出能力", key: "outputCapability", format: (val: any) => val != null ? { score: formatNumber(val), max: 35, isRating: true } : '-' },
-        { label: "能量", key: "energy", format: (val: any) => val != null ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
-      ]
+      label: '体积',
+      value: detailData.volume ? `${formatNumber(detailData.volume)}cm³` : '-'
     },
     {
-      category: "体验参数",
-      items: [
-        { label: "便携性", key: "portability", format: (val: any) => val != null ? { score: formatNumber(val), max: 40, isRating: true } : '-' },
-        { label: "充电协议", key: "chargingProtocols", format: (val: any) => val != null ? { score: formatNumber(val), max: 30, isRating: true } : '-' },
-        { label: "多接口使用", key: "multiPortUsage", format: (val: any) => val != null ? { score: formatNumber(val), max: 20, isRating: true } : '-' },
-      ]
+      label: '能量重量比',
+      value: detailData.capacityWeightRatio ? `${formatNumber(detailData.capacityWeightRatio)}Wh/g` : '-'
     },
     {
-      category: "物理规格",
-      items: [
-        { label: "重量", key: "detailData.weight", format: (val: any, product: any) => product?.detailData?.weight ? `${formatNumber(product.detailData.weight)}g` : '-' },
-        { label: "体积", key: "detailData.volume", format: (val: any, product: any) => product?.detailData?.volume ? `${formatNumber(product.detailData.volume)}cm³` : '-' },
-        { label: "能量重量比", key: "detailData.capacityWeightRatio", format: (val: any, product: any) => product?.detailData?.capacityWeightRatio ? `${formatNumber(product.detailData.capacityWeightRatio)} Wh/g` : '-' },
-      ]
-    },
-    {
-      category: "电池容量",
-      items: [
-        { label: "容量级别", key: "detailData.capacityLevel", format: (val: any, product: any) => product?.detailData?.capacityLevel ? `${formatNumber(product.detailData.capacityLevel)}mAh` : '-' },
-        { label: "最大放电能量", key: "detailData.maxDischargeCapacity", format: (val: any, product: any) => product?.detailData?.maxDischargeCapacity ? `${formatNumber(product.detailData.maxDischargeCapacity)}Wh` : '-' },
-        { label: "自充能量", key: "detailData.selfChargingEnergy", format: (val: any, product: any) => product?.detailData?.selfChargingEnergy ? `${formatNumber(product.detailData.selfChargingEnergy)}Wh` : '-' },
-      ]
-    },
-    {
-      category: "充电性能",
-      items: [
-        { label: "最大自充电功率", key: "detailData.maxSelfChargingPower", format: (val: any, product: any) => product?.detailData?.maxSelfChargingPower ? `${formatNumber(product.detailData.maxSelfChargingPower)}W` : '-' },
-        { label: "自充电时间", key: "detailData.selfChargingTime", format: (val: any, product: any) => product?.detailData?.selfChargingTime ? `${formatNumber(product.detailData.selfChargingTime)}分钟` : '-' },
-        { label: "平均自充电功率", key: "detailData.avgSelfChargingPower", format: (val: any, product: any) => product?.detailData?.avgSelfChargingPower ? `${formatNumber(product.detailData.avgSelfChargingPower)}W` : '-' },
-      ]
-    },
-    {
-      category: "输出性能",
-      items: [
-        { label: "最大输出功率", key: "detailData.maxOutputPower", format: (val: any, product: any) => product?.detailData?.maxOutputPower ? `${formatNumber(product.detailData.maxOutputPower)}W` : '-' },
-        { label: "最大持续输出功率", key: "detailData.maxContinuousOutputPower", format: (val: any, product: any) => product?.detailData?.maxContinuousOutputPower ? `${formatNumber(product.detailData.maxContinuousOutputPower)}W` : '-' },
-      ]
-    },
-    {
-      category: "数据来源",
-      items: [
-        { label: "数据来源", key: "detailData.dataSource", format: (val: any, product: any) => product?.detailData?.dataSource || '-' },
-      ]
+      label: '能量体积比',
+      value: detailData.capacityVolumeRatio ? `${formatNumber(detailData.capacityVolumeRatio)}Wh/cm³` : '-'
     }
   ];
 
+  return <DataCard title="物理规格" items={items} />;
+}
+
+function BasicInfoCard({ product }: { product: ChargeBaby | null }) {
+  if (!product) {
+    return <DataCard title="基本信息" items={[]} isEmpty={true} />;
+  }
+
+  const items: DataItem[] = [
+    {
+      label: '型号',
+      value: product.brand && product.model ? `${product.brand} ${product.model}` : (product.model || '-')
+    },
+    {
+      label: '发布时间',
+      value: product.releaseDate ? (() => {
+        const d = new Date(product.releaseDate);
+        return `${d.getFullYear()}年${d.getMonth() + 1}月`;
+      })() : '-'
+    },
+    {
+      label: '官方定价',
+      value: product.price ? `¥${Math.round(product.price)}` : '-'
+    }
+  ];
+
+  return <DataCard title="基本信息" items={items} />;
+}
+
+function BatteryCapacityCard({ product }: { product: ChargeBaby | null }) {
+  if (!product?.detailData) {
+    return <DataCard title="电池容量" items={[]} isEmpty={true} />;
+  }
+
+  const { detailData } = product;
+  const items: DataItem[] = [
+    {
+      label: '容量级别',
+      value: detailData.capacityLevel ? `${formatNumber(detailData.capacityLevel)}mAh` : '-'
+    },
+    {
+      label: '最大放电能量',
+      value: detailData.maxDischargeCapacity ? `${formatNumber(detailData.maxDischargeCapacity)}Wh` : '-'
+    },
+    {
+      label: '自充能量',
+      value: detailData.selfChargingEnergy ? `${formatNumber(detailData.selfChargingEnergy)}Wh` : '-'
+    }
+  ];
+
+  return <DataCard title="电池容量" items={items} />;
+}
+
+function ChargingPerformanceCard({ product }: { product: ChargeBaby | null }) {
+  if (!product?.detailData) {
+    return <DataCard title="充电性能" items={[]} isEmpty={true} />;
+  }
+
+  const { detailData } = product;
+  const items: DataItem[] = [
+    {
+      label: '最大自充电功率',
+      value: detailData.maxSelfChargingPower ? `${formatNumber(detailData.maxSelfChargingPower)}W` : '-'
+    },
+    {
+      label: '自充电时间',
+      value: detailData.selfChargingTime ? `${formatNumber(detailData.selfChargingTime)}分钟` : '-'
+    },
+    {
+      label: '平均自充电功率',
+      value: detailData.avgSelfChargingPower ? `${formatNumber(detailData.avgSelfChargingPower)}W` : '-'
+    }
+  ];
+
+  return <DataCard title="充电性能" items={items} />;
+}
+
+function OutputPerformanceCard({ product }: { product: ChargeBaby | null }) {
+  if (!product?.detailData) {
+    return <DataCard title="输出性能" items={[]} isEmpty={true} />;
+  }
+
+  const { detailData } = product;
+  const items: DataItem[] = [
+    {
+      label: '最大输出功率',
+      value: detailData.maxOutputPower ? `${formatNumber(detailData.maxOutputPower)}W` : '-'
+    },
+    {
+      label: '最大持续输出功率',
+      value: detailData.maxContinuousOutputPower ? `${formatNumber(detailData.maxContinuousOutputPower)}W` : '-'
+    }
+  ];
+
+  return <DataCard title="输出性能" items={items} />;
+}
+
+function PerformanceParamsCard({ product }: { product: ChargeBaby | null }) {
+  if (!product) {
+    return <DataCard title="性能参数" items={[]} isEmpty={true} />;
+  }
+
+  const items: DataItem[] = [
+    {
+      label: '自充能力',
+      value: product.selfChargingCapability != null ? `${formatNumber(product.selfChargingCapability)}/40` : '-'
+    },
+    {
+      label: '输出能力',
+      value: product.outputCapability != null ? `${formatNumber(product.outputCapability)}/35` : '-'
+    },
+    {
+      label: '能量',
+      value: product.energy != null ? `${formatNumber(product.energy)}/20` : '-'
+    }
+  ];
+
+  return <DataCard title="性能参数" items={items} />;
+}
+
+function ExperienceParamsCard({ product }: { product: ChargeBaby | null }) {
+  if (!product) {
+    return <DataCard title="体验参数" items={[]} isEmpty={true} />;
+  }
+
+  const items: DataItem[] = [
+    {
+      label: '便携性',
+      value: product.portability != null ? `${formatNumber(product.portability)}/40` : '-'
+    },
+    {
+      label: '充电协议',
+      value: product.chargingProtocols != null ? `${formatNumber(product.chargingProtocols)}/30` : '-'
+    },
+    {
+      label: '多接口使用',
+      value: product.multiPortUsage != null ? `${formatNumber(product.multiPortUsage)}/20` : '-'
+    }
+  ];
+
+  return <DataCard title="体验参数" items={items} />;
+}
+
+function DataSourceCard({ product }: { product: ChargeBaby | null }) {
+  if (!product) {
+    return <DataCard title="数据来源" items={[]} isEmpty={true} />;
+  }
+
+  const items: DataItem[] = [
+    {
+      label: '数据来源',
+      value: product.detailData?.dataSource || '-'
+    },
+    {
+      label: '样机提供方',
+      value: product.productSource || '-'
+    }
+  ];
+
+  return <DataCard title="数据来源" items={items} />;
+}
+
+function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)[]; isMobile?: boolean }) {
   const maxColumns = isMobile ? 2 : 3;
   
-  return (
-    <div className={`${isMobile ? 'space-y-12' : 'space-y-16 sm:space-y-20'}`}>
-      {comparisonData.map((category) => (
-        <div key={category.category}>
-          <h2 className={`font-bold text-gray-900 mb-6 sm:mb-8 md:mb-10 text-center ${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
-            {category.category}
-          </h2>
+  // 渲染对应类别的卡片组件
+  const renderCategoryCards = (categoryName: string) => {
+    return (
+      <div className={`grid gap-4 sm:gap-5 md:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+        {Array.from({ length: maxColumns }, (_, index) => {
+          const product = products[index];
           
-          <div className={`${isMobile ? 'space-y-4' : 'space-y-6 sm:space-y-8'}`}>
-            {category.items.map((item) => (
-              <div key={item.key}>
-                <h3 className={`font-semibold text-gray-700 mb-3 sm:mb-4 ${isMobile ? 'text-sm' : 'text-base sm:text-lg'}`}>
-                  {item.label}
-                </h3>
-                
-                <div className={`grid gap-3 sm:gap-4 md:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
-                  {/* 按选择器的顺序显示产品 */}
-                  {Array.from({ length: maxColumns }, (_, index) => {
-                    const product = products[index];
-                    if (!product) {
-                      return (
-                        <div key={index} className="text-center">
-                          <div className={`bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-4 py-8' : 'p-6 py-10 sm:py-12'} flex items-center justify-center`}>
-                            <div className={`text-gray-400 ${isMobile ? 'text-2xl' : 'text-3xl sm:text-4xl'} font-light`}>
-                              -
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    
-                    const value = (product as any)[item.key];
-                    const displayValue = item.format ? item.format(value, product) : value || '-';
-                    
-                    return (
-                      <div key={product.id} className="text-center">
-                        <div className={`bg-white border border-gray-200 rounded-xl sm:rounded-2xl ${isMobile ? 'p-4 py-8' : 'p-6 py-10 sm:py-12'} flex items-center justify-center`}>
-                          <div className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'}`}>
-                            {typeof displayValue === 'object' && displayValue?.isRating ? (
-                              <>
-                                <span className="text-gray-900">{displayValue.score}</span>
-                                <span className={`text-gray-400 ${isMobile ? 'text-sm' : 'text-base sm:text-lg lg:text-xl'}`}>/{displayValue.max || 100}</span>
-                              </>
-                            ) : (
-                              <span className="text-gray-900">{displayValue}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+          switch (categoryName) {
+            case '基本信息':
+              return <BasicInfoCard key={product?.id ?? index} product={product} />;
+            case '物理规格':
+              return <PhysicalSpecsCard key={product?.id ?? index} product={product} />;
+            case '性能参数':
+              return <PerformanceParamsCard key={product?.id ?? index} product={product} />;
+            case '体验参数':
+              return <ExperienceParamsCard key={product?.id ?? index} product={product} />;
+            case '电池容量':
+              return <BatteryCapacityCard key={product?.id ?? index} product={product} />;
+            case '充电性能':
+              return <ChargingPerformanceCard key={product?.id ?? index} product={product} />;
+            case '输出性能':
+              return <OutputPerformanceCard key={product?.id ?? index} product={product} />;
+            case '数据来源':
+              return <DataSourceCard key={product?.id ?? index} product={product} />;
+            default:
+              return null;
+          }
+        })}
+      </div>
+    );
+  };
+  
+  const categories = [
+    '基本信息',
+    '物理规格',
+    '性能参数',
+    '体验参数',
+    '电池容量',
+    '充电性能',
+    '输出性能',
+    '数据来源'
+  ];
+  
+  return (
+    <div className={`${isMobile ? 'space-y-6' : 'space-y-8'}`}>
+      {/* 综合评分卡片 - 显示在最前面 */}
+      <div>
+        <div className={`grid gap-4 sm:gap-5 md:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+          {Array.from({ length: maxColumns }, (_, index) => {
+            const product = products[index];
+            return <ScoreComparisonCard key={product?.id ?? index} product={product} />;
+          })}
+        </div>
+      </div>
+
+      {/* 其他类别卡片 */}
+      {categories.map((categoryName) => (
+        <div key={categoryName}>
+          {renderCategoryCards(categoryName)}
         </div>
       ))}
     </div>
