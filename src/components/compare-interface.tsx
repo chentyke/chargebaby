@@ -597,11 +597,11 @@ function DataCard({
       <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 pb-2 sm:pb-3 md:pb-4 border-b border-gray-100">{title}</h3>
       <div className="space-y-3 sm:space-y-4 md:space-y-6">
         {items.map((item) => (
-          <div key={item.label}>
-            <div className="text-[10px] sm:text-xs font-medium text-gray-500 mb-1.5 sm:mb-2 md:mb-2.5 uppercase tracking-wide">
+          <div key={item.label} className="min-h-0">
+            <div className="text-[10px] sm:text-xs font-medium text-gray-500 mb-1.5 sm:mb-2 md:mb-2.5 uppercase tracking-wide leading-normal">
               <TitleWithTooltip title={item.label} />
             </div>
-            <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight break-words">{item.value}</div>
+            <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 leading-normal break-words whitespace-normal">{item.value}</div>
           </div>
         ))}
       </div>
