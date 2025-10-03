@@ -371,24 +371,27 @@ function CompactCircularRating({ value = 0, size = 72, strokeWidth = 5, children
   );
 }
 
-function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false }: { value?: number; labels: string[]; labelsOnTop?: boolean }) {
+function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false, isMobile }: { value?: number; labels: string[]; labelsOnTop?: boolean; isMobile?: boolean }) {
   const clamped = Math.max(0, Math.min(100, value));
   const count = labels.length;
   const activeIndex = Math.min(count - 1, Math.floor(clamped / (100 / count)));
   const segmentWidth = 100 / count;
 
+  // 移动端显示简化的标签
+  const displayLabels = isMobile ? ['入门', '进阶', '高端', '旗舰', '超旗舰'] : labels;
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5 sm:space-y-1">
       {labelsOnTop && (
-        <div className="mb-1 flex justify-between text-[10px] text-gray-400">
-          {labels.map((label, index) => (
+        <div className="mb-0.5 sm:mb-1 flex justify-between text-[8px] sm:text-[10px] text-gray-400">
+          {displayLabels.map((label, index) => (
             <span key={label} className={index === activeIndex ? 'text-gray-700 font-medium' : undefined}>
               {label}
             </span>
           ))}
         </div>
       )}
-      <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
+      <div className="relative h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-gray-200">
         {Array.from({ length: count - 1 }).map((_, index) => (
           <div
             key={index}
@@ -402,8 +405,8 @@ function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false }: {
         />
       </div>
       {!labelsOnTop && (
-        <div className="flex justify-between text-[10px] text-gray-400">
-          {labels.map((label, index) => (
+        <div className="flex justify-between text-[8px] sm:text-[10px] text-gray-400">
+          {displayLabels.map((label, index) => (
             <span key={label} className={index === activeIndex ? 'text-gray-700 font-medium' : undefined}>
               {label}
             </span>
@@ -414,12 +417,12 @@ function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false }: {
   );
 }
 
-function ScoreComparisonCard({ product }: { product: ChargeBaby | null }) {
+function ScoreComparisonCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   const overallScore = product?.overallRating ?? null;
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-4">
-      <OverallScoreBlock score={overallScore} />
+    <div className="flex flex-col gap-2 sm:gap-3 md:gap-4">
+      <OverallScoreBlock score={overallScore} isMobile={isMobile} />
       <DetailedScoreBlock
         title="性能评分"
         score={product?.performanceRating ?? null}
@@ -429,6 +432,7 @@ function ScoreComparisonCard({ product }: { product: ChargeBaby | null }) {
           { label: '输出能力', value: product?.outputCapability ?? null, max: 35 },
           { label: '能量', value: product?.energy ?? null, max: 20 },
         ]}
+        isMobile={isMobile}
       />
       <DetailedScoreBlock
         title="体验评分"
@@ -439,29 +443,36 @@ function ScoreComparisonCard({ product }: { product: ChargeBaby | null }) {
           { label: '充电协议', value: product?.chargingProtocols ?? null, max: 30 },
           { label: '多接口使用', value: product?.multiPortUsage ?? null, max: 20 },
         ]}
+        isMobile={isMobile}
       />
     </div>
   );
 }
 
-function OverallScoreBlock({ score }: { score?: number | null }) {
+function OverallScoreBlock({ score, isMobile }: { score?: number | null; isMobile?: boolean }) {
   const hasScore = score != null;
   const normalizedScore = hasScore ? Math.max(0, Math.min(100, score as number)) : 0;
   const gradeLabel = hasScore
     ? gradeLabels[Math.min(gradeLabels.length - 1, Math.floor(normalizedScore / 20))]
     : '--';
 
+  // 移动端使用更小的尺寸
+  const circleSize = isMobile ? 120 : 180;
+  const strokeWidth = isMobile ? 6 : 8;
+  const scoreTextSize = isMobile ? 'text-2xl' : 'text-4xl';
+  const labelTextSize = isMobile ? 'text-[10px]' : 'text-xs';
+
   return (
-    <div className="aspect-square rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col">
+    <div className="aspect-square rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-2 sm:p-4 md:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col">
       <div className="flex flex-1 items-center justify-center">
-        <CompactCircularRating value={normalizedScore} size={180} strokeWidth={8}>
+        <CompactCircularRating value={normalizedScore} size={circleSize} strokeWidth={strokeWidth}>
           {hasScore ? (
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-xs font-medium text-gray-600">综合评分</span>
-              <span className="text-4xl font-bold text-gray-900 leading-none">
+            <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+              <span className={`${labelTextSize} font-medium text-gray-600`}>综合评分</span>
+              <span className={`${scoreTextSize} font-bold text-gray-900 leading-none`}>
                 {Math.round(normalizedScore)}
               </span>
-              <span className="text-xs font-medium text-gray-500">{gradeLabel}</span>
+              <span className={`${labelTextSize} font-medium text-gray-500`}>{gradeLabel}</span>
             </div>
           ) : (
             <span className="text-sm text-gray-400">--</span>
@@ -477,11 +488,13 @@ function DetailedScoreBlock({
   score,
   labels,
   metrics,
+  isMobile,
 }: {
   title: string;
   score?: number | null;
   labels: string[];
   metrics: { label: string; value?: number | null; max: number }[];
+  isMobile?: boolean;
 }) {
   const hasScore = score != null;
   const normalizedScore = hasScore ? Math.max(0, Math.min(100, score as number)) : 0;
@@ -490,45 +503,45 @@ function DetailedScoreBlock({
     : '--';
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col gap-3 sm:gap-4">
+    <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 md:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col gap-2 sm:gap-3 md:gap-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-900">{title}</span>
+        <span className="text-xs sm:text-sm font-semibold text-gray-900">{title}</span>
         {hasScore ? (
-          <div className="flex items-baseline gap-1 text-gray-900">
-            <span className="text-2xl font-bold">{formatNumber(normalizedScore)}</span>
-            <span className="text-sm text-gray-400">/100</span>
+          <div className="flex items-baseline gap-0.5 sm:gap-1 text-gray-900">
+            <span className="text-lg sm:text-xl md:text-2xl font-bold">{formatNumber(normalizedScore)}</span>
+            <span className="text-xs sm:text-sm text-gray-400">/100</span>
           </div>
         ) : (
-          <span className="text-sm text-gray-400">--</span>
+          <span className="text-xs sm:text-sm text-gray-400">--</span>
         )}
       </div>
 
       {hasScore && (
         <>
-          <CompactProgressSegmentBar value={normalizedScore} labels={labels} labelsOnTop />
-          <div className="text-[11px] text-gray-500">{levelLabel}</div>
+          <CompactProgressSegmentBar value={normalizedScore} labels={labels} labelsOnTop isMobile={isMobile} />
+          <div className="text-[10px] sm:text-[11px] text-gray-500">{levelLabel}</div>
         </>
       )}
 
       <div className="h-px bg-gray-100" />
 
-      <div className="space-y-2">
+      <div className="space-y-1.5 sm:space-y-2">
         {metrics.map((metric) => (
-          <MetricRow key={metric.label} label={metric.label} value={metric.value} max={metric.max} />
+          <MetricRow key={metric.label} label={metric.label} value={metric.value} max={metric.max} isMobile={isMobile} />
         ))}
       </div>
     </div>
   );
 }
 
-function MetricRow({ label, value, max }: { label: string; value?: number | null; max: number }) {
+function MetricRow({ label, value, max, isMobile }: { label: string; value?: number | null; max: number; isMobile?: boolean }) {
   const hasValue = value != null;
   const safeValue = hasValue ? Math.max(0, Math.min(max, value as number)) : 0;
   const progress = getMetricProgress(value, max);
 
   return (
     <div>
-      <div className="flex items-center justify-between text-[12px] text-gray-600">
+      <div className="flex items-center justify-between text-[10px] sm:text-[12px] text-gray-600">
         <TitleWithTooltip title={label} />
         {hasValue ? (
           <span className="font-medium text-gray-800">{formatNumber(safeValue)}/{max}</span>
@@ -536,7 +549,7 @@ function MetricRow({ label, value, max }: { label: string; value?: number | null
           <span className="text-gray-400">--</span>
         )}
       </div>
-      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+      <div className="mt-0.5 sm:mt-1 h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-gray-200">
         <div className="h-full bg-gray-600" style={{ width: `${progress}%` }} />
       </div>
     </div>
@@ -563,30 +576,32 @@ interface DataItem {
 function DataCard({ 
   title, 
   items, 
-  isEmpty = false 
+  isEmpty = false,
+  isMobile
 }: { 
   title: string; 
   items: DataItem[]; 
   isEmpty?: boolean;
+  isMobile?: boolean;
 }) {
   if (isEmpty) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-8 flex items-center justify-center min-h-[280px] transition-all hover:border-gray-300">
-        <span className="text-gray-400 text-lg">-</span>
+      <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-gray-50/50 p-4 sm:p-6 md:p-8 flex items-center justify-center min-h-[180px] sm:min-h-[240px] md:min-h-[280px] transition-all hover:border-gray-300">
+        <span className="text-gray-400 text-base sm:text-lg">-</span>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300">
-      <h3 className="text-base font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">{title}</h3>
-      <div className="space-y-6">
+    <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 md:p-8 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300">
+      <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 pb-2 sm:pb-3 md:pb-4 border-b border-gray-100">{title}</h3>
+      <div className="space-y-3 sm:space-y-4 md:space-y-6">
         {items.map((item) => (
           <div key={item.label}>
-            <div className="text-xs font-medium text-gray-500 mb-2.5 uppercase tracking-wide">
+            <div className="text-[10px] sm:text-xs font-medium text-gray-500 mb-1.5 sm:mb-2 md:mb-2.5 uppercase tracking-wide">
               <TitleWithTooltip title={item.label} />
             </div>
-            <div className="text-2xl font-bold text-gray-900 leading-tight">{item.value}</div>
+            <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight break-words">{item.value}</div>
           </div>
         ))}
       </div>
@@ -594,9 +609,9 @@ function DataCard({
   );
 }
 
-function PhysicalSpecsCard({ product }: { product: ChargeBaby | null }) {
+function PhysicalSpecsCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product?.detailData) {
-    return <DataCard title="物理规格" items={[]} isEmpty={true} />;
+    return <DataCard title="物理规格" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const { detailData } = product;
@@ -625,12 +640,12 @@ function PhysicalSpecsCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="物理规格" items={items} />;
+  return <DataCard title="物理规格" items={items} isMobile={isMobile} />;
 }
 
-function BasicInfoCard({ product }: { product: ChargeBaby | null }) {
+function BasicInfoCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product) {
-    return <DataCard title="基本信息" items={[]} isEmpty={true} />;
+    return <DataCard title="基本信息" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const items: DataItem[] = [
@@ -651,12 +666,12 @@ function BasicInfoCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="基本信息" items={items} />;
+  return <DataCard title="基本信息" items={items} isMobile={isMobile} />;
 }
 
-function BatteryCapacityCard({ product }: { product: ChargeBaby | null }) {
+function BatteryCapacityCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product?.detailData) {
-    return <DataCard title="电池容量" items={[]} isEmpty={true} />;
+    return <DataCard title="电池容量" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const { detailData } = product;
@@ -675,12 +690,12 @@ function BatteryCapacityCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="电池容量" items={items} />;
+  return <DataCard title="电池容量" items={items} isMobile={isMobile} />;
 }
 
-function ChargingPerformanceCard({ product }: { product: ChargeBaby | null }) {
+function ChargingPerformanceCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product?.detailData) {
-    return <DataCard title="充电性能" items={[]} isEmpty={true} />;
+    return <DataCard title="充电性能" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const { detailData } = product;
@@ -699,12 +714,12 @@ function ChargingPerformanceCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="充电性能" items={items} />;
+  return <DataCard title="充电性能" items={items} isMobile={isMobile} />;
 }
 
-function OutputPerformanceCard({ product }: { product: ChargeBaby | null }) {
+function OutputPerformanceCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product?.detailData) {
-    return <DataCard title="输出性能" items={[]} isEmpty={true} />;
+    return <DataCard title="输出性能" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const { detailData } = product;
@@ -719,12 +734,12 @@ function OutputPerformanceCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="输出性能" items={items} />;
+  return <DataCard title="输出性能" items={items} isMobile={isMobile} />;
 }
 
-function PerformanceParamsCard({ product }: { product: ChargeBaby | null }) {
+function PerformanceParamsCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product) {
-    return <DataCard title="性能参数" items={[]} isEmpty={true} />;
+    return <DataCard title="性能参数" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const items: DataItem[] = [
@@ -742,12 +757,12 @@ function PerformanceParamsCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="性能参数" items={items} />;
+  return <DataCard title="性能参数" items={items} isMobile={isMobile} />;
 }
 
-function ExperienceParamsCard({ product }: { product: ChargeBaby | null }) {
+function ExperienceParamsCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product) {
-    return <DataCard title="体验参数" items={[]} isEmpty={true} />;
+    return <DataCard title="体验参数" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const items: DataItem[] = [
@@ -765,12 +780,12 @@ function ExperienceParamsCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="体验参数" items={items} />;
+  return <DataCard title="体验参数" items={items} isMobile={isMobile} />;
 }
 
-function DataSourceCard({ product }: { product: ChargeBaby | null }) {
+function DataSourceCard({ product, isMobile }: { product: ChargeBaby | null; isMobile?: boolean }) {
   if (!product) {
-    return <DataCard title="数据来源" items={[]} isEmpty={true} />;
+    return <DataCard title="数据来源" items={[]} isEmpty={true} isMobile={isMobile} />;
   }
 
   const items: DataItem[] = [
@@ -784,7 +799,7 @@ function DataSourceCard({ product }: { product: ChargeBaby | null }) {
     }
   ];
 
-  return <DataCard title="数据来源" items={items} />;
+  return <DataCard title="数据来源" items={items} isMobile={isMobile} />;
 }
 
 function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)[]; isMobile?: boolean }) {
@@ -793,27 +808,27 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
   // 渲染对应类别的卡片组件
   const renderCategoryCards = (categoryName: string) => {
     return (
-      <div className={`grid gap-4 sm:gap-5 md:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+      <div className={`grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
         {Array.from({ length: maxColumns }, (_, index) => {
           const product = products[index];
           
           switch (categoryName) {
             case '基本信息':
-              return <BasicInfoCard key={product?.id ?? index} product={product} />;
+              return <BasicInfoCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '物理规格':
-              return <PhysicalSpecsCard key={product?.id ?? index} product={product} />;
+              return <PhysicalSpecsCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '性能参数':
-              return <PerformanceParamsCard key={product?.id ?? index} product={product} />;
+              return <PerformanceParamsCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '体验参数':
-              return <ExperienceParamsCard key={product?.id ?? index} product={product} />;
+              return <ExperienceParamsCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '电池容量':
-              return <BatteryCapacityCard key={product?.id ?? index} product={product} />;
+              return <BatteryCapacityCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '充电性能':
-              return <ChargingPerformanceCard key={product?.id ?? index} product={product} />;
+              return <ChargingPerformanceCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '输出性能':
-              return <OutputPerformanceCard key={product?.id ?? index} product={product} />;
+              return <OutputPerformanceCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '数据来源':
-              return <DataSourceCard key={product?.id ?? index} product={product} />;
+              return <DataSourceCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             default:
               return null;
           }
@@ -834,13 +849,13 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
   ];
   
   return (
-    <div className={`${isMobile ? 'space-y-6' : 'space-y-8'}`}>
+    <div className={`${isMobile ? 'space-y-4' : 'space-y-6 md:space-y-8'}`}>
       {/* 综合评分卡片 - 显示在最前面 */}
       <div>
-        <div className={`grid gap-4 sm:gap-5 md:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+        <div className={`grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
           {Array.from({ length: maxColumns }, (_, index) => {
             const product = products[index];
-            return <ScoreComparisonCard key={product?.id ?? index} product={product} />;
+            return <ScoreComparisonCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
           })}
         </div>
       </div>
