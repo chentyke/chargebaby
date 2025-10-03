@@ -330,49 +330,59 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
 }
 
 function CompactCircularRating({ value = 0, size = 72, strokeWidth = 5, children }: { value?: number; size?: number; strokeWidth?: number; children?: ReactNode }) {
-  const clampedValue = Math.max(0, Math.min(100, value));
+  const actualValue = Math.max(0, value);
+  const clampedValue = Math.min(100, actualValue);
+  const isOverMax = actualValue > 100;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (clampedValue / 100) * circumference;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg className="-rotate-90 transform" width={size} height={size}>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="#e5e7eb"
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="#4b5563"
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-[stroke-dashoffset] duration-500 ease-out"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        {children ?? (
-          <>
-            <span className="text-lg font-semibold text-gray-900 leading-none">{Math.round(clampedValue)}</span>
-            <span className="text-[10px] text-gray-400">/100</span>
-          </>
-        )}
+    <div className="inline-flex items-center gap-1.5">
+      <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+        <svg className="-rotate-90 transform" width={size} height={size}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#4b5563"
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            className="transition-[stroke-dashoffset] duration-500 ease-out"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          {children ?? (
+            <>
+              <span className="text-lg font-semibold text-gray-900 leading-none">{Math.round(actualValue)}</span>
+              <span className="text-[10px] text-gray-400">/100</span>
+            </>
+          )}
+        </div>
       </div>
+      {/* 超分绿条 */}
+      {isOverMax && (
+        <div className="bg-green-500 rounded-sm" style={{ width: '4px', height: `${strokeWidth}px` }} />
+      )}
     </div>
   );
 }
 
 function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false, isMobile }: { value?: number; labels: string[]; labelsOnTop?: boolean; isMobile?: boolean }) {
-  const clamped = Math.max(0, Math.min(100, value));
+  const actualValue = Math.max(0, value);
+  const clamped = Math.min(100, actualValue);
+  const isOverMax = actualValue > 100;
   const count = labels.length;
   const activeIndex = Math.min(count - 1, Math.floor(clamped / (100 / count)));
   const segmentWidth = 100 / count;
@@ -391,18 +401,24 @@ function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false, isM
           ))}
         </div>
       )}
-      <div className="relative h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-gray-200">
-        {Array.from({ length: count - 1 }).map((_, index) => (
+      <div className="flex items-center gap-1">
+        <div className="relative h-1.5 sm:h-2 flex-1 rounded-full bg-gray-200 overflow-hidden">
+          {Array.from({ length: count - 1 }).map((_, index) => (
+            <div
+              key={index}
+              className="absolute top-0 bottom-0 w-px bg-white/60"
+              style={{ left: `${(index + 1) * segmentWidth}%` }}
+            />
+          ))}
           <div
-            key={index}
-            className="absolute top-0 bottom-0 w-px bg-white/60"
-            style={{ left: `${(index + 1) * segmentWidth}%` }}
+            className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-gray-700 via-gray-700 to-gray-500"
+            style={{ width: `${clamped}%` }}
           />
-        ))}
-        <div
-          className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-gray-700 via-gray-700 to-gray-500"
-          style={{ width: `${clamped}%` }}
-        />
+        </div>
+        {/* 超分绿条 */}
+        {isOverMax && (
+          <div className="bg-green-500 rounded-sm flex-shrink-0 h-1.5 sm:h-2" style={{ width: '4px' }} />
+        )}
       </div>
       {!labelsOnTop && (
         <div className="flex justify-between text-[8px] sm:text-[10px] text-gray-400">
@@ -451,7 +467,8 @@ function ScoreComparisonCard({ product, isMobile }: { product: ChargeBaby | null
 
 function OverallScoreBlock({ score, isMobile }: { score?: number | null; isMobile?: boolean }) {
   const hasScore = score != null;
-  const normalizedScore = hasScore ? Math.max(0, Math.min(100, score as number)) : 0;
+  const actualScore = hasScore ? Math.max(0, score as number) : 0;
+  const normalizedScore = Math.min(100, actualScore);
   const gradeLabel = hasScore
     ? gradeLabels[Math.min(gradeLabels.length - 1, Math.floor(normalizedScore / 20))]
     : '--';
@@ -465,12 +482,12 @@ function OverallScoreBlock({ score, isMobile }: { score?: number | null; isMobil
   return (
     <div className="aspect-square rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-2 sm:p-4 md:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col">
       <div className="flex flex-1 items-center justify-center">
-        <CompactCircularRating value={normalizedScore} size={circleSize} strokeWidth={strokeWidth}>
+        <CompactCircularRating value={actualScore} size={circleSize} strokeWidth={strokeWidth}>
           {hasScore ? (
             <div className="flex flex-col items-center gap-0.5 sm:gap-1">
               <span className={`${labelTextSize} font-medium text-gray-600`}>综合评分</span>
               <span className={`${scoreTextSize} font-bold text-gray-900 leading-none`}>
-                {Math.round(normalizedScore)}
+                {Math.round(actualScore)}
               </span>
               <span className={`${labelTextSize} font-medium text-gray-500`}>{gradeLabel}</span>
             </div>
@@ -497,7 +514,8 @@ function DetailedScoreBlock({
   isMobile?: boolean;
 }) {
   const hasScore = score != null;
-  const normalizedScore = hasScore ? Math.max(0, Math.min(100, score as number)) : 0;
+  const actualScore = hasScore ? Math.max(0, score as number) : 0;
+  const normalizedScore = Math.min(100, actualScore);
   const levelLabel = hasScore
     ? labels[Math.min(labels.length - 1, Math.floor(normalizedScore / 20))]
     : '--';
@@ -508,7 +526,7 @@ function DetailedScoreBlock({
         <span className="text-xs sm:text-sm font-semibold text-gray-900">{title}</span>
         {hasScore ? (
           <div className="flex items-baseline gap-0.5 sm:gap-1 text-gray-900">
-            <span className="text-lg sm:text-xl md:text-2xl font-bold">{formatNumber(normalizedScore)}</span>
+            <span className="text-lg sm:text-xl md:text-2xl font-bold">{formatNumber(actualScore)}</span>
             <span className="text-xs sm:text-sm text-gray-400">/100</span>
           </div>
         ) : (
@@ -518,7 +536,7 @@ function DetailedScoreBlock({
 
       {hasScore && (
         <>
-          <CompactProgressSegmentBar value={normalizedScore} labels={labels} labelsOnTop isMobile={isMobile} />
+          <CompactProgressSegmentBar value={actualScore} labels={labels} labelsOnTop isMobile={isMobile} />
           <div className="text-[10px] sm:text-[11px] text-gray-500">{levelLabel}</div>
         </>
       )}
@@ -536,7 +554,8 @@ function DetailedScoreBlock({
 
 function MetricRow({ label, value, max, isMobile }: { label: string; value?: number | null; max: number; isMobile?: boolean }) {
   const hasValue = value != null;
-  const safeValue = hasValue ? Math.max(0, Math.min(max, value as number)) : 0;
+  const actualValue = hasValue ? Math.max(0, value as number) : 0;
+  const isOverMax = actualValue > max;
   const progress = getMetricProgress(value, max);
 
   return (
@@ -544,13 +563,19 @@ function MetricRow({ label, value, max, isMobile }: { label: string; value?: num
       <div className="flex items-center justify-between text-[10px] sm:text-[12px] text-gray-600">
         <TitleWithTooltip title={label} />
         {hasValue ? (
-          <span className="font-medium text-gray-800">{formatNumber(safeValue)}/{max}</span>
+          <span className="font-medium text-gray-800">{formatNumber(actualValue)}/{max}</span>
         ) : (
           <span className="text-gray-400">--</span>
         )}
       </div>
-      <div className="mt-0.5 sm:mt-1 h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-gray-200">
-        <div className="h-full bg-gray-600" style={{ width: `${progress}%` }} />
+      <div className="mt-0.5 sm:mt-1 flex items-center gap-1">
+        <div className="h-1.5 sm:h-2 flex-1 rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-full bg-gray-600 rounded-full" style={{ width: `${progress}%` }} />
+        </div>
+        {/* 超分绿条 */}
+        {isOverMax && (
+          <div className="bg-green-500 rounded-sm flex-shrink-0 h-1.5 sm:h-2" style={{ width: '3px' }} />
+        )}
       </div>
     </div>
   );

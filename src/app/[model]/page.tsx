@@ -836,17 +836,30 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
 }
 
 function ItemBar({ label, value = 0, max }: { label: string; value?: number; max: number }) {
-  const width = `${getRatingProgress(value, max)}%`;
+  const actualValue = Math.max(0, value ?? 0);
+  const isOverMax = actualValue > max;
+  const displayWidth = Math.min(100, (actualValue / max) * 100);
+  const width = `${displayWidth}%`;
   return (
     <div>
       <div className="flex items-baseline justify-between text-sm text-gray-700">
         <span>{label}</span>
         <span className="font-semibold">
-          {formatRating(value)}/{max}
+          {formatRating(actualValue)}/{max}
         </span>
       </div>
-      <div className="mt-1 h-2 w-full rounded-full bg-gray-200 overflow-hidden">
-        <div className="h-full bg-gray-700" style={{ width }} />
+      <div className="mt-1 h-2 w-full rounded-full bg-gray-200 overflow-visible relative flex items-center gap-1">
+        <div className="h-full bg-gray-700 rounded-full flex-1" style={{ width }} />
+        {/* 超分绿条 */}
+        {isOverMax && (
+          <div 
+            className="bg-green-500 rounded-sm flex-shrink-0"
+            style={{ 
+              width: '4px', 
+              height: '100%'
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -854,7 +867,9 @@ function ItemBar({ label, value = 0, max }: { label: string; value?: number; max
 
 function ProgressSegmentBar({ value = 0, labels, className = '', labelsOnTop = false, showBoundaries = false, showHalo = false }: { value?: number; labels: string[]; className?: string; labelsOnTop?: boolean; showBoundaries?: boolean; showHalo?: boolean }) {
   const count = labels.length;
-  const clamped = Math.max(0, Math.min(100, value));
+  const actualValue = Math.max(0, value);
+  const clamped = Math.min(100, actualValue);
+  const isOverMax = actualValue > 100;
   const active = Math.min(count - 1, Math.floor(clamped / (100 / count)));
   const fillWidth = `${clamped}%`;
   const segWidth = 100 / count;
@@ -871,21 +886,27 @@ function ProgressSegmentBar({ value = 0, labels, className = '', labelsOnTop = f
           ))}
         </div>
       )}
-      <div className="relative h-3 w-full rounded-full bg-gray-200 overflow-hidden">
-        {/* optional active segment halo */}
-        {showHalo && (
-          <div
-            className="absolute inset-y-0 rounded-full ring-1 ring-gray-400/70"
-            style={{ left: activeLeft, width: activeWidth }}
-          />
+      <div className="flex items-center gap-1">
+        <div className="relative h-3 flex-1 rounded-full bg-gray-200 overflow-hidden">
+          {/* optional active segment halo */}
+          {showHalo && (
+            <div
+              className="absolute inset-y-0 rounded-full ring-1 ring-gray-400/70"
+              style={{ left: activeLeft, width: activeWidth }}
+            />
+          )}
+          {/* optional segment boundaries */}
+          {showBoundaries &&
+            Array.from({ length: count - 1 }).map((_, i) => (
+              <div key={i} className="absolute top-0 bottom-0 w-px bg-gray-300/80" style={{ left: `${((i + 1) * 100) / count}%` }} />
+            ))}
+          {/* fill */}
+          <div className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-gray-700 via-gray-700 to-gray-500" style={{ width: fillWidth }} />
+        </div>
+        {/* 超分绿条 */}
+        {isOverMax && (
+          <div className="bg-green-500 rounded-sm flex-shrink-0 h-3" style={{ width: '5px' }} />
         )}
-        {/* optional segment boundaries */}
-        {showBoundaries &&
-          Array.from({ length: count - 1 }).map((_, i) => (
-            <div key={i} className="absolute top-0 bottom-0 w-px bg-gray-300/80" style={{ left: `${((i + 1) * 100) / count}%` }} />
-          ))}
-        {/* fill */}
-        <div className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-gray-700 via-gray-700 to-gray-500" style={{ width: fillWidth }} />
       </div>
       {!labelsOnTop && (
         <div className="mt-2 flex justify-between text-[11px] text-gray-500">
@@ -901,17 +922,24 @@ function ProgressSegmentBar({ value = 0, labels, className = '', labelsOnTop = f
 }
 
 function ItemBarInline({ label, value = 0, max }: { label: string; value?: number; max: number }) {
-  const width = `${getRatingProgress(value, max)}%`;
+  const actualValue = Math.max(0, value ?? 0);
+  const isOverMax = actualValue > max;
+  const displayWidth = Math.min(100, (actualValue / max) * 100);
+  const width = `${displayWidth}%`;
   return (
     <div className="w-full">
       <div className="text-sm text-gray-700">
         <TitleWithTooltip title={label} />
       </div>
       <div className="mt-1 text-lg md:text-xl font-bold text-gray-900 leading-none">
-        {formatRating(value)}/{max}
+        {formatRating(actualValue)}/{max}
       </div>
-      <div className="mt-2 h-2 w-full rounded-full bg-gray-200 overflow-hidden">
-        <div className="h-full bg-gray-700" style={{ width }} />
+      <div className="mt-2 h-2 w-full rounded-full bg-gray-200 overflow-visible flex items-center gap-1">
+        <div className="h-full bg-gray-700 rounded-full flex-1" style={{ width }} />
+        {/* 超分绿条 */}
+        {isOverMax && (
+          <div className="bg-green-500 rounded-sm flex-shrink-0" style={{ width: '4px', height: '100%' }} />
+        )}
       </div>
     </div>
   );
@@ -929,8 +957,11 @@ function CircularRating({
   showValue?: boolean;
   centerContent?: ReactNode;
 }) {
-  const clampedValue = Math.max(0, Math.min(100, value));
-  const radius = (size - 12) / 2;
+  const actualValue = Math.max(0, value);
+  const clampedValue = Math.min(100, actualValue);
+  const isOverMax = actualValue > 100;
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (clampedValue / 100) * circumference;
   
@@ -938,42 +969,48 @@ function CircularRating({
   const color = '#374151'; // gray-700
   
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg className="transform -rotate-90" width={size} height={size}>
-        {/* 背景圆环 */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="#e5e7eb"
-          strokeWidth="6"
-          fill="none"
-        />
-        {/* 进度圆环 */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={color}
-          strokeWidth="6"
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
-        />
-      </svg>
-      {centerContent ? (
-        <div className="absolute inset-0 flex items-center justify-center text-center">{centerContent}</div>
-      ) : (
-        showValue && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-3xl font-extrabold text-gray-900 leading-none">
-              {Math.round(clampedValue)}
+    <div className="inline-flex items-center gap-2">
+      <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+        <svg className="transform -rotate-90" width={size} height={size}>
+          {/* 背景圆环 */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#e5e7eb"
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+          {/* 进度圆环 */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            className="transition-all duration-500 ease-out"
+          />
+        </svg>
+        {centerContent ? (
+          <div className="absolute inset-0 flex items-center justify-center text-center">{centerContent}</div>
+        ) : (
+          showValue && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="text-3xl font-extrabold text-gray-900 leading-none">
+                {Math.round(actualValue)}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">/ 100</div>
             </div>
-            <div className="text-xs text-gray-500 mt-1">/ 100</div>
-          </div>
-        )
+          )
+        )}
+      </div>
+      {/* 超分绿条 */}
+      {isOverMax && (
+        <div className="bg-green-500 rounded-sm" style={{ width: '5px', height: `${strokeWidth}px` }} />
       )}
     </div>
   );
