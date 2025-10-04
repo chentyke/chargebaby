@@ -160,6 +160,8 @@ export interface NotionPage {
     external?: { url: string };
     file?: { url: string };
   };
+  created_time: string;
+  last_edited_time: string;
 }
 
 export interface NotionDatabase {
