@@ -115,10 +115,10 @@ export function Tooltip({ content, className = '' }: TooltipProps) {
           ref={buttonRef}
           type="button"
           onClick={() => setIsVisible(!isVisible)}
-          className="ml-1 text-gray-400 hover:text-gray-600 transition-colors"
+          className="ml-0.5 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
           aria-label="查看说明"
         >
-          <HelpCircle className="w-4 h-4" />
+          <HelpCircle className="w-3 h-3" />
         </button>
         
         {isVisible && (
@@ -170,7 +170,7 @@ export function Tooltip({ content, className = '' }: TooltipProps) {
           onMouseEnter={handleShow}
           onMouseLeave={handleHide}
           onClick={handleShow}
-          className="ml-1 text-gray-400 hover:text-gray-600 transition-colors"
+          className="ml-1 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
           aria-label="查看说明"
         >
           <HelpCircle className="w-4 h-4" />

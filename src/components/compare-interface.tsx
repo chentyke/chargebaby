@@ -72,7 +72,7 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
   return (
     <div className="min-h-screen bg-white">
       {/* 顶部导航 */}
-      <div className="container px-4 sm:px-6 lg:px-8 pt-6 pb-4">
+      <div className={`container max-w-6xl ${isMobile ? 'px-3 pt-4 pb-3' : 'px-4 sm:px-6 lg:px-8 pt-6 pb-4'}`}>
         <div className="flex items-center justify-between">
           <BackButton href={backHref} variant="compact">
             {backText}
@@ -80,25 +80,25 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
           
           {/* 排行榜按钮 */}
           <Link href="/ranking">
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200 shadow-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50/50 transition-all duration-300">
-              <Trophy className="w-5 h-5" />
-              <span className="font-medium text-sm">排行榜</span>
+            <div className={`flex items-center gap-2 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200 shadow-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50/50 transition-all duration-300 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'}`}>
+              <Trophy className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+              <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>排行榜</span>
             </div>
           </Link>
         </div>
       </div>
 
       {/* 主标题区域 */}
-      <div className="text-center py-12">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-12">
+      <div className={`text-center ${isMobile ? 'py-6' : 'py-12'}`}>
+        <h1 className={`font-bold text-gray-900 ${isMobile ? 'text-2xl mb-6' : 'text-4xl sm:text-5xl md:text-6xl mb-12'}`}>
           充电宝对比
         </h1>
       </div>
 
       {/* 粘性选择器区域 */}
       <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl">
-        <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-4">
-          <div className={`grid gap-4 sm:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+        <div className={`container max-w-6xl ${isMobile ? 'px-3 py-3' : 'px-4 sm:px-6 lg:px-8 py-4'}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6'}`}>
             {displayedProducts.map((selectedProduct, index) => (
               <ProductSelector
                 key={index}
@@ -114,8 +114,8 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
       </div>
 
       {/* 产品展示区域 */}
-      <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-6 sm:py-8">
-        <div className={`grid gap-6 sm:gap-8 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+      <div className={`container max-w-6xl ${isMobile ? 'px-3 py-4' : 'px-4 sm:px-6 lg:px-8 py-6 sm:py-8'}`}>
+        <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8'}`}>
           {displayedProducts.map((product, index) => (
             <ProductDisplay key={index} product={product} isMobile={isMobile} />
           ))}
@@ -125,7 +125,7 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
       {/* 详细对比表格 */}
       {hasValidComparison && (
         <div className="bg-white">
-          <div className="container px-4 sm:px-6 lg:px-8 max-w-6xl py-6 sm:py-8">
+          <div className={`container max-w-6xl ${isMobile ? 'px-3 py-4' : 'px-4 sm:px-6 lg:px-8 py-6 sm:py-8'}`}>
             <ComparisonTable products={displayedProducts} isMobile={isMobile} />
           </div>
         </div>
@@ -177,12 +177,12 @@ function ProductSelector({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-3 sm:p-4 bg-white border border-gray-300 rounded-xl hover:border-gray-400 transition-colors text-left flex items-center justify-between shadow-sm"
+        className={`w-full bg-white border border-gray-300 rounded-xl hover:border-gray-400 transition-colors text-left flex items-center justify-between shadow-sm ${isMobile ? 'p-2.5' : 'p-3 sm:p-4'}`}
       >
-        <span className="font-medium text-gray-900 text-xs sm:text-sm md:text-base truncate pr-2">
+        <span className={`font-medium text-gray-900 truncate pr-2 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm md:text-base'}`}>
           {selectedProduct ? (selectedProduct.displayName || selectedProduct.title) : `选择充电宝 ${position + 1}`}
         </span>
-        <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`text-gray-400 transition-transform flex-shrink-0 ${isMobile ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5'} ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -269,10 +269,10 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
           </div>
         </div>
         {/* 灰色的查看详情按钮 */}
-        <div className="mt-4 sm:mt-6">
+        <div className={isMobile ? 'mt-3' : 'mt-4 sm:mt-6'}>
           <button 
             disabled 
-            className="w-full py-2.5 px-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-500 font-medium rounded-lg cursor-not-allowed"
+            className={`w-full bg-gradient-to-r from-gray-200 to-gray-300 text-gray-500 font-medium rounded-lg cursor-not-allowed ${isMobile ? 'py-2 px-3 text-xs' : 'py-2.5 px-4 text-sm'}`}
           >
             查看详情
           </button>
@@ -317,9 +317,9 @@ function ProductDisplay({ product, isMobile }: { product: ChargeBaby | null; isM
           </p>
         )}
         {/* 查看详情按钮 */}
-        <div className="pt-2 sm:pt-3">
+        <div className={isMobile ? 'pt-2' : 'pt-2 sm:pt-3'}>
           <Link href={`/${encodeURIComponent(product.model)}`} className="block">
-            <button className="w-full py-2.5 px-4 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium rounded-lg transition-all duration-200">
+            <button className={`w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium rounded-lg transition-all duration-200 ${isMobile ? 'py-2 px-3 text-xs' : 'py-2.5 px-4 text-sm'}`}>
               查看详情
             </button>
           </Link>
@@ -391,9 +391,9 @@ function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false, isM
   const displayLabels = isMobile ? ['入门', '进阶', '高端', '旗舰', '超旗舰'] : labels;
 
   return (
-    <div className="space-y-0.5 sm:space-y-1">
+    <div className={isMobile ? 'space-y-0.5' : 'space-y-0.5 sm:space-y-1'}>
       {labelsOnTop && (
-        <div className="mb-0.5 sm:mb-1 flex justify-between text-[8px] sm:text-[10px] text-gray-400">
+        <div className={`flex justify-between text-gray-400 ${isMobile ? 'mb-0.5 text-[9px]' : 'mb-0.5 sm:mb-1 text-[8px] sm:text-[10px]'}`}>
           {displayLabels.map((label, index) => (
             <span key={label} className={index === activeIndex ? 'text-gray-700 font-medium' : undefined}>
               {label}
@@ -402,7 +402,7 @@ function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false, isM
         </div>
       )}
       <div className="flex items-center gap-1">
-        <div className="relative h-1.5 sm:h-2 flex-1 rounded-full bg-gray-200 overflow-hidden">
+        <div className={`relative flex-1 rounded-full bg-gray-200 overflow-hidden ${isMobile ? 'h-1.5' : 'h-1.5 sm:h-2'}`}>
           {Array.from({ length: count - 1 }).map((_, index) => (
             <div
               key={index}
@@ -417,11 +417,11 @@ function CompactProgressSegmentBar({ value = 0, labels, labelsOnTop = false, isM
         </div>
         {/* 超分绿条 */}
         {isOverMax && (
-          <div className="bg-green-500 rounded-sm flex-shrink-0 h-1.5 sm:h-2" style={{ width: '4px' }} />
+          <div className={`bg-green-500 rounded-sm flex-shrink-0 ${isMobile ? 'h-1.5' : 'h-1.5 sm:h-2'}`} style={{ width: '4px' }} />
         )}
       </div>
       {!labelsOnTop && (
-        <div className="flex justify-between text-[8px] sm:text-[10px] text-gray-400">
+        <div className={`flex justify-between text-gray-400 ${isMobile ? 'text-[9px]' : 'text-[8px] sm:text-[10px]'}`}>
           {displayLabels.map((label, index) => (
             <span key={label} className={index === activeIndex ? 'text-gray-700 font-medium' : undefined}>
               {label}
@@ -474,13 +474,13 @@ function OverallScoreBlock({ score, isMobile }: { score?: number | null; isMobil
     : '--';
 
   // 移动端使用更小的尺寸
-  const circleSize = isMobile ? 120 : 180;
+  const circleSize = isMobile ? 100 : 180;
   const strokeWidth = isMobile ? 6 : 8;
   const scoreTextSize = isMobile ? 'text-2xl' : 'text-4xl';
   const labelTextSize = isMobile ? 'text-[10px]' : 'text-xs';
 
   return (
-    <div className="aspect-square rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-2 sm:p-4 md:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col">
+    <div className={`aspect-square rounded-xl sm:rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col ${isMobile ? 'p-3' : 'p-2 sm:p-4 md:p-5'}`}>
       <div className="flex flex-1 items-center justify-center">
         <CompactCircularRating value={actualScore} size={circleSize} strokeWidth={strokeWidth}>
           {hasScore ? (
@@ -521,29 +521,29 @@ function DetailedScoreBlock({
     : '--';
 
   return (
-    <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 md:p-5 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col gap-2 sm:gap-3 md:gap-4">
+    <div className={`rounded-xl sm:rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 flex flex-col ${isMobile ? 'p-3 gap-2' : 'p-3 sm:p-4 md:p-5 gap-2 sm:gap-3 md:gap-4'}`}>
       <div className="flex items-center justify-between">
-        <span className="text-xs sm:text-sm font-semibold text-gray-900">{title}</span>
+        <span className={`font-semibold text-gray-900 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>{title}</span>
         {hasScore ? (
           <div className="flex items-baseline gap-0.5 sm:gap-1 text-gray-900">
-            <span className="text-lg sm:text-xl md:text-2xl font-bold">{formatNumber(actualScore)}</span>
-            <span className="text-xs sm:text-sm text-gray-400">/100</span>
+            <span className={`font-bold ${isMobile ? 'text-base' : 'text-lg sm:text-xl md:text-2xl'}`}>{formatNumber(actualScore)}</span>
+            <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs sm:text-sm'}`}>/100</span>
           </div>
         ) : (
-          <span className="text-xs sm:text-sm text-gray-400">--</span>
+          <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs sm:text-sm'}`}>--</span>
         )}
       </div>
 
       {hasScore && (
         <>
           <CompactProgressSegmentBar value={actualScore} labels={labels} labelsOnTop isMobile={isMobile} />
-          <div className="text-[10px] sm:text-[11px] text-gray-500">{levelLabel}</div>
+          <div className={`text-gray-500 ${isMobile ? 'text-[9px]' : 'text-[10px] sm:text-[11px]'}`}>{levelLabel}</div>
         </>
       )}
 
       <div className="h-px bg-gray-100" />
 
-      <div className="space-y-1.5 sm:space-y-2">
+      <div className={isMobile ? 'space-y-1.5' : 'space-y-1.5 sm:space-y-2'}>
         {metrics.map((metric) => (
           <MetricRow key={metric.label} label={metric.label} value={metric.value} max={metric.max} isMobile={isMobile} />
         ))}
@@ -560,21 +560,23 @@ function MetricRow({ label, value, max, isMobile }: { label: string; value?: num
 
   return (
     <div>
-      <div className="flex items-center justify-between text-[10px] sm:text-[12px] text-gray-600">
-        <TitleWithTooltip title={label} />
+      <div className={`flex items-center justify-between text-gray-600 ${isMobile ? 'text-[11px] h-[14px]' : 'text-[10px] sm:text-[12px]'}`}>
+        <div className="flex items-center min-h-0">
+          <TitleWithTooltip title={label} />
+        </div>
         {hasValue ? (
           <span className="font-medium text-gray-800">{formatNumber(actualValue)}/{max}</span>
         ) : (
           <span className="text-gray-400">--</span>
         )}
       </div>
-      <div className="mt-0.5 sm:mt-1 flex items-center gap-1">
-        <div className="h-1.5 sm:h-2 flex-1 rounded-full bg-gray-200 overflow-hidden">
+      <div className={`flex items-center gap-1 ${isMobile ? 'mt-0.5' : 'mt-0.5 sm:mt-1'}`}>
+        <div className={`flex-1 rounded-full bg-gray-200 overflow-hidden ${isMobile ? 'h-1.5' : 'h-1.5 sm:h-2'}`}>
           <div className="h-full bg-gray-600 rounded-full" style={{ width: `${progress}%` }} />
         </div>
         {/* 超分绿条 */}
         {isOverMax && (
-          <div className="bg-green-500 rounded-sm flex-shrink-0 h-1.5 sm:h-2" style={{ width: '3px' }} />
+          <div className={`bg-green-500 rounded-sm flex-shrink-0 ${isMobile ? 'h-1.5' : 'h-1.5 sm:h-2'}`} style={{ width: '3px' }} />
         )}
       </div>
     </div>
@@ -611,22 +613,22 @@ function DataCard({
 }) {
   if (isEmpty) {
     return (
-      <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-gray-50/50 p-4 sm:p-6 md:p-8 flex items-center justify-center min-h-[180px] sm:min-h-[240px] md:min-h-[280px] transition-all hover:border-gray-300">
+      <div className={`rounded-xl sm:rounded-2xl border border-gray-200 bg-gray-50/50 flex items-center justify-center transition-all hover:border-gray-300 ${isMobile ? 'p-6 min-h-[140px]' : 'p-4 sm:p-6 md:p-8 min-h-[180px] sm:min-h-[240px] md:min-h-[280px]'}`}>
         <span className="text-gray-400 text-base sm:text-lg">-</span>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 md:p-8 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300">
-      <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 pb-2 sm:pb-3 md:pb-4 border-b border-gray-100">{title}</h3>
-      <div className="space-y-3 sm:space-y-4 md:space-y-6">
+    <div className={`rounded-xl sm:rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 ${isMobile ? 'p-3' : 'p-4 sm:p-6 md:p-8'}`}>
+      <h3 className={`font-bold text-gray-900 border-b border-gray-100 ${isMobile ? 'text-sm mb-2 pb-1.5' : 'text-sm sm:text-base mb-3 sm:mb-4 md:mb-6 pb-2 sm:pb-3 md:pb-4'}`}>{title}</h3>
+      <div className={isMobile ? 'space-y-1.5' : 'space-y-3 sm:space-y-4 md:space-y-6'}>
         {items.map((item) => (
           <div key={item.label} className="min-h-0">
-            <div className="text-[10px] sm:text-xs font-medium text-gray-500 mb-1.5 sm:mb-2 md:mb-2.5 uppercase tracking-wide leading-normal">
+            <div className={`font-medium text-gray-500 uppercase tracking-wide flex items-center ${isMobile ? 'text-[11px] mb-0.5' : 'text-[10px] sm:text-xs mb-1.5 sm:mb-2 md:mb-2.5'}`}>
               <TitleWithTooltip title={item.label} />
             </div>
-            <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 leading-normal break-words whitespace-normal">{item.value}</div>
+            <div className={`font-bold text-gray-900 leading-tight break-words whitespace-normal ${isMobile ? 'text-sm' : 'text-base sm:text-xl md:text-2xl'}`}>{item.value}</div>
           </div>
         ))}
       </div>
@@ -712,6 +714,14 @@ function BatteryCapacityCard({ product, isMobile }: { product: ChargeBaby | null
     {
       label: '自充能量',
       value: detailData.selfChargingEnergy ? `${formatNumber(detailData.selfChargingEnergy)}Wh` : '-'
+    },
+    {
+      label: '放电容量达成率',
+      value: detailData.dischargeCapacityAchievementRate ? `${(detailData.dischargeCapacityAchievementRate * 100).toFixed(1)}%` : '-'
+    },
+    {
+      label: '最大能量转换率',
+      value: detailData.maxEnergyConversionRate ? `${(detailData.maxEnergyConversionRate * 100).toFixed(1)}%` : '-'
     }
   ];
 
@@ -736,6 +746,10 @@ function ChargingPerformanceCard({ product, isMobile }: { product: ChargeBaby | 
     {
       label: '平均自充电功率',
       value: detailData.avgSelfChargingPower ? `${formatNumber(detailData.avgSelfChargingPower)}W` : '-'
+    },
+    {
+      label: '20分钟充入能量',
+      value: detailData.energy20min ? `${formatNumber(detailData.energy20min)}Wh` : '-'
     }
   ];
 
@@ -833,7 +847,7 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
   // 渲染对应类别的卡片组件
   const renderCategoryCards = (categoryName: string) => {
     return (
-      <div className={`grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+      <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-6'}`}>
         {Array.from({ length: maxColumns }, (_, index) => {
           const product = products[index];
           
@@ -842,10 +856,6 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
               return <BasicInfoCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '物理规格':
               return <PhysicalSpecsCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
-            case '性能参数':
-              return <PerformanceParamsCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
-            case '体验参数':
-              return <ExperienceParamsCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '电池容量':
               return <BatteryCapacityCard key={product?.id ?? index} product={product} isMobile={isMobile} />;
             case '充电性能':
@@ -865,8 +875,6 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
   const categories = [
     '基本信息',
     '物理规格',
-    '性能参数',
-    '体验参数',
     '电池容量',
     '充电性能',
     '输出性能',
@@ -874,10 +882,10 @@ function ComparisonTable({ products, isMobile }: { products: (ChargeBaby | null)
   ];
   
   return (
-    <div className={`${isMobile ? 'space-y-4' : 'space-y-6 md:space-y-8'}`}>
+    <div className={isMobile ? 'space-y-4' : 'space-y-6 md:space-y-8'}>
       {/* 综合评分卡片 - 显示在最前面 */}
       <div>
-        <div className={`grid gap-3 sm:gap-4 md:gap-5 lg:gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
+        <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-6'}`}>
           {Array.from({ length: maxColumns }, (_, index) => {
             const product = products[index];
             return <ScoreComparisonCard key={product?.id ?? index} product={product} isMobile={isMobile} />;

@@ -13,10 +13,10 @@ export function TitleWithTooltip({ title, className = '', children }: TitleWithT
   const description = dataDescriptions[title as DataDescriptionKey];
   
   return (
-    <div className={`flex items-center ${className}`}>
-      <span>{title}</span>
+    <>
+      <span className={className}>{title}</span>
       {description && <Tooltip content={description} />}
       {children}
-    </div>
+    </>
   );
 }
