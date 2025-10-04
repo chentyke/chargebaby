@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Home, Book, Clock, Tags, List } from 'lucide-react';
+import { Menu, X, Home, Book, Clock, Tags } from 'lucide-react';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { DocBreadcrumb } from '@/components/doc-breadcrumb';
 import { DocNavigation } from '@/components/doc-navigation';
@@ -196,17 +196,7 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
             <Book className="w-5 h-5 text-blue-600" />
             <span className="font-medium text-gray-900">文档</span>
           </div>
-          <button
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
-            onClick={() => {
-              const articleElement = document.getElementById('doc-article-start');
-              if (articleElement) {
-                articleElement.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-          >
-            <List className="w-5 h-5" />
-          </button>
+          <div className="w-10" />
         </div>
       </header>
 
