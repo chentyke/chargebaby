@@ -3,9 +3,43 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { ReactNode, useEffect } from 'react';
+import { useEffect } from 'react';
 import { ImageZoom } from './image-zoom';
 import { cn } from '@/lib/utils';
+
+// 全局计数器，确保SSR一致性
+let globalHeadingCounter = 0;
+
+// 简单的哈希函数，确保相同输入产生相同输出
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // 转换为32位整数
+  }
+  return Math.abs(hash).toString(36).substring(0, 6);
+}
+
+// 固定的ID生成器，确保SSR一致性
+function generateUniqueId(text: string, level: number): string {
+  if (!text) return `heading-${level}-1`;
+
+  const baseId = text
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u4e00-\u9fa5-]/g, '');
+
+  if (!baseId) return `heading-${level}-1`;
+
+  // 增加全局计数器
+  globalHeadingCounter++;
+
+  // 生成一个基于内容和位置的哈希值
+  const hash = simpleHash(text + level + globalHeadingCounter);
+
+  return `${baseId}-${hash}`;
+}
 
 interface MarkdownRendererProps {
   content: string;
@@ -13,6 +47,11 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
+  // 重置全局计数器
+  useEffect(() => {
+    globalHeadingCounter = 0;
+  }, [content]);
+
   useEffect(() => {
     if (!content || typeof window === 'undefined') {
       return;
@@ -65,36 +104,66 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          h1: ({ children, ...props }: any) => (
-            <h1 className="text-2xl font-bold text-gray-900 mb-4 mt-6 first:mt-0 leading-tight border-b border-gray-200 pb-2" {...props}>
-              {children}
-            </h1>
-          ),
-          h2: ({ children, ...props }: any) => (
-            <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-5 leading-tight border-b border-gray-100 pb-1" {...props}>
-              {children}
-            </h2>
-          ),
-          h3: ({ children, ...props }: any) => (
-            <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4 leading-tight" {...props}>
-              {children}
-            </h3>
-          ),
-          h4: ({ children, ...props }: any) => (
-            <h4 className="text-base font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
-              {children}
-            </h4>
-          ),
-          h5: ({ children, ...props }: any) => (
-            <h5 className="text-sm font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
-              {children}
-            </h5>
-          ),
-          h6: ({ children, ...props }: any) => (
-            <h6 className="text-sm font-medium text-gray-900 mb-1 mt-2 leading-tight" {...props}>
-              {children}
-            </h6>
-          ),
+          h1: ({ children, ...props }: any) => {
+            const text = typeof children === 'string' ? children : children?.toString?.() || '';
+            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+            const id = generateUniqueId(cleanText, 1);
+            return (
+              <h1 id={id} className="text-2xl font-bold text-gray-900 mb-4 mt-6 first:mt-0 leading-tight border-b border-gray-200 pb-2" {...props}>
+                {children}
+              </h1>
+            );
+          },
+          h2: ({ children, ...props }: any) => {
+            const text = typeof children === 'string' ? children : children?.toString?.() || '';
+            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+            const id = generateUniqueId(cleanText, 2);
+            return (
+              <h2 id={id} className="text-xl font-semibold text-gray-900 mb-3 mt-5 leading-tight border-b border-gray-100 pb-1" {...props}>
+                {children}
+              </h2>
+            );
+          },
+          h3: ({ children, ...props }: any) => {
+            const text = typeof children === 'string' ? children : children?.toString?.() || '';
+            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+            const id = generateUniqueId(cleanText, 3);
+            return (
+              <h3 id={id} className="text-lg font-semibold text-gray-900 mb-2 mt-4 leading-tight" {...props}>
+                {children}
+              </h3>
+            );
+          },
+          h4: ({ children, ...props }: any) => {
+            const text = typeof children === 'string' ? children : children?.toString?.() || '';
+            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+            const id = generateUniqueId(cleanText, 4);
+            return (
+              <h4 id={id} className="text-base font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
+                {children}
+              </h4>
+            );
+          },
+          h5: ({ children, ...props }: any) => {
+            const text = typeof children === 'string' ? children : children?.toString?.() || '';
+            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+            const id = generateUniqueId(cleanText, 5);
+            return (
+              <h5 id={id} className="text-sm font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
+                {children}
+              </h5>
+            );
+          },
+          h6: ({ children, ...props }: any) => {
+            const text = typeof children === 'string' ? children : children?.toString?.() || '';
+            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+            const id = generateUniqueId(cleanText, 6);
+            return (
+              <h6 id={id} className="text-sm font-medium text-gray-900 mb-1 mt-2 leading-tight" {...props}>
+                {children}
+              </h6>
+            );
+          },
           p: ({ children, ...props }: any) => (
             <p className="text-gray-700 mb-4 leading-relaxed text-[15px]" {...props}>
               {children}
@@ -230,22 +299,29 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               </details>
             );
           },
-          summary: ({ children, node: _node, className, ...props }: any) => (
-            <summary
-              className={cn(
-                className?.includes('notion-toc-summary')
-                  ? ''
-                  : 'font-semibold text-gray-900 cursor-pointer hover:text-gray-700 p-4 rounded-t-lg hover:bg-gray-100 transition-colors select-none',
-                className
-              )}
-              {...props}
-            >
-              <span className="inline-flex items-center">
-                <span className="toggle-arrow mr-2 text-gray-500">{'▶︎'}</span>
-                {children}
-              </span>
-            </summary>
-          ),
+          summary: ({ children, node: _node, className, ...props }: any) => {
+            const text = typeof children === 'string' ? children : children?.toString?.() || '';
+            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+            const id = generateUniqueId(cleanText, 2);
+
+            return (
+              <summary
+                id={id}
+                className={cn(
+                  className?.includes('notion-toc-summary')
+                    ? ''
+                    : 'font-semibold text-gray-900 cursor-pointer hover:text-gray-700 p-4 rounded-t-lg hover:bg-gray-100 transition-colors select-none',
+                  className
+                )}
+                {...props}
+              >
+                <span className="summary-content">
+                  <span className="summary-toggle-icon" aria-hidden="true">▸</span>
+                  <span className="summary-text">{children}</span>
+                </span>
+              </summary>
+            );
+          },
         }}
       >
         {content}
