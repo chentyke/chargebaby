@@ -159,4 +159,6 @@ export const CACHE_KEYS = {
   CABLE_BY_ID: (id: string) => `cable-${id}`,
   WISHLIST_PRODUCTS: 'wishlist-products',
   WISHLIST_PRODUCT_BY_ID: (id: string) => `wishlist-product-${id}`,
+  NOTICES: 'notices',
+  NOTICE_BY_ID: (id: string) => `notice-${id}`,
 } as const;

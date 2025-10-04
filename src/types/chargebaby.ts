@@ -243,3 +243,29 @@ export const WISHLIST_STATUS_COLORS: Record<WishlistProduct['status'], string> =
   testing: 'bg-yellow-100 text-yellow-700',
   completed: 'bg-green-100 text-green-700'
 };
+
+// 公告类型定义
+export interface Notice {
+  id: string;
+  title: string; // 标题
+  content: string; // 内容（Markdown格式）
+  category: '公告' | '通知'; // 类别
+  publisher: string; // 发布者
+  publishDate: string; // 发布日期
+  path: string; // 路径
+  hidden: boolean; // 是否隐藏
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 公告类别标签
+export const NOTICE_CATEGORY_LABELS: Record<Notice['category'], string> = {
+  '公告': '公告',
+  '通知': '通知'
+};
+
+// 公告类别颜色
+export const NOTICE_CATEGORY_COLORS: Record<Notice['category'], string> = {
+  '公告': 'bg-purple-100 text-purple-700',
+  '通知': 'bg-blue-100 text-blue-700'
+};

@@ -1,4 +1,4 @@
-import { ChargeBaby, NotionDatabase, NotionPage, DetailData, WishlistProduct, SubProject } from '@/types/chargebaby';
+import { ChargeBaby, NotionDatabase, NotionPage, DetailData, WishlistProduct, SubProject, Notice } from '@/types/chargebaby';
 import { serverCache, CACHE_KEYS } from './cache';
 
 const notionApiBase = 'https://api.notion.com/v1';
@@ -6,6 +6,7 @@ const notionVersion = process.env.NOTION_VERSION || '2022-06-28';
 const notionApiKey = process.env.NOTION_API_KEY;
 const databaseId = process.env.NOTION_DATABASE_ID!;
 const wishlistDatabaseId = process.env.NOTION_WISHLIST_DATABASE_ID!;
+const noticeDatabaseId = process.env.NOTION_NOTICE_DB!;
 
 async function notionFetch<T>(path: string, init?: RequestInit, retries = 3): Promise<T> {
   if (!notionApiKey) throw new Error('NOTION_API_KEY is not set');
@@ -982,5 +983,118 @@ function parseNotionPageToSubProject(page: NotionPage): SubProject {
     submissionStatus: getSelectProperty(props['投稿审核']) || '',
     createdAt: getDateProperty(props.CreatedAt) || new Date().toISOString(),
     updatedAt: getDateProperty(props.UpdatedAt) || new Date().toISOString(),
+  };
+}
+
+// ========== 公告相关函数 ==========
+
+/**
+ * 从 Notion API 获取公告数据（不使用缓存）
+ */
+async function fetchNoticesFromNotion(): Promise<Notice[]> {
+  // 检查必要的环境变量
+  if (!noticeDatabaseId) {
+    console.warn('⚠️  NOTION_NOTICE_DB not configured, returning empty array');
+    return [];
+  }
+
+  const response = await notionFetch<NotionDatabase>(`/databases/${noticeDatabaseId}/query`, {
+    method: 'POST',
+    body: JSON.stringify({
+      sorts: [
+        {
+          property: '发布日期',
+          direction: 'descending',
+        },
+      ],
+    }),
+  });
+
+  // 获取所有公告的详细内容
+  const noticesWithContent = await Promise.all(
+    response.results.map(async (page) => {
+      const notice = parseNotionPageToNotice(page);
+      // 获取页面内容
+      const blocks = await getPageBlocks(page.id);
+      const content = convertBlocksToMarkdown(blocks);
+      return {
+        ...notice,
+        content: content || notice.content
+      };
+    })
+  );
+
+  // 过滤掉隐藏的公告
+  return noticesWithContent.filter(notice => !notice.hidden);
+}
+
+/**
+ * 获取所有公告数据（带缓存）
+ */
+export async function getNotices(): Promise<Notice[]> {
+  try {
+    // 尝试从缓存获取
+    const cached = serverCache.get<Notice[]>(CACHE_KEYS.NOTICES);
+    if (cached) {
+      console.log('📦 Serving notices from cache');
+      return cached;
+    }
+
+    console.log('🌐 Fetching notices from Notion API');
+    const data = await fetchNoticesFromNotion();
+
+    // 设置缓存，180秒过期，自动刷新
+    serverCache.setWithAutoRefresh(
+      CACHE_KEYS.NOTICES,
+      data,
+      180, // 180秒
+      fetchNoticesFromNotion
+    );
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching notices:', error);
+
+    // 如果API调用失败，尝试返回过期的缓存数据
+    const staleCache = serverCache.get<Notice[]>(CACHE_KEYS.NOTICES, true);
+    if (staleCache) {
+      console.log('⚠️  Using stale notices data due to API error');
+      return staleCache;
+    }
+
+    return [];
+  }
+}
+
+/**
+ * 根据 ID 获取特定公告
+ */
+export async function getNoticeById(id: string): Promise<Notice | null> {
+  try {
+    const notices = await getNotices();
+    return notices.find(notice => notice.id === id) || null;
+  } catch (error) {
+    console.error('Error fetching notice by id:', error);
+    return null;
+  }
+}
+
+/**
+ * 将 Notion 页面数据解析为 Notice 对象
+ */
+function parseNotionPageToNotice(page: NotionPage): Notice {
+  const props = page.properties;
+
+  return {
+    id: page.id,
+    title: getTextProperty(props.标题) || '',
+    content: '', // 内容将在 getNotices 中从页面内容获取
+    category: (getSelectProperty(props.类别) as Notice['category']) || '公告',
+    publisher: getRichTextProperty(props.发布者) || '',
+    publishDate: getDateProperty(props.发布日期) || new Date().toISOString(),
+    path: getRichTextProperty(props.路径) || '',
+    hidden: getSelectProperty(props.Hidden) === 'true',
+    createdAt: page.created_time || new Date().toISOString(),
+    updatedAt: page.last_edited_time || new Date().toISOString(),
   };
 }

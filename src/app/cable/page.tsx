@@ -1,7 +1,9 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { getCables } from '@/lib/cable';
+import { getNotices } from '@/lib/notion';
 import { SearchableCableGrid } from '@/components/searchable-cable-grid';
+import { NoticeCarousel } from '@/components/notice-carousel';
 import { Loading } from '@/components/ui/loading';
 import { DeviceOptimizedContainer } from '@/components/device-optimized-container';
 import { BatteryCharging, Cable, Zap } from 'lucide-react';
@@ -10,6 +12,26 @@ interface CablePageProps {
   searchParams: Promise<{
     view?: 'grid' | 'list';
   }>;
+}
+
+function NoticeSectionFallback() {
+  return (
+    <div className="flex justify-center">
+      <Loading text="加载公告..." />
+    </div>
+  );
+}
+
+async function NoticeSection() {
+  const notices = await getNotices();
+
+  if (notices.length === 0) {
+    return null;
+  }
+
+  return (
+    <NoticeCarousel notices={notices} />
+  );
 }
 
 export default function CablePage({ searchParams }: CablePageProps) {
@@ -65,6 +87,13 @@ export default function CablePage({ searchParams }: CablePageProps) {
               <p className="text-lg text-gray-600/90">
                 专业测试数据与性能对比
               </p>
+            </div>
+
+            {/* 公告轮播区域 - 紧贴标题 */}
+            <div className="mb-4">
+              <Suspense fallback={<NoticeSectionFallback />}>
+                <NoticeSection />
+              </Suspense>
             </div>
 
             {/* 集成搜索区域 */}

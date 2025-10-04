@@ -1,8 +1,9 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { Cable } from 'lucide-react';
-import { getChargeBabies } from '@/lib/notion';
+import { getChargeBabies, getNotices } from '@/lib/notion';
 import { SearchableProductsGrid } from '@/components/searchable-products-grid';
+import { NoticeCarousel } from '@/components/notice-carousel';
 import { Loading } from '@/components/ui/loading';
 import { DeviceOptimizedContainer } from '@/components/device-optimized-container';
 
@@ -10,6 +11,26 @@ interface HomePageProps {
   searchParams: Promise<{
     view?: 'grid' | 'list';
   }>;
+}
+
+function NoticeSectionFallback() {
+  return (
+    <div className="flex justify-center">
+      <Loading text="加载公告..." />
+    </div>
+  );
+}
+
+async function NoticeSection() {
+  const notices = await getNotices();
+
+  if (notices.length === 0) {
+    return null;
+  }
+
+  return (
+    <NoticeCarousel notices={notices} />
+  );
 }
 
 export default function HomePage({ searchParams }: HomePageProps) {
@@ -51,7 +72,8 @@ export default function HomePage({ searchParams }: HomePageProps) {
           </div>
 
           <div className="container">
-            <div className="text-center mb-8">
+            {/* 标题区域 */}
+            <div className="text-center mb-2">
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-3 leading-tight">
                 <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
                   移动电源数据库
@@ -61,7 +83,14 @@ export default function HomePage({ searchParams }: HomePageProps) {
                 测试数据收集与量化评分
               </p>
             </div>
-            
+
+            {/* 公告轮播区域 - 紧贴标题 */}
+            <div className="mb-4">
+              <Suspense fallback={<NoticeSectionFallback />}>
+                <NoticeSection />
+              </Suspense>
+            </div>
+
             {/* 集成搜索区域 */}
             <Suspense fallback={<Loading text="加载中..." />}>
               <ProductsGrid searchParams={searchParams} />
