@@ -94,7 +94,7 @@ export function CapWidget({ onVerify, onError, className, apiEndpoint }: CapWidg
         widget.remove?.();
       }
     };
-  }, [apiEndpoint]);
+  }, [apiEndpoint, onError]);
 
   return (
     <div className={className}>

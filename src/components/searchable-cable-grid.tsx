@@ -106,7 +106,7 @@ export function SearchableCableGrid({ cables, initialViewMode }: SearchableCable
     } else {
       setScrollRestored(true);
     }
-  }, [initialViewMode]);
+  }, [initialViewMode, pathname]);
 
   // 保存滚动位置
   useEffect(() => {

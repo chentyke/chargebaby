@@ -210,7 +210,7 @@ export function DetailDataPreviewCard({ chargeBaby, productModel, variant = 'des
         }
       };
     }
-  }, [variant]);
+  }, [variant, windowHeight]);
 
   const { detailData } = chargeBaby;
   

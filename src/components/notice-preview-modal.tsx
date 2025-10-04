@@ -149,7 +149,8 @@ export function NoticePreviewModal({ notice, isOpen, onClose }: NoticePreviewMod
                     </blockquote>
                   ),
                   // 自定义代码样式
-                  code: ({ inline, children }) => {
+                  code: (props: any) => {
+                    const { inline, children } = props;
                     if (inline) {
                       return (
                         <code className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono">
