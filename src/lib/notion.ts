@@ -453,79 +453,75 @@ function convertRichTextToMarkdown(richText: any[]): string {
   if (!Array.isArray(richText) || richText.length === 0) {
     return '';
   }
-  
+
+  const colorMap: Record<string, string> = {
+    red: '#ef4444',
+    orange: '#f97316',
+    yellow: '#eab308',
+    green: '#22c55e',
+    blue: '#3b82f6',
+    purple: '#a855f7',
+    pink: '#ec4899',
+    gray: '#6b7280',
+    brown: '#a3a3a3'
+  };
+
+  const bgColorMap: Record<string, string> = {
+    red_background: '#fef2f2',
+    orange_background: '#fff7ed',
+    yellow_background: '#fefce8',
+    green_background: '#f0fdf4',
+    blue_background: '#eff6ff',
+    purple_background: '#faf5ff',
+    pink_background: '#fdf2f8',
+    gray_background: '#f9fafb'
+  };
+
   return richText.map(text => {
-    let content = text.text?.content || '';
-    
-    // 如果是空内容，直接返回
-    if (!content.trim()) {
-      return content;
+    const rawContent = typeof text?.text?.content === 'string' ? text.text.content : '';
+    if (!rawContent) {
+      return '';
     }
-    
-    // 收集需要应用的样式
-    const styles: string[] = [];
+
     const annotations = text.annotations || {};
-    
-    // 颜色处理
+    const styleSegments: string[] = [];
+
     if (annotations.color && annotations.color !== 'default') {
-      const colorMap: Record<string, string> = {
-        red: '#ef4444',
-        orange: '#f97316', 
-        yellow: '#eab308',
-        green: '#22c55e',
-        blue: '#3b82f6',
-        purple: '#a855f7',
-        pink: '#ec4899',
-        gray: '#6b7280',
-        brown: '#a3a3a3'
-      };
-      const color = colorMap[annotations.color] || annotations.color;
-      styles.push(`color:${color}`);
+      styleSegments.push(`color:${colorMap[annotations.color] || annotations.color}`);
     }
-    
-    // 背景颜色处理
+
     if (annotations.background_color && annotations.background_color !== 'default') {
-      const bgColorMap: Record<string, string> = {
-        red_background: '#fef2f2',
-        orange_background: '#fff7ed',
-        yellow_background: '#fefce8',
-        green_background: '#f0fdf4',
-        blue_background: '#eff6ff',
-        purple_background: '#faf5ff',
-        pink_background: '#fdf2f8',
-        gray_background: '#f9fafb'
-      };
-      const bgColor = bgColorMap[annotations.background_color] || '#f9fafb';
-      styles.push(`background-color:${bgColor}`);
+      styleSegments.push(`background-color:${bgColorMap[annotations.background_color] || '#f9fafb'}`);
     }
-    
-    // 应用HTML样式（如果有颜色或背景色）
-    if (styles.length > 0) {
-      content = `<span style="${styles.join(';')}">${content}</span>`;
+
+    let content = escapeHtml(rawContent);
+
+    if (annotations.code) {
+      content = `<code>${content}</code>`;
     }
-    
-    // 应用文本样式（顺序很重要）
+    if (annotations.bold) {
+      content = `<strong>${content}</strong>`;
+    }
+    if (annotations.italic) {
+      content = `<em>${content}</em>`;
+    }
     if (annotations.strikethrough) {
-      content = `~~${content}~~`;
+      content = `<del>${content}</del>`;
     }
     if (annotations.underline) {
       content = `<u>${content}</u>`;
     }
-    if (annotations.code) {
-      content = `\`${content}\``;
+
+    if (styleSegments.length > 0) {
+      content = `<span style="${styleSegments.join(';')}">${content}</span>`;
     }
-    if (annotations.bold) {
-      content = `**${content}**`;
+
+    const linkUrl = text.text?.link?.url;
+    if (linkUrl) {
+      const href = escapeHtml(linkUrl);
+      content = `<a href="${href}" target="_blank" rel="noopener noreferrer">${content}</a>`;
     }
-    if (annotations.italic) {
-      content = `*${content}*`;
-    }
-    
-    // 链接处理（放在最后）
-    if (text.text?.link?.url) {
-      content = `[${content}](${text.text.link.url})`;
-    }
-    
+
     return content;
   }).join('');
 }

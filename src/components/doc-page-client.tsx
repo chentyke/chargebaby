@@ -138,11 +138,11 @@ function GitbookSidebar({ docs, currentPath, isOpen, onClose, collapsed, onToggl
             </Link>
             {hasChildren && !collapsed && (
               <button
-                className="group relative rounded-sm w-5 h-5 hover:bg-gray-200 text-gray-400 transition-colors flex items-center justify-center"
+                className="group relative rounded-md w-7 h-7 hover:bg-gray-200 text-gray-400 transition-colors flex items-center justify-center"
                 onClick={() => toggleExpand(item.id)}
               >
                 <span
-                  className={`w-0 h-0 border-l-[4px] border-l-current border-t-[3px] border-t-transparent border-b-[3px] border-b-transparent transition-transform ${
+                  className={`w-0 h-0 border-l-[7px] border-l-current border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent transition-transform ${
                     isExpanded ? 'rotate-90' : ''
                   }`}
                 />
@@ -393,22 +393,21 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
       <header className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30">
         <div className="flex items-center justify-between px-4 py-3">
           <button
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+            type="button"
+            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
             onClick={() => setIsSidebarOpen(true)}
           >
             <Menu className="w-5 h-5" />
+            <span className="text-sm font-medium">菜单</span>
           </button>
-          <div className="flex items-center gap-2">
-            <Book className="w-5 h-5 text-blue-600" />
-            <span className="font-medium text-gray-900">文档</span>
-          </div>
           <button
             type="button"
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors disabled:text-gray-300 disabled:hover:text-gray-300 disabled:cursor-not-allowed"
             onClick={() => setIsMobileTocOpen(true)}
             aria-label="打开目录"
             disabled={headings.length === 0}
           >
+            <span className="text-sm font-medium">目录</span>
             <List className="w-5 h-5" />
           </button>
         </div>
