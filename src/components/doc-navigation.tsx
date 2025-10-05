@@ -15,39 +15,35 @@ export function DocNavigation({ prev, next }: DocNavigationProps) {
   };
 
   return (
-    <nav className="flex flex-col sm:flex-row items-center justify-between gap-4 py-8">
+    <nav className="doc-nav">
       {prev ? (
         <Link
           href={normalizePath(prev.path)}
-          className="group flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors w-full sm:w-auto justify-start no-underline"
+          className="doc-nav-link doc-nav-link-prev"
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-100 transition-all duration-200 group-hover:scale-110 flex-shrink-0">
-            <ChevronLeft className="w-5 h-5" />
-          </div>
-          <div className="text-left min-w-0 flex-1">
-            <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">上一页</p>
-            <p className="text-sm font-medium truncate">{prev.title}</p>
+          <ChevronLeft className="doc-nav-icon" />
+          <div className="doc-nav-copy">
+            <span className="doc-nav-label">上一页</span>
+            <span className="doc-nav-title" title={prev.title}>{prev.title}</span>
           </div>
         </Link>
       ) : (
-        <div className="w-full sm:w-auto"></div>
+        <div className="doc-nav-placeholder" aria-hidden />
       )}
 
       {next ? (
         <Link
           href={normalizePath(next.path)}
-          className="group flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors w-full sm:w-auto justify-end no-underline"
+          className="doc-nav-link doc-nav-link-next"
         >
-          <div className="text-right min-w-0 flex-1">
-            <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">下一页</p>
-            <p className="text-sm font-medium truncate">{next.title}</p>
+          <div className="doc-nav-copy doc-nav-copy-right">
+            <span className="doc-nav-label">下一页</span>
+            <span className="doc-nav-title" title={next.title}>{next.title}</span>
           </div>
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-100 transition-all duration-200 group-hover:scale-110 flex-shrink-0">
-            <ChevronRight className="w-5 h-5" />
-          </div>
+          <ChevronRight className="doc-nav-icon" />
         </Link>
       ) : (
-        <div className="w-full sm:w-auto"></div>
+        <div className="doc-nav-placeholder" aria-hidden />
       )}
     </nav>
   );

@@ -293,7 +293,7 @@ function convertBlocksToMarkdown(blocks: any[], options: RenderOptions = default
         return '<nav class="notion-breadcrumb">🏠</nav>';
       
       case 'table_of_contents':
-        return renderTableOfContents(options.headings);
+        return '';
       
       case 'link_preview':
         const linkUrl = block.link_preview?.url || '';
@@ -323,23 +323,6 @@ function convertBlocksToMarkdown(blocks: any[], options: RenderOptions = default
         return '';
     }
   }).filter(content => content.trim() !== '').join('\n\n');
-}
-
-function renderTableOfContents(headings: HeadingInfo[]): string {
-  const validHeadings = headings.filter(heading => heading.slug && heading.title);
-
-  if (validHeadings.length === 0) {
-    return `<details class="notion-toc" id="table-of-contents" data-default-open="true">
-  <summary class="notion-toc-summary">📋 <strong>目录</strong></summary>
-  <div class="toc-list">暂无可用目录</div>
-</details>`;
-  }
-
-  const links = validHeadings
-    .map(heading => `<a class="toc-h${heading.level}" href="#${heading.slug}">${escapeHtml(heading.title)}</a>`)
-    .join('\n');
-
-  return `<details class="notion-toc" id="table-of-contents" data-default-open="true">\n  <summary class="notion-toc-summary">📋 <strong>目录</strong></summary>\n  <div class="toc-list">\n${links}\n  </div>\n</details>`;
 }
 
 function escapeHtml(input: string): string {

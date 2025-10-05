@@ -1,98 +1,158 @@
 'use client';
 
+import React, { memo, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { useEffect } from 'react';
 import { ImageZoom } from './image-zoom';
 import { cn } from '@/lib/utils';
 
-// 全局计数器，确保SSR一致性
-let globalHeadingCounter = 0;
-
-// 简单的哈希函数，确保相同输入产生相同输出
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // 转换为32位整数
-  }
-  return Math.abs(hash).toString(36).substring(0, 6);
+function flattenNodeToString(children: React.ReactNode): string {
+  return React.Children.toArray(children)
+    .map((child) => {
+      if (typeof child === 'string' || typeof child === 'number') {
+        return String(child);
+      }
+      if (React.isValidElement(child)) {
+        return flattenNodeToString(child.props.children);
+      }
+      return '';
+    })
+    .join('');
 }
 
-// 固定的ID生成器，确保SSR一致性
-function generateUniqueId(text: string, level: number): string {
-  if (!text) return `heading-${level}-1`;
+function cleanHeadingText(text: string): string {
+  return text
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .trim();
+}
 
-  const baseId = text
+function slugify(text: string): string {
+  return text
     .toLowerCase()
     .replace(/\s+/g, '-')
-    .replace(/[^\w\u4e00-\u9fa5-]/g, '');
-
-  if (!baseId) return `heading-${level}-1`;
-
-  // 增加全局计数器
-  globalHeadingCounter++;
-
-  // 生成一个基于内容和位置的哈希值
-  const hash = simpleHash(text + level + globalHeadingCounter);
-
-  return `${baseId}-${hash}`;
+    .replace(/[^\w\u4e00-\u9fa5-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  onHeadingsChange?: (headings: HeadingInfo[]) => void;
 }
 
-export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
-  // 重置全局计数器
-  useEffect(() => {
-    globalHeadingCounter = 0;
-  }, [content]);
+export interface HeadingInfo {
+  id: string;
+  text: string;
+  level: number;
+}
+
+function MarkdownRendererComponent({ content, className = '', onHeadingsChange }: MarkdownRendererProps) {
+  const slugCounts: Record<string, number> = {};
+  const headingNodeMap = new Map<string, string>();
+  const registeredHeadingKeys = new Set<string>();
+
+  const getHeadingNodeKey = (node: any, level: number, fallback: string) => {
+    const start = node?.position?.start;
+
+    if (start) {
+      const line = typeof start.line === 'number' ? start.line : 'x';
+      const column = typeof start.column === 'number' ? start.column : 'x';
+      const offset = typeof start.offset === 'number' ? start.offset : 'x';
+      return `${level}:${line}:${column}:${offset}`;
+    }
+
+    const existingId = node?.data?.hProperties?.id || node?.properties?.id;
+    if (existingId) {
+      return `${level}:prop:${existingId}`;
+    }
+
+    if (fallback) {
+      return `${level}:${fallback}`;
+    }
+
+    return `${level}:fallback`; // 最差情况下仍然提供一个键
+  };
+
+  const buildStableId = (node: any, rawText: string, level: number) => {
+    const slug = slugify(rawText) || `heading-${level}`;
+    const start = node?.position?.start;
+
+    let baseId = slug;
+
+    if (start) {
+      const parts: Array<string> = [];
+
+      if (typeof start.line === 'number') {
+        parts.push(start.line.toString(36));
+      }
+
+      if (typeof start.column === 'number') {
+        parts.push(start.column.toString(36));
+      }
+
+      if (typeof start.offset === 'number') {
+        parts.push(start.offset.toString(36));
+      }
+
+      if (parts.length > 0) {
+        baseId = `${slug}-${parts.join('')}`;
+      }
+    }
+
+    const nodeKey = getHeadingNodeKey(node, level, baseId);
+
+    if (headingNodeMap.has(nodeKey)) {
+      return headingNodeMap.get(nodeKey)!;
+    }
+
+    const count = slugCounts[baseId] ?? 0;
+    const nextCount = count + 1;
+    slugCounts[baseId] = nextCount;
+
+    const finalId = count === 0 ? baseId : `${baseId}-${nextCount}`;
+    headingNodeMap.set(nodeKey, finalId);
+    return finalId;
+  };
+
+  const collectedHeadingsRef = useRef<HeadingInfo[]>([]);
+  collectedHeadingsRef.current = [];
 
   useEffect(() => {
-    if (!content || typeof window === 'undefined') {
+    if (!onHeadingsChange) {
       return;
     }
 
-    const toc = document.getElementById('table-of-contents') as HTMLDetailsElement | null;
-    if (!toc) {
+    const seen = new Set<string>();
+    const uniqueHeadings: HeadingInfo[] = [];
+
+    for (const heading of collectedHeadingsRef.current) {
+      if (seen.has(heading.id)) {
+        continue;
+      }
+      seen.add(heading.id);
+      uniqueHeadings.push(heading);
+    }
+
+    onHeadingsChange(uniqueHeadings);
+  }, [content, onHeadingsChange]);
+
+  const registerHeading = (node: any, heading: HeadingInfo) => {
+    if (!heading.text) {
+      return;
+    }
+    const nodeKey = getHeadingNodeKey(node, heading.level, heading.id);
+
+    if (registeredHeadingKeys.has(nodeKey)) {
       return;
     }
 
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-    let previousMatch: boolean | null = null;
-
-    const applyState = (isMobile: boolean, force = false) => {
-      if (force || previousMatch !== isMobile) {
-        toc.open = !isMobile;
-        previousMatch = isMobile;
-      }
-    };
-
-    applyState(mediaQuery.matches, true);
-
-    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
-      const matches = 'matches' in event ? event.matches : mediaQuery.matches;
-      applyState(matches);
-    };
-
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', handleChange);
-    } else {
-      mediaQuery.addListener(handleChange);
-    }
-
-    return () => {
-      if (typeof mediaQuery.removeEventListener === 'function') {
-        mediaQuery.removeEventListener('change', handleChange);
-      } else {
-        mediaQuery.removeListener(handleChange);
-      }
-    };
-  }, [content]);
+    registeredHeadingKeys.add(nodeKey);
+    collectedHeadingsRef.current.push(heading);
+  };
 
   if (!content) {
     return null;
@@ -104,60 +164,57 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          h1: ({ children, ...props }: any) => {
-            const text = typeof children === 'string' ? children : children?.toString?.() || '';
-            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-            const id = generateUniqueId(cleanText, 1);
+          h1: ({ children, node, ...props }: any) => {
+            const text = cleanHeadingText(flattenNodeToString(children));
+            const id = buildStableId(node, text, 1);
+            registerHeading(node, { id, text, level: 1 });
             return (
               <h1 id={id} className="text-2xl font-bold text-gray-900 mb-4 mt-6 first:mt-0 leading-tight border-b border-gray-200 pb-2" {...props}>
                 {children}
               </h1>
             );
           },
-          h2: ({ children, ...props }: any) => {
-            const text = typeof children === 'string' ? children : children?.toString?.() || '';
-            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-            const id = generateUniqueId(cleanText, 2);
+          h2: ({ children, node, ...props }: any) => {
+            const text = cleanHeadingText(flattenNodeToString(children));
+            const id = buildStableId(node, text, 2);
+            registerHeading(node, { id, text, level: 2 });
             return (
               <h2 id={id} className="text-xl font-semibold text-gray-900 mb-3 mt-5 leading-tight border-b border-gray-100 pb-1" {...props}>
                 {children}
               </h2>
             );
           },
-          h3: ({ children, ...props }: any) => {
-            const text = typeof children === 'string' ? children : children?.toString?.() || '';
-            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-            const id = generateUniqueId(cleanText, 3);
+          h3: ({ children, node, ...props }: any) => {
+            const text = cleanHeadingText(flattenNodeToString(children));
+            const id = buildStableId(node, text, 3);
+            registerHeading(node, { id, text, level: 3 });
             return (
               <h3 id={id} className="text-lg font-semibold text-gray-900 mb-2 mt-4 leading-tight" {...props}>
                 {children}
               </h3>
             );
           },
-          h4: ({ children, ...props }: any) => {
-            const text = typeof children === 'string' ? children : children?.toString?.() || '';
-            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-            const id = generateUniqueId(cleanText, 4);
+          h4: ({ children, node, ...props }: any) => {
+            const text = cleanHeadingText(flattenNodeToString(children));
+            const id = buildStableId(node, text, 4);
             return (
               <h4 id={id} className="text-base font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
                 {children}
               </h4>
             );
           },
-          h5: ({ children, ...props }: any) => {
-            const text = typeof children === 'string' ? children : children?.toString?.() || '';
-            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-            const id = generateUniqueId(cleanText, 5);
+          h5: ({ children, node, ...props }: any) => {
+            const text = cleanHeadingText(flattenNodeToString(children));
+            const id = buildStableId(node, text, 5);
             return (
               <h5 id={id} className="text-sm font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
                 {children}
               </h5>
             );
           },
-          h6: ({ children, ...props }: any) => {
-            const text = typeof children === 'string' ? children : children?.toString?.() || '';
-            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-            const id = generateUniqueId(cleanText, 6);
+          h6: ({ children, node, ...props }: any) => {
+            const text = cleanHeadingText(flattenNodeToString(children));
+            const id = buildStableId(node, text, 6);
             return (
               <h6 id={id} className="text-sm font-medium text-gray-900 mb-1 mt-2 leading-tight" {...props}>
                 {children}
@@ -299,19 +356,34 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               </details>
             );
           },
-          summary: ({ children, node: _node, className, ...props }: any) => {
-            const text = typeof children === 'string' ? children : children?.toString?.() || '';
-            const cleanText = text.replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
-            const id = generateUniqueId(cleanText, 2);
+          summary: ({ children, node, className, id: propId, ...props }: any) => {
+            const classNameString = Array.isArray(className) ? className.join(' ') : className || '';
+            const text = cleanHeadingText(flattenNodeToString(children));
+
+            let level: number | null = null;
+            if (classNameString.includes('heading-1')) {
+              level = 1;
+            } else if (classNameString.includes('heading-2')) {
+              level = 2;
+            } else if (classNameString.includes('heading-3')) {
+              level = 3;
+            }
+
+            const effectiveLevel = level ?? 2;
+            const id = propId || buildStableId(node, text, effectiveLevel);
+
+            if (level) {
+              registerHeading(node, { id, text, level });
+            }
 
             return (
               <summary
                 id={id}
                 className={cn(
-                  className?.includes('notion-toc-summary')
+                  classNameString.includes('notion-toc-summary')
                     ? ''
                     : 'font-semibold text-gray-900 cursor-pointer hover:text-gray-700 p-4 rounded-t-lg hover:bg-gray-100 transition-colors select-none',
-                  className
+                  classNameString
                 )}
                 {...props}
               >
@@ -329,3 +401,5 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
     </div>
   );
 }
+
+export const MarkdownRenderer = memo(MarkdownRendererComponent);

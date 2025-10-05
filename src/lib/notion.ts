@@ -414,7 +414,7 @@ function convertBlocksToMarkdown(blocks: any[]): string {
         return '<nav class="notion-breadcrumb">🏠</nav>';
 
       case 'table_of_contents':
-        return renderTableOfContents([]);
+        return '';
 
       case 'link_preview':
         const linkUrl = block.link_preview?.url || '';
@@ -1212,6 +1212,7 @@ export interface DocPage {
   status: 'published' | 'draft';
   description: string;
   icon: string;
+  author: string;
   tags: string[];
   content: string;
   children: DocPage[];
@@ -1361,6 +1362,7 @@ function parseNotionPageToDoc(page: NotionPage): DocPage {
     status: (getSelectProperty(props.Status) as DocPage['status']) || 'draft',
     description: getRichTextProperty(props.Description) || '',
     icon: getFileProperty(props.Icon) || '📄',
+    author: getRichTextProperty(props.Author) || getRichTextProperty(props.作者) || '',
     tags: getMultiSelectProperty(props.Tags) || [],
     content: '', // 内容将在 fetchDocsFromNotion 中获取
     children: [], // 将在 buildDocTree 中构建
@@ -1528,24 +1530,6 @@ function getNotionBorderColor(color: string): string {
     brown: '#a3a3a3'
   };
   return colorMap[color] || '#e2e8f0';
-}
-
-// Helper function to render table of contents
-function renderTableOfContents(headings: any[]): string {
-  const validHeadings = headings.filter(heading => heading.slug && heading.title);
-
-  if (validHeadings.length === 0) {
-    return `<details class="notion-toc" id="table-of-contents" data-default-open="true">
-  <summary class="notion-toc-summary">📋 <strong>目录</strong></summary>
-  <div class="toc-list">暂无可用目录</div>
-</details>`;
-  }
-
-  const links = validHeadings
-    .map(heading => `<a class="toc-h${heading.level}" href="#${heading.slug}">${escapeHtml(heading.title)}</a>`)
-    .join('\n');
-
-  return `<details class="notion-toc" id="table-of-contents" data-default-open="true">\n  <summary class="notion-toc-summary">📋 <strong>目录</strong></summary>\n  <div class="toc-list">\n${links}\n  </div>\n</details>`;
 }
 
 // Helper function to escape HTML
