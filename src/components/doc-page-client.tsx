@@ -432,7 +432,6 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
           </button>
           <ThemeToggle
             size="sm"
-            className="border-transparent bg-transparent hover:bg-transparent focus-visible:ring-offset-0 text-gray-700 hover:text-blue-500 dark:text-slate-200 dark:hover:text-blue-400 p-0"
           />
         </div>
       </header>
