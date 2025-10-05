@@ -224,6 +224,7 @@
   transition: color 0.2s ease;
   list-style: none;
   outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .markdown-content details summary::-webkit-details-marker {
@@ -244,18 +245,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  line-height: 1;
-  color: rgb(59 130 246);
   transition: transform 0.2s ease;
-  width: 1rem;
-  height: 1rem;
+  width: 0;
+  height: 0;
   flex-shrink: 0;
 }
 
 .markdown-content details summary .summary-toggle-icon::before {
-  content: '▶';
+  content: '';
   display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid rgb(59 130 246);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 4px solid transparent;
 }
 
 .markdown-content details[open] summary .summary-toggle-icon {
@@ -283,8 +287,8 @@
   color: rgba(191, 219, 254, 0.95);
 }
 
-.dark .markdown-content details summary .summary-toggle-icon {
-  color: rgba(96, 165, 250, 0.9);
+.dark .markdown-content details summary .summary-toggle-icon::before {
+  border-left-color: rgba(96, 165, 250, 0.9);
 }
 
 /* 表格样式 */
@@ -465,6 +469,7 @@
   cursor: pointer;
   padding: 0.5rem 0;
   color: rgb(17 24 39);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .markdown-content .notion-toggle summary:hover {
@@ -797,7 +802,7 @@
 /* 移动端优化 */
 @media (max-width: 768px) {
   .markdown-content {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 
   .markdown-content h1 {
@@ -822,12 +827,13 @@
 
   .markdown-content p,
   .markdown-content li {
-    font-size: 0.9375rem;
+    font-size: 1rem;
+    line-height: 1.7;
   }
 
   .markdown-content pre {
     padding: 1rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 
   .markdown-content table {
@@ -837,6 +843,20 @@
   .markdown-content th,
   .markdown-content td {
     padding: 0.5rem 0.5rem;
+  }
+
+  /* 移动端折叠面板优化 */
+  .markdown-content details {
+    margin-bottom: 1.25rem;
+  }
+
+  .markdown-content details summary {
+    padding: 0.75rem 0;
+    font-size: 1.05rem;
+  }
+
+  .markdown-content details .details-content {
+    padding: 0.5rem 0 0 1.75rem;
   }
 }
 
@@ -1599,7 +1619,7 @@
 
 @media (max-width: 768px) {
   .gitbook-content-wrapper {
-    padding: 1.1rem 1rem 2rem;
+    padding: 1.1rem 1.5rem 2rem;
   }
 
   .doc-layout {

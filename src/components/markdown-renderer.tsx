@@ -382,7 +382,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
                 className={cn(
                   classNameString.includes('notion-toc-summary')
                     ? ''
-                    : 'font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-gray-700 dark:hover:text-slate-50 p-4 rounded-t-lg hover:bg-gray-100 dark:hover:bg-slate-800/60 transition-colors select-none',
+                    : 'font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-gray-700 dark:hover:text-slate-50 transition-colors select-none',
                   classNameString
                 )}
                 {...props}
