@@ -329,8 +329,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  padding: 1rem 0.75rem;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
 }
 
 .gitbook-sidebar.collapsed .gitbook-sidebar-header > .flex {
@@ -345,8 +345,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 1.25rem 1.25rem 1rem;
+  gap: 0.4rem;
+  padding: 0.6rem 0.9rem 0.5rem;
   background: inherit;
   border-bottom: 1px solid rgb(241 245 249);
 }
@@ -354,8 +354,101 @@
 .gitbook-sidebar-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem 0.75rem 1.5rem;
-  scroll-padding-top: 3rem;
+  padding: 0.85rem 0.65rem 1.1rem;
+  scroll-padding-top: 2.2rem;
+}
+
+.gitbook-sidebar-mobile-tabs {
+  display: none;
+  gap: 0.5rem;
+  padding: 0 0.25rem 0.75rem;
+}
+
+.sidebar-tab-button {
+  flex: 1;
+  border: none;
+  border-radius: 0.75rem;
+  background: rgba(226, 232, 240, 0.55);
+  color: rgba(71, 85, 105, 0.85);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.45rem 0.5rem;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-tab-button-active {
+  background: rgba(59, 130, 246, 0.12);
+  color: rgb(37, 99, 235);
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.35);
+}
+
+.gitbook-sidebar-toc-panel {
+  margin-bottom: 0.75rem;
+  display: none;
+}
+
+.gitbook-sidebar-toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0;
+}
+
+.gitbook-sidebar-toc-item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.45rem 0.25rem;
+  font-size: 0.85rem;
+  color: rgba(71, 85, 105, 0.95);
+  border-radius: 0.6rem;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.gitbook-sidebar-toc-item:hover {
+  color: rgb(37, 99, 235);
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.gitbook-sidebar-toc-item-active {
+  color: rgb(37, 99, 235);
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.16);
+}
+
+.gitbook-sidebar-toc-level-2 {
+  padding-left: 1rem;
+  font-size: 0.8rem;
+}
+
+.gitbook-sidebar-toc-level-3 {
+  padding-left: 1.75rem;
+  font-size: 0.78rem;
+}
+
+.gitbook-sidebar-toc-empty {
+  margin: 0;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.8rem;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.gitbook-sidebar-doc-list-mobile {
+  display: none;
+}
+
+.gitbook-sidebar-doc-list-mobile.is-visible {
+  display: flex;
+}
+
+.gitbook-sidebar-doc-list-mobile,
+.gitbook-sidebar-doc-list-desktop {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gitbook-sidebar-doc-list-desktop {
+  display: flex;
 }
 
 .gitbook-sidebar-footer {
@@ -582,142 +675,6 @@
   }
 }
 
-.doc-mobile-toc-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.25);
-  backdrop-filter: blur(6px);
-  z-index: 50;
-}
-
-.doc-mobile-toc {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(80vw, 320px);
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem 1.25rem 2rem;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(236, 244, 255, 0.78));
-  backdrop-filter: blur(26px);
-  box-shadow: -18px 0 40px -32px rgba(15, 23, 42, 0.55);
-  z-index: 60;
-  animation: doc-mobile-toc-slide 0.25s ease forwards;
-  overflow: hidden;
-}
-
-.doc-mobile-toc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.doc-mobile-toc-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(71, 85, 105, 0.95);
-}
-
-.doc-mobile-toc-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px;
-  border: none;
-  background: rgba(255, 255, 255, 0.55);
-  color: rgb(71, 85, 105);
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-}
-
-.doc-mobile-toc-close:hover {
-  transform: scale(1.05);
-  background: rgba(59, 130, 246, 0.12);
-  color: rgb(37, 99, 235);
-}
-
-.doc-mobile-toc-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-  margin: 0;
-  scrollbar-width: thin;
-}
-
-.doc-mobile-toc-list::-webkit-scrollbar {
-  width: 5px;
-}
-
-.doc-mobile-toc-list::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.45);
-  border-radius: 9999px;
-}
-
-.doc-mobile-toc-item {
-  display: flex;
-  width: 100%;
-  padding: 0.55rem 0.35rem;
-  border: none;
-  background: transparent;
-  text-align: left;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: rgba(51, 65, 85, 0.95);
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
-}
-
-.doc-mobile-toc-item:hover {
-  color: rgb(37, 99, 235);
-  background: rgba(59, 130, 246, 0.12);
-  transform: translateX(2px);
-}
-
-.doc-mobile-toc-item-active {
-  color: rgb(37, 99, 235);
-  font-weight: 600;
-  background: rgba(59, 130, 246, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
-}
-
-.doc-mobile-toc-level-2 {
-  padding-left: 0.9rem;
-  font-size: 0.86rem;
-}
-
-.doc-mobile-toc-level-3 {
-  padding-left: 1.75rem;
-  font-size: 0.82rem;
-}
-
-@keyframes doc-mobile-toc-slide {
-  from {
-    transform: translateX(16px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@media (min-width: 1024px) {
-  .doc-mobile-toc,
-  .doc-mobile-toc-backdrop {
-    display: none;
-  }
-}
-
 .doc-article-header {
   margin-bottom: 2.5rem;
 }
@@ -923,7 +880,31 @@
   }
 
   .gitbook-content-wrapper {
-    padding: 2rem 1.5rem 2.75rem;
+    padding: 1.4rem 1.3rem 2.5rem;
+  }
+
+  .gitbook-sidebar-mobile-tabs {
+    display: flex;
+  }
+
+  .gitbook-sidebar-toc-panel.is-visible {
+    display: block;
+  }
+
+  .gitbook-sidebar-toc-panel.is-hidden {
+    display: none;
+  }
+
+  .gitbook-sidebar-doc-list-mobile.is-visible {
+    display: flex;
+  }
+
+  .gitbook-sidebar-doc-list-mobile.is-hidden {
+    display: none;
+  }
+
+  .gitbook-sidebar-doc-list-desktop {
+    display: none;
   }
 
   .doc-layout {
@@ -933,7 +914,7 @@
 
 @media (max-width: 768px) {
   .gitbook-content-wrapper {
-    padding: 1.75rem 1.25rem 2.25rem;
+    padding: 1.1rem 1rem 2rem;
   }
 
   .doc-layout {

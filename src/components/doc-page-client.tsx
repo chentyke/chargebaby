@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Home, Book, Clock, Tags, ChevronsLeft, ChevronsRight, List } from 'lucide-react';
+import { Menu, X, Home, Book, Clock, Tags, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { MarkdownRenderer, HeadingInfo } from '@/components/markdown-renderer';
 import { DocBreadcrumb } from '@/components/doc-breadcrumb';
 import { DocNavigation } from '@/components/doc-navigation';
@@ -47,13 +47,30 @@ function formatDate(dateString: string): string {
 }
 
 // Gitbook风格的侧边栏组件
-function GitbookSidebar({ docs, currentPath, isOpen, onClose, collapsed, onToggleCollapse }: {
+function GitbookSidebar({
+  docs,
+  currentPath,
+  isOpen,
+  onClose,
+  collapsed,
+  onToggleCollapse,
+  headings,
+  activeHeadingId,
+  onTocItemClick,
+  mobileView,
+  onMobileViewChange,
+}: {
   docs: DocPage[];
   currentPath: string;
   isOpen: boolean;
   onClose: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  headings: HeadingInfo[];
+  activeHeadingId: string | null;
+  onTocItemClick: (id: string) => void;
+  mobileView: 'toc' | 'docs';
+  onMobileViewChange: (view: 'toc' | 'docs') => void;
 }) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
     // 初始化时自动展开包含当前页面的项目
@@ -159,6 +176,8 @@ function GitbookSidebar({ docs, currentPath, isOpen, onClose, collapsed, onToggl
     });
   };
 
+  const docNavItems = renderNavItems(docs);
+
   return (
     <aside className={`gitbook-sidebar ${isOpen ? 'mobile-open' : ''} ${collapsed ? 'collapsed' : ''}`}>
       <div className="gitbook-sidebar-header">
@@ -185,8 +204,69 @@ function GitbookSidebar({ docs, currentPath, isOpen, onClose, collapsed, onToggl
       </div>
 
       <div className="gitbook-sidebar-content">
-        <nav className="flex flex-col gap-y-0.5">
-          {renderNavItems(docs)}
+        <div className="gitbook-sidebar-mobile-tabs">
+          <button
+            type="button"
+            className={cn(
+              'sidebar-tab-button',
+              mobileView === 'toc' && 'sidebar-tab-button-active'
+            )}
+            onClick={() => onMobileViewChange('toc')}
+          >
+            目录
+          </button>
+          <button
+            type="button"
+            className={cn(
+              'sidebar-tab-button',
+              mobileView === 'docs' && 'sidebar-tab-button-active'
+            )}
+            onClick={() => onMobileViewChange('docs')}
+          >
+            文档
+          </button>
+        </div>
+
+        <div
+          className={cn(
+            'gitbook-sidebar-toc-panel',
+            mobileView === 'toc' ? 'is-visible' : 'is-hidden'
+          )}
+        >
+          <nav className="gitbook-sidebar-toc-list" aria-label="目录">
+            {headings.map((heading) => (
+              <button
+                key={heading.id}
+                type="button"
+                className={cn(
+                  'gitbook-sidebar-toc-item',
+                  `gitbook-sidebar-toc-level-${heading.level}`,
+                  heading.id === activeHeadingId && 'gitbook-sidebar-toc-item-active'
+                )}
+                onClick={() => {
+                  onTocItemClick(heading.id);
+                  onClose();
+                }}
+              >
+                {heading.text}
+              </button>
+            ))}
+            {headings.length === 0 && (
+              <p className="gitbook-sidebar-toc-empty">该文档暂无目录</p>
+            )}
+          </nav>
+        </div>
+
+        <nav
+          className={cn(
+            'gitbook-sidebar-doc-list-mobile',
+            mobileView === 'docs' ? 'is-visible' : 'is-hidden'
+          )}
+        >
+          {docNavItems}
+        </nav>
+        <nav className="gitbook-sidebar-doc-list-desktop">
+          {docNavItems}
         </nav>
       </div>
 
@@ -241,66 +321,12 @@ function DocTableOfContents({
   );
 }
 
-function DocMobileToc({
-  headings,
-  activeId,
-  onItemClick,
-  onClose,
-}: {
-  headings: HeadingInfo[];
-  activeId: string | null;
-  onItemClick: (id: string) => void;
-  onClose: () => void;
-}) {
-  if (!headings || headings.length === 0) {
-    return null;
-  }
-
-  const handleClick = (id: string) => {
-    onItemClick(id);
-    onClose();
-  };
-
-  return (
-    <aside className="doc-mobile-toc" aria-label="移动目录">
-      <div className="doc-mobile-toc-header">
-        <span className="doc-mobile-toc-title">目录</span>
-        <button
-          type="button"
-          className="doc-mobile-toc-close"
-          onClick={onClose}
-          aria-label="关闭目录"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-      <nav className="doc-mobile-toc-list" aria-label="移动目录列表">
-        {headings.map((heading) => (
-          <button
-            key={heading.id}
-            type="button"
-            className={cn(
-              'doc-mobile-toc-item',
-              `doc-mobile-toc-level-${heading.level}`,
-              heading.id === activeId && 'doc-mobile-toc-item-active'
-            )}
-            onClick={() => handleClick(heading.id)}
-            aria-current={heading.id === activeId ? 'location' : undefined}
-          >
-            {heading.text}
-          </button>
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
 export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPageClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [headings, setHeadings] = useState<HeadingInfo[]>([]);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
-  const [isMobileTocOpen, setIsMobileTocOpen] = useState(false);
+  const [mobileSidebarView, setMobileSidebarView] = useState<'toc' | 'docs'>('toc');
   const headingOffset = 120;
   const authorLabel = doc.author?.trim() ? doc.author.trim() : 'ChargeBaby 团队';
 
@@ -383,33 +409,23 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
     }
   }, []);
 
-  useEffect(() => {
-    setIsMobileTocOpen(false);
-  }, [path]);
-
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* 移动端页眉 */}
       <header className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-1.5">
           <button
             type="button"
             className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={() => {
+              setMobileSidebarView('toc');
+              setIsSidebarOpen(true);
+            }}
           >
             <Menu className="w-5 h-5" />
-            <span className="text-sm font-medium">菜单</span>
+            <span className="text-xs font-medium">菜单</span>
           </button>
-          <button
-            type="button"
-            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors disabled:text-gray-300 disabled:hover:text-gray-300 disabled:cursor-not-allowed"
-            onClick={() => setIsMobileTocOpen(true)}
-            aria-label="打开目录"
-            disabled={headings.length === 0}
-          >
-            <span className="text-sm font-medium">目录</span>
-            <List className="w-5 h-5" />
-          </button>
+          <span className="w-6" aria-hidden />
         </div>
       </header>
 
@@ -421,21 +437,6 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
         />
       )}
 
-      {isMobileTocOpen && (
-        <>
-          <div
-            className="doc-mobile-toc-backdrop"
-            onClick={() => setIsMobileTocOpen(false)}
-          />
-          <DocMobileToc
-            headings={headings}
-            activeId={activeHeadingId}
-            onItemClick={(id) => handleTocItemClick(id)}
-            onClose={() => setIsMobileTocOpen(false)}
-          />
-        </>
-      )}
-
       {/* Gitbook风格侧边栏 */}
       <GitbookSidebar
         docs={docs}
@@ -444,6 +445,11 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
         onClose={() => setIsSidebarOpen(false)}
         collapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
+        headings={headings}
+        activeHeadingId={activeHeadingId}
+        onTocItemClick={handleTocItemClick}
+        mobileView={mobileSidebarView}
+        onMobileViewChange={setMobileSidebarView}
       />
 
       {/* 主内容区 */}
@@ -454,7 +460,7 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
 
         <div className="gitbook-content-wrapper">
           {/* 面包屑导航（移动端显示） */}
-          <div className="mb-6 pt-20 lg:pt-0 lg:hidden">
+          <div className="mb-4 pt-12 lg:pt-0 lg:hidden">
             <DocBreadcrumb breadcrumb={breadcrumb} />
           </div>
 

@@ -580,7 +580,7 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
           </div>
 
           {/* 页脚版本信息 */}
-          <div className="mt-4 text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
+          <div className="mt-4 text-[11px] text-gray-400 flex justify-end">评测版本：V0.11</div>
 
           {/* ICP备案信息 */}
           <ICPBeian variant="detail-mobile" />
@@ -822,7 +822,7 @@ ${priceText ? `💰 官方定价：${priceText}` : ''}
                 </div>
 
                 {/* 页脚版本信息 */}
-                <div className="text-[11px] text-gray-400 flex justify-end">评测版本：V0.10</div>
+                <div className="text-[11px] text-gray-400 flex justify-end">评测版本：V0.11</div>
 
                 {/* ICP备案信息 */}
                 <ICPBeian variant="detail-desktop" />

@@ -208,7 +208,7 @@ export default function SubmitPage() {
                             </p>
                           </div>
                           <Link
-                            href="/powerbankdoc"
+                            href="/docs/powerbank101"
                             target="_blank"
                             className="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-slate-900 px-5 py-2 text-xs font-medium text-white transition hover:bg-slate-800"
                           >

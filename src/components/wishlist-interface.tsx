@@ -36,7 +36,7 @@ interface WishlistInterfaceProps {
 export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [votingProducts, setVotingProducts] = useState<Set<string>>(new Set());
-  const [selectedStatus, setSelectedStatus] = useState<WishlistProduct['status'] | 'all'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<WishlistProduct['status'] | 'all'>('requested');
   const [pendingVerification, setPendingVerification] = useState<string | null>(null);
   const [capTokens, setCapTokens] = useState<Map<string, string>>(new Map());
 
@@ -53,6 +53,14 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
     testing: wishlistProducts.filter(p => p.status === 'testing').length,
     completed: wishlistProducts.filter(p => p.status === 'completed').length,
   };
+
+  const statusFilters = [
+    { key: 'requested' as const, label: '等待测试', count: statusCounts.requested },
+    { key: 'planned' as const, label: '计划测试', count: statusCounts.planned },
+    { key: 'testing' as const, label: '测试中', count: statusCounts.testing },
+    { key: 'completed' as const, label: '已完成', count: statusCounts.completed },
+    { key: 'all' as const, label: '全部', count: statusCounts.all },
+  ];
 
   // 投票处理
   const handleVote = async (productId: string) => {
@@ -107,13 +115,7 @@ export function WishlistInterface({ wishlistProducts }: WishlistInterfaceProps) 
       {/* 状态筛选器 */}
       <div className="overflow-x-auto pb-2">
         <div className="flex gap-2 justify-start sm:justify-center min-w-max px-4 sm:px-0">
-          {[
-            { key: 'all' as const, label: '全部', count: statusCounts.all },
-            { key: 'requested' as const, label: '等待测试', count: statusCounts.requested },
-            { key: 'planned' as const, label: '计划测试', count: statusCounts.planned },
-            { key: 'testing' as const, label: '测试中', count: statusCounts.testing },
-            { key: 'completed' as const, label: '已完成', count: statusCounts.completed },
-          ].map(({ key, label, count }) => (
+          {statusFilters.map(({ key, label, count }) => (
             <button
               key={key}
               onClick={() => setSelectedStatus(key)}
