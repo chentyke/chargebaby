@@ -26,19 +26,19 @@ export function ICPBeian({ className = '', variant = 'footer' }: ICPBeianProps) 
     switch (variant) {
       case 'detail-mobile':
         return {
-          container: "text-center mt-4 pt-4 border-t border-gray-200",
-          link: "text-[11px] text-gray-400 hover:text-gray-500 transition-colors"
+          container: "text-center mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 transition-colors",
+          link: "text-[11px] text-gray-400 dark:text-slate-500 hover:text-gray-500 dark:hover:text-slate-400 transition-colors"
         };
       case 'detail-desktop':
         return {
-          container: "text-center pt-4 border-t border-gray-200",
-          link: "text-[11px] text-gray-400 hover:text-gray-500 transition-colors"
+          container: "text-center pt-4 border-t border-gray-200 dark:border-slate-700 transition-colors",
+          link: "text-[11px] text-gray-400 dark:text-slate-500 hover:text-gray-500 dark:hover:text-slate-400 transition-colors"
         };
       case 'footer':
       default:
         return {
           container: "",
-          link: "text-sm text-gray-500 hover:text-gray-600 transition-colors"
+          link: "text-sm text-gray-500 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
         };
     }
   };

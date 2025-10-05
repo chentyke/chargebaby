@@ -169,7 +169,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             const id = buildStableId(node, text, 1);
             registerHeading(node, { id, text, level: 1 });
             return (
-              <h1 id={id} className="text-2xl font-bold text-gray-900 mb-4 mt-6 first:mt-0 leading-tight border-b border-gray-200 pb-2" {...props}>
+              <h1 id={id} className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4 mt-6 first:mt-0 leading-tight border-b border-gray-200 dark:border-slate-700 pb-2" {...props}>
                 {children}
               </h1>
             );
@@ -179,7 +179,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             const id = buildStableId(node, text, 2);
             registerHeading(node, { id, text, level: 2 });
             return (
-              <h2 id={id} className="text-xl font-semibold text-gray-900 mb-3 mt-5 leading-tight border-b border-gray-100 pb-1" {...props}>
+              <h2 id={id} className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-3 mt-5 leading-tight border-b border-gray-100 dark:border-slate-700 pb-1" {...props}>
                 {children}
               </h2>
             );
@@ -189,7 +189,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             const id = buildStableId(node, text, 3);
             registerHeading(node, { id, text, level: 3 });
             return (
-              <h3 id={id} className="text-lg font-semibold text-gray-900 mb-2 mt-4 leading-tight" {...props}>
+              <h3 id={id} className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 mt-4 leading-tight" {...props}>
                 {children}
               </h3>
             );
@@ -198,7 +198,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             const text = cleanHeadingText(flattenNodeToString(children));
             const id = buildStableId(node, text, 4);
             return (
-              <h4 id={id} className="text-base font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
+              <h4 id={id} className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-2 mt-3 leading-tight" {...props}>
                 {children}
               </h4>
             );
@@ -207,7 +207,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             const text = cleanHeadingText(flattenNodeToString(children));
             const id = buildStableId(node, text, 5);
             return (
-              <h5 id={id} className="text-sm font-semibold text-gray-900 mb-2 mt-3 leading-tight" {...props}>
+              <h5 id={id} className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-2 mt-3 leading-tight" {...props}>
                 {children}
               </h5>
             );
@@ -216,13 +216,13 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             const text = cleanHeadingText(flattenNodeToString(children));
             const id = buildStableId(node, text, 6);
             return (
-              <h6 id={id} className="text-sm font-medium text-gray-900 mb-1 mt-2 leading-tight" {...props}>
+              <h6 id={id} className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-1 mt-2 leading-tight" {...props}>
                 {children}
               </h6>
             );
           },
           p: ({ children, ...props }: any) => (
-            <p className="text-gray-700 mb-4 leading-relaxed text-[15px]" {...props}>
+            <p className="text-gray-700 dark:text-slate-300 mb-4 leading-relaxed text-[15px]" {...props}>
               {children}
             </p>
           ),
@@ -237,13 +237,13 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             </ol>
           ),
           li: ({ children, ...props }: any) => (
-            <li className="text-gray-700 leading-relaxed text-[15px]" {...props}>
+            <li className="text-gray-700 dark:text-slate-300 leading-relaxed text-[15px]" {...props}>
               {children}
             </li>
           ),
           blockquote: ({ children, ...props }: any) => (
-            <blockquote className="border-l-4 border-blue-400 pl-4 py-3 mb-4 bg-blue-50/50 rounded-r-lg" {...props}>
-              <div className="text-gray-700 italic">
+            <blockquote className="border-l-4 border-blue-400 pl-4 py-3 mb-4 bg-blue-50/50 dark:bg-slate-900/60 rounded-r-lg" {...props}>
+              <div className="text-gray-700 dark:text-slate-300 italic">
                 {children}
               </div>
             </blockquote>
@@ -251,14 +251,14 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
           code: ({ inline, children, ...props }: any) => {
             if (inline) {
               return (
-                <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm font-mono border" {...props}>
+                <code className="bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-100 px-2 py-1 rounded-md text-sm font-mono border border-gray-200 dark:border-slate-700" {...props}>
                   {children}
                 </code>
               );
             }
             return (
-              <pre className="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-4 overflow-x-auto shadow-sm">
-                <code className="text-gray-800 text-sm font-mono leading-relaxed" {...props}>
+              <pre className="bg-gray-50 dark:bg-slate-900/70 border border-gray-200 dark:border-slate-700 p-4 rounded-lg mb-4 overflow-x-auto shadow-sm">
+                <code className="text-gray-800 dark:text-slate-100 text-sm font-mono leading-relaxed" {...props}>
                   {children}
                 </code>
               </pre>
@@ -282,13 +282,13 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
                   <img
                     src={displaySrc}
                     alt={alt || ''}
-                    className="w-full rounded-lg shadow-sm border border-gray-200"
+                    className="w-full rounded-lg shadow-sm border border-gray-200 dark:border-slate-700"
                     loading="lazy"
                     {...props}
                   />
                 </ImageZoom>
                 {alt && (
-                  <span className="block text-center text-sm text-gray-500 mb-4 italic">
+                  <span className="block text-center text-sm text-gray-500 dark:text-slate-400 mb-4 italic">
                     {alt}
                   </span>
                 )}
@@ -299,7 +299,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             const isHashLink = typeof href === 'string' && href.startsWith('#');
             const anchorProps = {
               href,
-              className: 'text-blue-600 hover:text-blue-800 underline',
+              className: 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline',
               ...(!isHashLink
                 ? { target: '_blank' as const, rel: 'noopener noreferrer' }
                 : {}),
@@ -313,29 +313,29 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
             );
           },
           strong: ({ children, ...props }: any) => (
-            <strong className="font-semibold text-gray-900" {...props}>
+            <strong className="font-semibold text-gray-900 dark:text-slate-100" {...props}>
               {children}
             </strong>
           ),
           em: ({ children, ...props }: any) => (
-            <em className="italic text-gray-700" {...props}>
+            <em className="italic text-gray-700 dark:text-slate-300" {...props}>
               {children}
             </em>
           ),
           hr: ({ ...props }: any) => (
-            <hr className="my-6 border-t border-gray-200" {...props} />
+            <hr className="my-6 border-t border-gray-200 dark:border-slate-700" {...props} />
           ),
           span: ({ style, children, ...props }: any) => (
             <span 
               style={style} 
-              className="inline-block" 
+              className="inline-block dark:text-slate-200" 
               {...props}
             >
               {children}
             </span>
           ),
           u: ({ children, ...props }: any) => (
-            <span className="underline decoration-2 underline-offset-2" {...props}>
+            <span className="underline decoration-2 underline-offset-2 dark:text-slate-200" {...props}>
               {children}
             </span>
           ),
@@ -347,7 +347,7 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
               normalizedProps.open = true;
             }
 
-            const baseClass = className ? '' : 'mb-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm';
+            const baseClass = className ? '' : 'mb-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm';
             const combinedClassName = cn(baseClass, className);
 
             return (
@@ -382,14 +382,14 @@ function MarkdownRendererComponent({ content, className = '', onHeadingsChange }
                 className={cn(
                   classNameString.includes('notion-toc-summary')
                     ? ''
-                    : 'font-semibold text-gray-900 cursor-pointer hover:text-gray-700 p-4 rounded-t-lg hover:bg-gray-100 transition-colors select-none',
+                    : 'font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:text-gray-700 dark:hover:text-slate-50 p-4 rounded-t-lg hover:bg-gray-100 dark:hover:bg-slate-800/60 transition-colors select-none',
                   classNameString
                 )}
                 {...props}
               >
                 <span className="summary-content">
-                  <span className="summary-toggle-icon" aria-hidden="true">▸</span>
-                  <span className="summary-text">{children}</span>
+                  <span className="summary-toggle-icon" aria-hidden="true"></span>
+                  <span>{children}</span>
                 </span>
               </summary>
             );

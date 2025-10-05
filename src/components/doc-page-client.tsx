@@ -9,6 +9,7 @@ import { DocNavigation } from '@/components/doc-navigation';
 import { DocPage } from '@/lib/notion';
 import '../app/docs/doc-styles.css';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 
 interface DocPageClientProps {
@@ -130,12 +131,12 @@ function GitbookSidebar({
       }
 
       const containerClass = collapsed
-        ? 'group/toclink toclink transition-colors flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 rounded-md text-lg'
-        : 'group/toclink toclink relative transition-colors flex flex-row justify-between p-1.5 pl-3 text-balance font-normal text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-md';
+        ? 'group/toclink toclink transition-colors flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 rounded-md text-lg'
+        : 'group/toclink toclink relative transition-colors flex flex-row justify-between p-1.5 pl-3 text-balance font-normal text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-slate-100 rounded-md';
 
       const linkClass = collapsed
-        ? `flex items-center justify-center ${isActive ? 'text-blue-600' : ''}`
-        : `flex items-center gap-3 flex-1 ${isActive ? 'font-semibold text-blue-600' : ''}`;
+        ? `flex items-center justify-center ${isActive ? 'text-blue-600 dark:text-blue-400' : 'dark:text-slate-200'}`
+        : `flex items-center gap-3 flex-1 ${isActive ? 'font-semibold text-blue-600 dark:text-blue-400' : 'dark:text-slate-200'}`;
 
       return (
         <div key={item.id} className="flex flex-col">
@@ -155,7 +156,7 @@ function GitbookSidebar({
             </Link>
             {hasChildren && !collapsed && (
               <button
-                className="group relative rounded-md w-7 h-7 hover:bg-gray-200 text-gray-400 transition-colors flex items-center justify-center"
+                className="group relative rounded-md w-7 h-7 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-400 dark:text-slate-400 transition-colors flex items-center justify-center"
                 onClick={() => toggleExpand(item.id)}
               >
                 <span
@@ -167,7 +168,7 @@ function GitbookSidebar({
             )}
           </div>
           {hasChildren && !collapsed && isExpanded && (
-            <div className="ml-5 my-2 border-l border-gray-200 pl-2">
+            <div className="ml-5 my-2 border-l border-gray-200 dark:border-slate-700 pl-2">
               {renderNavItems(item.children!, level + 1)}
             </div>
           )}
@@ -183,19 +184,19 @@ function GitbookSidebar({
       <div className="gitbook-sidebar-header">
         <div className={`flex items-center gap-2 overflow-hidden ${collapsed ? 'hidden' : ''}`}>
           <Book className="w-6 h-6 text-blue-600 flex-shrink-0" />
-          <span className="font-semibold text-gray-900 truncate">文档中心</span>
+          <span className="font-semibold text-gray-900 dark:text-slate-100 truncate">文档中心</span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={onToggleCollapse}
-            className="hidden lg:flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 transition-colors"
+            className="hidden lg:flex items-center justify-center rounded-md p-1.5 text-gray-400 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
           >
             {collapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
           </button>
           <button
             onClick={onClose}
-            className="p-1 rounded-md hover:bg-gray-100 lg:hidden"
+            className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 lg:hidden"
             aria-label="关闭侧边栏"
           >
             <X className="w-5 h-5" />
@@ -409,14 +410,18 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
     }
   }, []);
 
+  useEffect(() => {
+    setMobileSidebarView('toc');
+  }, [path]);
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 dark:bg-slate-950 transition-colors">
       {/* 移动端页眉 */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30">
+      <header className="lg:hidden fixed top-0 left-0 right-0 bg-white dark:bg-slate-950 border-b border-gray-200 dark:border-slate-800 z-30 transition-colors">
         <div className="flex items-center justify-between px-4 py-1.5">
           <button
             type="button"
-            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+            className="flex items-center gap-2 text-gray-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             onClick={() => {
               setMobileSidebarView('toc');
               setIsSidebarOpen(true);
@@ -425,7 +430,10 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
             <Menu className="w-5 h-5" />
             <span className="text-xs font-medium">菜单</span>
           </button>
-          <span className="w-6" aria-hidden />
+          <ThemeToggle
+            size="sm"
+            className="border-transparent bg-transparent hover:bg-transparent focus-visible:ring-offset-0 text-gray-700 hover:text-blue-500 dark:text-slate-200 dark:hover:text-blue-400 p-0"
+          />
         </div>
       </header>
 
@@ -454,11 +462,12 @@ export function DocPageClient({ doc, docs, breadcrumb, adjacent, path }: DocPage
 
       {/* 主内容区 */}
       <main className={`gitbook-main-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <div className="gitbook-toolbar hidden lg:block">
-          <DocBreadcrumb breadcrumb={breadcrumb} />
-        </div>
+      <div className="gitbook-toolbar hidden lg:flex items-center justify-between">
+        <DocBreadcrumb breadcrumb={breadcrumb} />
+        <ThemeToggle />
+      </div>
 
-        <div className="gitbook-content-wrapper">
+      <div className="gitbook-content-wrapper">
           {/* 面包屑导航（移动端显示） */}
           <div className="mb-4 pt-12 lg:pt-0 lg:hidden">
             <DocBreadcrumb breadcrumb={breadcrumb} />

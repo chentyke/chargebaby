@@ -6,6 +6,11 @@
   line-height: 1.625;
 }
 
+/* Dark Mode 基础样式 */
+.dark .markdown-content {
+  color: rgba(226, 232, 240, 0.88);
+}
+
 /* 标题样式 */
 .markdown-content h1 {
   font-size: 1.875rem;
@@ -73,6 +78,20 @@
   line-height: 1.3;
 }
 
+/* Dark Mode 标题样式 */
+.dark .markdown-content h1,
+.dark .markdown-content h2,
+.dark .markdown-content h3,
+.dark .markdown-content h4,
+.dark .markdown-content h5,
+.dark .markdown-content h6 {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.dark .markdown-content h2 {
+  border-bottom-color: rgba(51, 65, 85, 0.6);
+}
+
 /* 段落样式 */
 .markdown-content p {
   margin-bottom: 1.1rem;
@@ -121,6 +140,16 @@
   color: rgb(55 65 81);
   font-style: italic;
   margin-bottom: 0;
+}
+
+/* Dark Mode 引用样式 */
+.dark .markdown-content blockquote {
+  border-left-color: rgba(96, 165, 250, 0.6);
+  background-color: rgba(30, 64, 175, 0.15);
+}
+
+.dark .markdown-content blockquote p {
+  color: rgba(203, 213, 225, 0.9);
 }
 
 /* 代码样式 */
@@ -174,10 +203,35 @@
   margin-bottom: 1rem;
 }
 
-/* 折叠面板样式 */
+/* 折叠面板样式 - 轻量设计 */
+.markdown-content details {
+  margin-bottom: 1rem;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+}
+
 .markdown-content details summary {
   display: flex;
   align-items: center;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  background-color: transparent;
+  border: none;
+  color: rgb(17 24 39);
+  transition: color 0.2s ease;
+  list-style: none;
+  outline: none;
+}
+
+.markdown-content details summary::-webkit-details-marker {
+  display: none;
+}
+
+.markdown-content details summary:hover {
+  color: rgb(37 99 235);
 }
 
 .markdown-content details summary .summary-content {
@@ -190,14 +244,47 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   line-height: 1;
-  color: rgb(17 24 39);
+  color: rgb(59 130 246);
   transition: transform 0.2s ease;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.markdown-content details summary .summary-toggle-icon::before {
+  content: '▶';
+  display: inline-block;
 }
 
 .markdown-content details[open] summary .summary-toggle-icon {
   transform: rotate(90deg);
+}
+
+.markdown-content details .details-content {
+  padding: 0.25rem 0 0 1.5rem;
+  margin-top: 0;
+}
+
+/* Dark Mode 折叠面板样式 */
+.dark .markdown-content details {
+  background-color: transparent;
+  border: none;
+}
+
+.dark .markdown-content details summary {
+  background-color: transparent;
+  border: none;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.dark .markdown-content details summary:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .markdown-content details summary .summary-toggle-icon {
+  color: rgba(96, 165, 250, 0.9);
 }
 
 /* 表格样式 */
@@ -228,10 +315,35 @@
   color: rgb(55 65 81);
 }
 
+/* Dark Mode 表格样式 */
+.dark .markdown-content table {
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.dark .markdown-content th,
+.dark .markdown-content td {
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.dark .markdown-content th {
+  background-color: rgba(30, 41, 59, 0.5);
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.dark .markdown-content td {
+  background-color: rgba(15, 23, 42, 0.3);
+  color: rgba(203, 213, 225, 0.9);
+}
+
 /* 分隔线样式 */
 .markdown-content hr {
   margin: 2rem 0;
   border-top: 1px solid rgb(229 231 235);
+}
+
+/* Dark Mode 分隔线样式 */
+.dark .markdown-content hr {
+  border-top-color: rgba(51, 65, 85, 0.6);
 }
 
 /* 强调样式 */
@@ -245,10 +357,434 @@
   color: rgb(55 65 81);
 }
 
+/* Dark Mode 强调样式 */
+.dark .markdown-content strong {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.dark .markdown-content em {
+  color: rgba(203, 213, 225, 0.9);
+}
+
 /* 删除线样式 */
 .markdown-content del {
   text-decoration: line-through;
   color: rgb(107 114 128);
+}
+
+/* Dark Mode 删除线样式 */
+.dark .markdown-content del {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+/* 标注块样式 */
+.markdown-content .notion-callout {
+  background-color: white;
+  border-left: 4px solid rgb(59 130 246);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-content .notion-callout > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.markdown-content .notion-callout > div > span:first-child {
+  font-size: 1.25rem;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.markdown-content .notion-callout > div > div:last-child {
+  flex: 1;
+  line-height: 1.6;
+  color: rgb(55 65 81);
+}
+
+/* Dark Mode 标注块样式 */
+.dark .markdown-content .notion-callout {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+  border-left-color: rgba(96, 165, 250, 0.7) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .markdown-content .notion-callout > div > div:last-child {
+  color: rgba(203, 213, 225, 0.9);
+}
+
+/* 覆带有背景色的文字样式 */
+.dark .markdown-content span[style*="background-color"] {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+  color: rgba(226, 232, 240, 0.95) !important;
+}
+
+.dark .markdown-content div[style*="background-color"] {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+}
+
+.dark .markdown-content p[style*="background-color"] {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+}
+
+/* 特定颜色覆盖 */
+.dark .markdown-content [style*="background-color: #fef2f2"],
+.dark .markdown-content [style*="background-color: #fff7ed"],
+.dark .markdown-content [style*="background-color: #fefce8"],
+.dark .markdown-content [style*="background-color: #f0fdf4"],
+.dark .markdown-content [style*="background-color: #eff6ff"],
+.dark .markdown-content [style*="background-color: #faf5ff"],
+.dark .markdown-content [style*="background-color: #fdf2f8"],
+.dark .markdown-content [style*="background-color: #f9fafb"],
+.dark .markdown-content [style*="background-color: #fef7f0"] {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+}
+
+.dark .markdown-content [style*="background-color: #fef2f2"] *,
+.dark .markdown-content [style*="background-color: #fff7ed"] *,
+.dark .markdown-content [style*="background-color: #fefce8"] *,
+.dark .markdown-content [style*="background-color: #f0fdf4"] *,
+.dark .markdown-content [style*="background-color: #eff6ff"] *,
+.dark .markdown-content [style*="background-color: #faf5ff"] *,
+.dark .markdown-content [style*="background-color: #fdf2f8"] *,
+.dark .markdown-content [style*="background-color: #f9fafb"] *,
+.dark .markdown-content [style*="background-color: #fef7f0"] * {
+  color: rgba(226, 232, 240, 0.95) !important;
+}
+
+/* Notion 列表样式 */
+.markdown-content .notion-toggle {
+  margin-bottom: 1rem;
+}
+
+.markdown-content .notion-toggle summary {
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  color: rgb(17 24 39);
+}
+
+.markdown-content .notion-toggle summary:hover {
+  color: rgb(37 99 235);
+}
+
+.markdown-content .notion-toggle-content {
+  padding-left: 1rem;
+  border-left: 2px solid rgb(229 231 235);
+  margin-top: 0.5rem;
+}
+
+/* Notion 引用块样式 */
+.markdown-content .notion-quote {
+  border-left: 4px solid rgb(59 130 246);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  background-color: rgb(239 246 255);
+  color: rgb(55 65 81);
+  font-style: italic;
+}
+
+/* Notion 图像样式 */
+.markdown-content .notion-image {
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(229 231 235);
+}
+
+/* Notion 列布局样式 */
+.markdown-content .notion-column-list {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-column {
+  flex: 1;
+  padding: 0.5rem;
+}
+
+/* Notion 分割线样式 */
+.markdown-content .notion-divider {
+  border: none;
+  border-top: 1px solid rgb(229 231 235);
+  margin: 2rem 0;
+}
+
+/* Dark Mode Notion 块样式 */
+.dark .markdown-content .notion-toggle summary {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.dark .markdown-content .notion-toggle summary:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .markdown-content .notion-toggle-content {
+  border-left-color: rgba(51, 65, 85, 0.6);
+}
+
+.dark .markdown-content .notion-quote {
+  background-color: rgba(30, 64, 175, 0.15);
+  border-left-color: rgba(96, 165, 250, 0.6);
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.dark .markdown-content .notion-image {
+  border-color: rgba(51, 65, 85, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark .markdown-content .notion-divider {
+  border-top-color: rgba(51, 65, 85, 0.6);
+}
+
+/* Notion 书签样式 */
+.markdown-content .notion-bookmark {
+  padding: 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  background-color: rgb(249 250 251);
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-bookmark a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: rgb(55 65 81);
+  font-weight: 500;
+}
+
+.markdown-content .notion-bookmark a:hover {
+  color: rgb(37 99 235);
+}
+
+/* Notion 嵌入样式 */
+.markdown-content .notion-embed {
+  padding: 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  background-color: rgb(249 250 251);
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-embed a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: rgb(55 65 81);
+  font-weight: 500;
+}
+
+.markdown-content .notion-embed a:hover {
+  color: rgb(37 99 235);
+}
+
+/* Notion 链接预览样式 */
+.markdown-content .notion-link-preview {
+  padding: 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  background-color: rgb(249 250 251);
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-link-preview a {
+  display: block;
+  text-decoration: none;
+  color: rgb(55 65 81);
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.markdown-content .notion-link-preview a:hover {
+  color: rgb(37 99 235);
+}
+
+/* Notion 模板样式 */
+.markdown-content .notion-template {
+  padding: 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  background-color: rgb(249 250 251);
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-template strong {
+  color: rgb(17 24 39);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Notion PDF样式 */
+.markdown-content .notion-pdf {
+  padding: 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  background-color: rgb(249 250 251);
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-pdf a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: rgb(55 65 81);
+  font-weight: 500;
+}
+
+.markdown-content .notion-pdf a:hover {
+  color: rgb(37 99 235);
+}
+
+/* Notion 视频样式 */
+.markdown-content .notion-video {
+  padding: 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  background-color: rgb(249 250 251);
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-video a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: rgb(55 65 81);
+  font-weight: 500;
+}
+
+.markdown-content .notion-video a:hover {
+  color: rgb(37 99 235);
+}
+
+/* Notion 表格增强样式 */
+.markdown-content .notion-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.markdown-content .notion-table th,
+.markdown-content .notion-table td {
+  border: 1px solid rgb(229 231 235);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.markdown-content .notion-table th {
+  background-color: rgb(249 250 251);
+  font-weight: 600;
+  color: rgb(17 24 39);
+}
+
+.markdown-content .notion-table td {
+  background-color: white;
+  color: rgb(55 65 81);
+}
+
+/* Dark Mode Notion 块样式增强 */
+.dark .markdown-content .notion-bookmark {
+  border-color: rgba(51, 65, 85, 0.6);
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.dark .markdown-content .notion-bookmark a {
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.dark .markdown-content .notion-bookmark a:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .markdown-content .notion-embed {
+  border-color: rgba(51, 65, 85, 0.6);
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.dark .markdown-content .notion-embed a {
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.dark .markdown-content .notion-embed a:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .markdown-content .notion-link-preview {
+  border-color: rgba(51, 65, 85, 0.6);
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.dark .markdown-content .notion-link-preview a {
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.dark .markdown-content .notion-link-preview a:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .markdown-content .notion-template {
+  border-color: rgba(51, 65, 85, 0.6);
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.dark .markdown-content .notion-template strong {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.dark .markdown-content .notion-pdf {
+  border-color: rgba(51, 65, 85, 0.6);
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.dark .markdown-content .notion-pdf a {
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.dark .markdown-content .notion-pdf a:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .markdown-content .notion-video {
+  border-color: rgba(51, 65, 85, 0.6);
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.dark .markdown-content .notion-video a {
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.dark .markdown-content .notion-video a:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .markdown-content .notion-table {
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.dark .markdown-content .notion-table th,
+.dark .markdown-content .notion-table td {
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.dark .markdown-content .notion-table th {
+  background-color: rgba(30, 41, 59, 0.5);
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.dark .markdown-content .notion-table td {
+  background-color: rgba(15, 23, 42, 0.3);
+  color: rgba(203, 213, 225, 0.9);
 }
 
 /* 下划线样式 */
@@ -757,6 +1293,11 @@
   border-top: 1px solid rgb(241 245 249);
 }
 
+/* Dark Mode 页脚样式 */
+.dark .doc-article-footer {
+  border-top: 1px solid rgba(51, 65, 85, 0.6);
+}
+
 .doc-nav {
   display: flex;
   flex-direction: column;
@@ -829,6 +1370,150 @@
 .doc-nav-placeholder {
   flex: 1;
   min-height: 0;
+}
+
+/* 深色模式适配 */
+.dark .gitbook-sidebar {
+  background: rgba(7, 12, 24, 0.96);
+  border-right: 1px solid rgba(51, 65, 85, 0.6);
+  box-shadow: 0 18px 45px -30px rgba(8, 47, 73, 0.6);
+}
+
+.dark .gitbook-sidebar-header {
+  border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.dark .gitbook-sidebar-content {
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.dark .sidebar-tab-button {
+  background: rgba(30, 41, 59, 0.6);
+  color: rgba(203, 213, 225, 0.78);
+}
+
+.dark .sidebar-tab-button-active {
+  background: rgba(59, 130, 246, 0.2);
+  color: rgba(191, 219, 254, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.4);
+}
+
+.dark .gitbook-sidebar-toc-item {
+  color: rgba(203, 213, 225, 0.78);
+}
+
+.dark .gitbook-sidebar-toc-item:hover {
+  color: rgba(191, 219, 254, 0.95);
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.dark .gitbook-sidebar-toc-item-active {
+  color: rgba(191, 219, 254, 1);
+  background: rgba(59, 130, 246, 0.24);
+}
+
+.dark .gitbook-sidebar-toc-empty {
+  color: rgba(148, 163, 184, 0.72);
+}
+
+.dark .gitbook-sidebar-footer a {
+  color: rgba(148, 163, 184, 0.75);
+}
+
+.dark .gitbook-sidebar-footer a:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .gitbook-sidebar-footer .sidebar-footer-text {
+  color: rgba(148, 163, 184, 0.65);
+}
+
+.dark .gitbook-main-content {
+  background: #020617;
+}
+
+.dark .gitbook-toolbar {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.95), rgba(2, 6, 23, 0));
+  border-bottom: 1px solid rgba(51, 65, 85, 0.55);
+}
+
+.dark .gitbook-content-wrapper {
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.dark .doc-article-title {
+  color: rgba(226, 232, 240, 0.96);
+}
+
+.dark .doc-article-description {
+  color: rgba(203, 213, 225, 0.82);
+}
+
+.dark .doc-article-icon {
+  color: rgba(148, 163, 184, 0.6);
+}
+
+.dark .doc-article-meta {
+  color: rgba(191, 219, 254, 0.78);
+}
+
+.dark .doc-article-meta-item svg {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.dark .doc-article-tag {
+  border-color: rgba(96, 165, 250, 0.35);
+  background: rgba(30, 64, 175, 0.25);
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.dark .doc-article-footer {
+  border-top: 1px solid rgba(51, 65, 85, 0.55);
+}
+
+.dark .doc-toc {
+  border-left: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.dark .doc-toc-title {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.dark .doc-toc-list::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.6);
+}
+
+.dark .doc-toc-item {
+  color: rgba(203, 213, 225, 0.78);
+}
+
+.dark .doc-toc-item:hover {
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.dark .doc-toc-item-active {
+  color: rgba(191, 219, 254, 1);
+}
+
+.dark .doc-toc-item-active::before {
+  background: linear-gradient(180deg, rgba(96, 165, 250, 0.6), rgba(59, 130, 246, 0.92));
+}
+
+.dark .doc-nav-link {
+  border-color: rgba(51, 65, 85, 0.7);
+  background: rgba(30, 41, 59, 0.65);
+  color: rgba(226, 232, 240, 0.86);
+}
+
+.dark .doc-nav-link:hover {
+  border-color: rgba(96, 165, 250, 0.6);
+  background: rgba(37, 99, 235, 0.2);
+  color: rgba(191, 219, 254, 0.95);
+  box-shadow: 0 12px 28px -24px rgba(59, 130, 246, 0.6);
+}
+
+.dark .doc-nav-label {
+  color: rgba(148, 163, 184, 0.7);
 }
 
 @media (min-width: 640px) {

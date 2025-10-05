@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ConditionalFooter } from '@/components/conditional-footer';
+import { cn } from '@/lib/utils';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -60,9 +61,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" className="scroll-smooth">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-white flex flex-col">
+    <html lang="zh-CN" className="scroll-smooth" suppressHydrationWarning>
+      <body className={cn(inter.className, 'bg-background text-foreground transition-colors')}>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `(()=>{try{const storageKey='theme-preference';const saved=localStorage.getItem(storageKey);const pref=saved==='light'||saved==='dark'||saved==='system'?saved:'system';const media=window.matchMedia('(prefers-color-scheme: dark)');const resolved=pref==='system'?(media.matches?'dark':'light'):pref;document.documentElement.classList.toggle('dark',resolved==='dark');document.documentElement.dataset.theme=resolved;}catch(e){}})();`,
+          }}
+        />
+        <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col transition-colors">
           {/* 主要内容区域 */}
           <main className="flex-1">
             {children}
@@ -73,6 +80,5 @@ export default function RootLayout({
     </html>
   );
 }
-
 
 
