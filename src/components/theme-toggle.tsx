@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Moon, Sun, Laptop } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { THEME_STORAGE_KEY, ThemePreference, isDocsPath, readStoredPreference, resolveTheme } from '@/lib/theme';
+import { THEME_STORAGE_KEY, ThemePreference, ResolvedTheme, isDocsPath, readStoredPreference, resolveTheme } from '@/lib/theme';
 
 export function ThemeToggle({ className, size = 'md' }: { className?: string; size?: 'sm' | 'md' }) {
   const [mounted, setMounted] = useState(false);
@@ -14,7 +14,7 @@ export function ThemeToggle({ className, size = 'md' }: { className?: string; si
     if (typeof window === 'undefined') {
       return;
     }
-    let resolved = resolveTheme(pref);
+    let resolved: ResolvedTheme = resolveTheme(pref);
     if (!isDocsPath(window.location.pathname)) {
       resolved = 'light';
     }
@@ -45,7 +45,7 @@ export function ThemeToggle({ className, size = 'md' }: { className?: string; si
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (event: MediaQueryListEvent) => {
       if (preference === 'system') {
-        let resolved = event.matches ? 'dark' : 'light';
+        let resolved: ResolvedTheme = event.matches ? 'dark' : 'light';
         if (!isDocsPath(window.location.pathname)) {
           resolved = 'light';
         }

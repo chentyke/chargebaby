@@ -1,4 +1,5 @@
 export type ThemePreference = 'light' | 'dark' | 'system';
+export type ResolvedTheme = 'light' | 'dark';
 
 export const THEME_STORAGE_KEY = 'theme-preference';
 
@@ -34,7 +35,7 @@ export function readStoredPreference(): ThemePreference {
   return 'system';
 }
 
-export function resolveTheme(preference: ThemePreference): 'light' | 'dark' {
+export function resolveTheme(preference: ThemePreference): ResolvedTheme {
   if (preference === 'light') {
     return 'light';
   }
