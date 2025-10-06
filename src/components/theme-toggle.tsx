@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Moon, Sun, Laptop } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-type ThemePreference = 'light' | 'dark' | 'system';
-
-const THEME_STORAGE_KEY = 'theme-preference';
+import { THEME_STORAGE_KEY, ThemePreference, isDocsPath, readStoredPreference, resolveTheme } from '@/lib/theme';
 
 export function ThemeToggle({ className, size = 'md' }: { className?: string; size?: 'sm' | 'md' }) {
   const [mounted, setMounted] = useState(false);
@@ -17,8 +14,10 @@ export function ThemeToggle({ className, size = 'md' }: { className?: string; si
     if (typeof window === 'undefined') {
       return;
     }
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const resolved = pref === 'system' ? (media.matches ? 'dark' : 'light') : pref;
+    let resolved = resolveTheme(pref);
+    if (!isDocsPath(window.location.pathname)) {
+      resolved = 'light';
+    }
     const root = document.documentElement;
 
     root.classList.toggle('dark', resolved === 'dark');
@@ -32,10 +31,7 @@ export function ThemeToggle({ className, size = 'md' }: { className?: string; si
       return;
     }
 
-    const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as ThemePreference | null;
-    if (saved === 'light' || saved === 'dark' || saved === 'system') {
-      setPreference(saved);
-    }
+    setPreference(readStoredPreference());
     setMounted(true);
   }, []);
 
@@ -49,7 +45,10 @@ export function ThemeToggle({ className, size = 'md' }: { className?: string; si
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (event: MediaQueryListEvent) => {
       if (preference === 'system') {
-        const resolved = event.matches ? 'dark' : 'light';
+        let resolved = event.matches ? 'dark' : 'light';
+        if (!isDocsPath(window.location.pathname)) {
+          resolved = 'light';
+        }
         const root = document.documentElement;
         root.classList.toggle('dark', resolved === 'dark');
         root.dataset.theme = resolved;

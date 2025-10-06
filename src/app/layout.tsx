@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ConditionalFooter } from '@/components/conditional-footer';
+import { ThemeGuard } from '@/components/theme-guard';
 import { cn } from '@/lib/utils';
 
 const inter = Inter({ 
@@ -66,9 +67,10 @@ export default function RootLayout({
         <script
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: `(()=>{try{const storageKey='theme-preference';const saved=localStorage.getItem(storageKey);const pref=saved==='light'||saved==='dark'||saved==='system'?saved:'system';const media=window.matchMedia('(prefers-color-scheme: dark)');const resolved=pref==='system'?(media.matches?'dark':'light'):pref;document.documentElement.classList.toggle('dark',resolved==='dark');document.documentElement.dataset.theme=resolved;}catch(e){}})();`,
+            __html: `(()=>{try{const storageKey='theme-preference';const saved=localStorage.getItem(storageKey);const pref=saved==='light'||saved==='dark'||saved==='system'?saved:'system';const media=window.matchMedia('(prefers-color-scheme: dark)');const resolvedPref=pref==='system'?(media.matches?'dark':'light'):pref;const normalize=(pathname)=>{const trimmed=pathname.replace(/\/+$/,'');return trimmed.length>0?trimmed:'/';};const pathname=normalize(window.location.pathname||'');const onDocs=pathname==='/docs'||pathname.startsWith('/docs/');const finalTheme=onDocs?resolvedPref:'light';document.documentElement.classList.toggle('dark',finalTheme==='dark');document.documentElement.dataset.theme=finalTheme;}catch(e){}})();`,
           }}
         />
+        <ThemeGuard />
         <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col transition-colors">
           {/* 主要内容区域 */}
           <main className="flex-1">
@@ -80,5 +82,4 @@ export default function RootLayout({
     </html>
   );
 }
-
 
