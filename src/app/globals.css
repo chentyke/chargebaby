@@ -528,7 +528,8 @@ html {
 }
 
 /* 允许文本选择的元素 */
-input, textarea, [contenteditable="true"], p, span, div.markdown-content, .selectable {
+input, textarea, [contenteditable="true"], p, span, div.markdown-content, .selectable,
+h1, h2, h3, h4, h5, h6, div, td, th, li, dt, dd, label, .text-selectable {
   -webkit-user-select: text;
   -khtml-user-select: text;
   -moz-user-select: text;
