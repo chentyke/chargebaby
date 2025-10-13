@@ -188,21 +188,44 @@ export async function getChargeBabyByModel(model: string): Promise<ChargeBaby | 
 }
 
 /**
- * 获取页面内容块（递归获取子块）
+ * 获取页面内容块（递归获取子块，支持分页）
  */
 export async function getPageBlocks(pageId: string): Promise<any[]> {
   try {
-    const response = await notionFetch<any>(`/blocks/${pageId}/children`);
-    const blocks = response.results || [];
-    
+    let allBlocks: any[] = [];
+    let startCursor: string | undefined;
+    let hasMore = true;
+
+    // 使用分页获取所有块
+    while (hasMore) {
+      const queryParams = new URLSearchParams();
+      if (startCursor) {
+        queryParams.append('start_cursor', startCursor);
+      }
+      // 增加页面大小以提高效率
+      queryParams.append('page_size', '100');
+
+      const url = `/blocks/${pageId}/children?${queryParams.toString()}`;
+      const response = await notionFetch<any>(url);
+      const blocks = response.results || [];
+
+      allBlocks = allBlocks.concat(blocks);
+
+      // 检查是否还有更多数据
+      hasMore = response.has_more || false;
+      startCursor = response.next_cursor;
+    }
+
+    console.log(`Fetched ${allBlocks.length} blocks for page ${pageId}`);
+
     // 递归获取有子块的内容
-    for (const block of blocks) {
+    for (const block of allBlocks) {
       if (block.has_children) {
         block.children = await getPageBlocks(block.id);
       }
     }
 
-    return blocks;
+    return allBlocks;
   } catch (error) {
     console.error('Error fetching page blocks:', error);
     return [];
@@ -1217,7 +1240,7 @@ export interface DocPage {
 }
 
 /**
- * 从 Notion API 获取所有文档数据
+ * 从 Notion API 获取所有文档数据（支持分页）
  */
 async function fetchDocsFromNotion(): Promise<DocPage[]> {
   if (!docDatabaseId) {
@@ -1225,9 +1248,13 @@ async function fetchDocsFromNotion(): Promise<DocPage[]> {
     return [];
   }
 
-  const response = await notionFetch<NotionDatabase>(`/databases/${docDatabaseId}/query`, {
-    method: 'POST',
-    body: JSON.stringify({
+  let allDocs: any[] = [];
+  let startCursor: string | undefined;
+  let hasMore = true;
+
+  // 使用分页获取所有文档
+  while (hasMore) {
+    const requestBody: any = {
       filter: {
         and: [
           {
@@ -1245,12 +1272,30 @@ async function fetchDocsFromNotion(): Promise<DocPage[]> {
           property: 'Order',
           direction: 'ascending'
         }
-      ]
-    }),
-  });
+      ],
+      page_size: 100 // 增加页面大小
+    };
+
+    if (startCursor) {
+      requestBody.start_cursor = startCursor;
+    }
+
+    const response = await notionFetch<NotionDatabase>(`/databases/${docDatabaseId}/query`, {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    });
+
+    allDocs = allDocs.concat(response.results);
+
+    // 检查是否还有更多数据
+    hasMore = response.has_more || false;
+    startCursor = response.next_cursor;
+  }
+
+  console.log(`Fetched ${allDocs.length} documents from Notion`);
 
   // 解析所有文档
-  const docs = response.results.map(parseNotionPageToDoc);
+  const docs = allDocs.map(parseNotionPageToDoc);
 
   // 获取每个文档的内容
   const docsWithContent = await Promise.all(
