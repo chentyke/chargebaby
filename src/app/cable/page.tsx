@@ -1,12 +1,13 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { Cable, Zap } from 'lucide-react';
 import { getCables } from '@/lib/cable';
 import { getNotices } from '@/lib/notion';
 import { SearchableCableGrid } from '@/components/searchable-cable-grid';
 import { NoticeCarousel } from '@/components/notice-carousel';
 import { Loading } from '@/components/ui/loading';
 import { DeviceOptimizedContainer } from '@/components/device-optimized-container';
-import { BatteryCharging, Cable, Zap } from 'lucide-react';
+import { SiteSwitcher } from '@/components/site-switcher';
 
 interface CablePageProps {
   searchParams: Promise<{
@@ -53,24 +54,7 @@ export default function CablePage({ searchParams }: CablePageProps) {
         {/* 页面标题和搜索区域 */}
         <header className="pt-10 sm:pt-12 pb-8 relative">
           {/* 左上角切换按钮 */}
-          <div
-            className="px-4 sm:px-0 sm:absolute sm:top-0 sm:left-0"
-            style={{
-              paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 1rem)',
-              paddingRight: 'calc(env(safe-area-inset-right, 0px) + 1rem)'
-            }}
-          >
-            <div className="flex justify-start mb-6 sm:mb-0 sm:ml-4 sm:mt-4">
-              <Link
-                href="/"
-                aria-label="切换到充电宝版"
-                className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl border border-white/60 bg-gradient-to-br from-white/95 via-white/80 to-white/60 backdrop-blur-md shadow-sm text-sm font-medium text-gray-700 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-              >
-                <BatteryCharging className="w-4 h-4 text-amber-500" />
-                <span className="text-sm">切换到充电宝版</span>
-              </Link>
-            </div>
-          </div>
+          <SiteSwitcher currentSite="cable" />
 
           <div className="container sm:pt-8">
 

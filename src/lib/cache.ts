@@ -121,11 +121,14 @@ class ServerCache {
    */
   invalidateSchemaCache(): void {
     console.log('🏗️  Invalidating cache due to schema update');
-    
-    // 清除所有充电宝相关缓存
-    const deletedCount = this.deleteByPrefix('charge-baby');
-    
-    console.log(`✅ Schema cache invalidated, cleared ${deletedCount} entries`);
+
+    // 清除所有相关缓存
+    const deletedCount1 = this.deleteByPrefix('charge-baby');
+    const deletedCount2 = this.deleteByPrefix('cable');
+    const deletedCount3 = this.deleteByPrefix('charger');
+
+    const totalDeleted = deletedCount1 + deletedCount2 + deletedCount3;
+    console.log(`✅ Schema cache invalidated, cleared ${totalDeleted} entries`);
   }
 
   /**
@@ -157,6 +160,8 @@ export const CACHE_KEYS = {
   CHARGE_BABY_BY_ID: (id: string) => `charge-baby-${id}`,
   CABLES: 'cables',
   CABLE_BY_ID: (id: string) => `cable-${id}`,
+  CHARGERS: 'chargers',
+  CHARGER_BY_ID: (id: string) => `charger-${id}`,
   WISHLIST_PRODUCTS: 'wishlist-products',
   WISHLIST_PRODUCT_BY_ID: (id: string) => `wishlist-product-${id}`,
   NOTICES: 'notices',

@@ -579,9 +579,6 @@ export default async function CableDetailPage({ params, searchParams }: PageProp
             产品参数与内容基于客观测试数据，仅供参考。实际使用效果可能因环境、设备、使用方式等因素产生差异，请以实际体验为准。数据来源：{dataSourceText || '未提供'}
           </div>
 
-          {/* 页脚版本信息 */}
-          <div className="mt-4 text-[11px] text-gray-400 flex justify-end">参数版本：V1.0</div>
-
           {/* ICP备案信息 */}
           <ICPBeian variant="detail-mobile" />
         </div>
@@ -783,9 +780,6 @@ export default async function CableDetailPage({ params, searchParams }: PageProp
                 <div className="text-[11px] leading-5 text-gray-400 border-t border-gray-200 pt-6">
                   产品参数与内容基于客观测试数据，仅供参考。实际使用效果可能因环境、设备、使用方式等因素产生差异，请以实际体验为准。数据来源：{dataSourceText || '未提供'}
                 </div>
-
-                {/* 页脚版本信息 */}
-                <div className="text-[11px] text-gray-400 flex justify-end">参数版本：V1.0</div>
 
                 {/* ICP备案信息 */}
                 <ICPBeian variant="detail-desktop" />

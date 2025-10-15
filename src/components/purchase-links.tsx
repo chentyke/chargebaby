@@ -4,6 +4,7 @@ import { ExternalLink, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChargeBaby } from '@/types/chargebaby';
 import { Cable } from '@/types/cable';
+import { Charger } from '@/types/charger';
 import { Tooltip } from '@/components/ui/tooltip';
 
 export const PRODUCT_SAMPLE_TOOLTIP = `我们是一个以在校学生为主的业余团队，因此没有足够的财力自行大量购买各类设备进行测试。因此非常感谢第三方能为我们提供评测样机。这让我们有机会接触到更多产品，为大家带来更丰富的评测内容。
@@ -12,7 +13,7 @@ export const PRODUCT_SAMPLE_TOOLTIP = `我们是一个以在校学生为主的�
 
 interface PurchaseLinksProps {
   className?: string;
-  chargeBaby: ChargeBaby | Cable;
+  chargeBaby: ChargeBaby | Cable | Charger;
   variant?: 'mobile' | 'desktop';
 }
 

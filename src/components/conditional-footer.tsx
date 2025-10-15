@@ -19,7 +19,7 @@ export function ConditionalFooter() {
   }
   
   // 定义已知的非详情页面路径
-  const knownPages = ['/ranking', '/compare', '/submit', '/'];
+  const knownPages = ['/ranking', '/compare', '/submit', '/', '/cable'];
   
   // 如果是已知页面，显示Footer
   if (knownPages.includes(pathname)) {
@@ -27,10 +27,13 @@ export function ConditionalFooter() {
   }
   
   // 检查是否为详情页面（格式：/产品型号 或 /产品型号/detail）
-  // 详情页面不显示全局Footer，因为有内嵌的ICP备案
+  // 或者是充电器/充电线页面
+  // 这些页面不显示全局Footer，因为有内嵌的ICP备案或特殊布局
   const isDetailPage = pathname.match(/^\/[^\/]+(?:\/detail)?$/);
-  
-  if (isDetailPage) {
+  const isChargerPage = pathname.startsWith('/charger');
+  const isCablePage = pathname.startsWith('/cable');
+
+  if (isDetailPage || isChargerPage || isCablePage) {
     return null;
   }
   

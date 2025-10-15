@@ -48,13 +48,13 @@ export function NoticeCarousel({ notices, className = '' }: NoticeCarouselProps)
 
   return (
     <>
-      <div className={`text-center ${className}`}>
+      <div className={`text-center px-4 ${className}`}>
         <div
-          className="inline-flex items-center justify-center cursor-pointer hover:text-gray-800 transition-colors"
+          className="inline-flex items-center justify-center cursor-pointer hover:text-gray-800 transition-colors w-full max-w-full"
           onClick={handleNoticeClick}
         >
           <span className="mr-2">📢</span>
-          <span className="text-sm text-gray-600 truncate max-w-md">
+          <span className="text-sm text-gray-600 truncate flex-1 min-w-0 max-w-[280px] sm:max-w-md md:max-w-lg">
             {currentNotice.title}
           </span>
           <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
