@@ -10,6 +10,7 @@ import { SearchCompareToolbar, ViewMode } from '@/components/search-compare-tool
 import { useImagePreloader } from '@/hooks/useImagePreloader';
 import { cn } from '@/lib/utils';
 import { getStoredViewMode, setStoredViewMode, getStoredScrollPosition } from '@/utils/view-mode-storage';
+import { saveSearchState, getStoredSearchState } from '@/utils/search-state-storage';
 
 interface SearchableProductsGridProps {
   chargeBabies: ChargeBaby[];
@@ -37,7 +38,9 @@ export function SearchableProductsGrid({ chargeBabies, initialViewMode }: Search
       return baseProducts;
     }
 
-    const query = searchQuery.toLowerCase().trim();
+    // 自动分词：按空格分隔搜索查询
+    const keywords = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    
     return baseProducts.filter((chargeBaby) => {
       const searchFields = [
         chargeBaby.title,
@@ -48,14 +51,20 @@ export function SearchableProductsGrid({ chargeBabies, initialViewMode }: Search
         ...(Array.isArray(chargeBaby.tags) ? chargeBaby.tags : [])
       ].filter(Boolean);
 
-      return searchFields.some(field => 
-        field?.toString().toLowerCase().includes(query)
-      );
+      // 将所有搜索字段合并成一个字符串
+      const combinedText = searchFields
+        .map(field => field?.toString().toLowerCase())
+        .join(' ');
+
+      // 所有关键词都必须在合并文本中找到（AND 逻辑）
+      return keywords.every(keyword => combinedText.includes(keyword));
     });
   }, [filteredByFilter, searchQuery]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    // 保存搜索状态到 localStorage
+    saveSearchState(query, pathname);
   };
 
   const handleFilterChange = useCallback((filteredBabies: ChargeBaby[], sortBy: SortOption, hasFilters: boolean) => {
@@ -69,7 +78,7 @@ export function SearchableProductsGrid({ chargeBabies, initialViewMode }: Search
     setStoredViewMode(mode); // 持久化保存
   }, []);
 
-  // 客户端初始化：优先使用 URL 参数，否则从 localStorage 恢复视图模式
+  // 客户端初始化：优先使用 URL 参数，否则从 localStorage 恢复视图模式和搜索状态
   useEffect(() => {
     setIsClient(true);
     const finalViewMode = initialViewMode || getStoredViewMode();
@@ -79,7 +88,13 @@ export function SearchableProductsGrid({ chargeBabies, initialViewMode }: Search
     if (initialViewMode) {
       setStoredViewMode(initialViewMode);
     }
-  }, [initialViewMode]);
+
+    // 恢复搜索状态
+    const savedSearchState = getStoredSearchState(pathname);
+    if (savedSearchState && savedSearchState.searchQuery) {
+      setSearchQuery(savedSearchState.searchQuery);
+    }
+  }, [initialViewMode, pathname]);
 
   // 当chargeBabies变化时更新筛选状态
   useEffect(() => {
@@ -148,6 +163,7 @@ export function SearchableProductsGrid({ chargeBabies, initialViewMode }: Search
                 sortBy={currentSortBy}
                 hasActiveFilters={hasActiveFilters}
                 currentViewMode={viewMode}
+                currentSearchQuery={searchQuery}
               />
             ))}
           </div>
@@ -167,6 +183,7 @@ export function SearchableProductsGrid({ chargeBabies, initialViewMode }: Search
                     sortBy={currentSortBy}
                     hasActiveFilters={hasActiveFilters}
                     currentViewMode={viewMode}
+                    currentSearchQuery={searchQuery}
                     className={cn(
                       // 移动端：除最后一项外都有下边框
                       !isLastItem && "border-b border-gray-200",

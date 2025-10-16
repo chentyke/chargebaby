@@ -4,6 +4,7 @@ import { ChargeBaby, SortOption } from '@/types/chargebaby';
 import { cn } from '@/lib/utils';
 import { NotionImage } from './notion-image';
 import { saveScrollPosition, getStoredViewMode } from '@/utils/view-mode-storage';
+import { saveSearchState } from '@/utils/search-state-storage';
 import type { ReactNode } from 'react';
 
 interface ChargeBabyListCardProps {
@@ -13,9 +14,10 @@ interface ChargeBabyListCardProps {
   sortBy?: SortOption;
   hasActiveFilters?: boolean;
   currentViewMode?: 'grid' | 'list';
+  currentSearchQuery?: string;
 }
 
-export function ChargeBabyListCard({ chargeBaby, className, index = 0, sortBy, hasActiveFilters = false, currentViewMode }: ChargeBabyListCardProps) {
+export function ChargeBabyListCard({ chargeBaby, className, index = 0, sortBy, hasActiveFilters = false, currentViewMode, currentSearchQuery = '' }: ChargeBabyListCardProps) {
   const {
     id,
     brand,
@@ -40,6 +42,11 @@ export function ChargeBabyListCard({ chargeBaby, className, index = 0, sortBy, h
     // 保存当前滚动位置
     const viewMode = currentViewMode || getStoredViewMode();
     saveScrollPosition(pathname, viewMode);
+    
+    // 保存搜索状态
+    if (currentSearchQuery) {
+      saveSearchState(currentSearchQuery, pathname);
+    }
     
     // 导航到详情页面，携带必要的参数
     const detailUrl = `/${encodeURIComponent(model)}?view=${viewMode}`;

@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { NotionImage } from '@/components/notion-image';
 import Link from 'next/link';
-import { ArrowLeft, ChevronDown, Battery, Trophy } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Battery, Trophy, Search } from 'lucide-react';
 import { ChargeBaby } from '@/types/chargebaby';
 import { BackButton } from '@/components/ui/back-button';
 import { TitleWithTooltip } from '@/components/ui/title-with-tooltip';
+import { CompareSearchModal } from '@/components/compare-search-modal';
 
 interface CompareInterfaceProps {
   chargeBabies: ChargeBaby[];
@@ -24,6 +25,7 @@ const expLevelLabels = ['低水平', '中水平', '中高水平', '高水平', '
 export function CompareInterface({ chargeBabies, searchParams }: CompareInterfaceProps) {
   const [selectedProducts, setSelectedProducts] = useState<(ChargeBaby | null)[]>([null, null, null]);
   const [isMobile, setIsMobile] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState<number | null>(null);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -55,6 +57,20 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
     setSelectedProducts(newProducts);
   };
 
+  const openSearchModal = (position: number) => {
+    setSearchModalOpen(position);
+  };
+
+  const closeSearchModal = () => {
+    setSearchModalOpen(null);
+  };
+
+  const handleProductSelect = (product: ChargeBaby) => {
+    if (searchModalOpen !== null) {
+      updateProduct(searchModalOpen, product);
+    }
+  };
+
   const availableProducts = (excludeIndex: number) => 
     chargeBabies.filter(product => 
       product.model !== 'WeChat' && 
@@ -77,7 +93,7 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
           <BackButton href={backHref} variant="compact">
             {backText}
           </BackButton>
-          
+
           {/* 排行榜按钮 */}
           <Link href="/ranking">
             <div className={`flex items-center gap-2 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-200 shadow-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50/50 transition-all duration-300 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'}`}>
@@ -96,15 +112,14 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
       </div>
 
       {/* 粘性选择器区域 */}
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl">
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl">
         <div className={`container max-w-6xl ${isMobile ? 'px-3 py-3' : 'px-4 sm:px-6 lg:px-8 py-4'}`}>
           <div className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6'}`}>
             {displayedProducts.map((selectedProduct, index) => (
               <ProductSelector
                 key={index}
                 selectedProduct={selectedProduct}
-                availableProducts={availableProducts(index)}
-                onSelect={(product) => updateProduct(index, product)}
+                onOpenSearch={() => openSearchModal(index)}
                 position={index}
                 isMobile={isMobile}
               />
@@ -131,130 +146,46 @@ export function CompareInterface({ chargeBabies, searchParams }: CompareInterfac
         </div>
       )}
 
+      {/* 搜索弹窗 */}
+      <CompareSearchModal
+        isOpen={searchModalOpen !== null}
+        onClose={closeSearchModal}
+        onSelect={handleProductSelect}
+        chargeBabies={chargeBabies}
+        excludedIds={displayedProducts.filter(p => p !== null).map(p => p!.id)}
+        position={searchModalOpen !== null ? searchModalOpen + 1 : 1}
+      />
+
     </div>
   );
 }
 
-function ProductSelector({ 
-  selectedProduct, 
-  availableProducts, 
-  onSelect, 
+function ProductSelector({
+  selectedProduct,
+  onOpenSearch,
   position,
-  isMobile 
+  isMobile
 }: {
   selectedProduct: ChargeBaby | null;
-  availableProducts: ChargeBaby[];
-  onSelect: (product: ChargeBaby | null) => void;
+  onOpenSearch: () => void;
   position: number;
   isMobile?: boolean;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      searchInputRef.current?.focus();
-    } else {
-      setSearchTerm('');
-    }
-  }, [isOpen]);
-
-  const normalizedTerm = searchTerm.trim().toLowerCase();
-  const filteredProducts = normalizedTerm
-    ? availableProducts.filter((product) => {
-        const candidateTexts = [
-          product.displayName,
-          product.title,
-          product.brand,
-          product.model,
-        ];
-        return candidateTexts.some((text) => text?.toLowerCase().includes(normalizedTerm));
-      })
-    : availableProducts;
-
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full bg-white border border-gray-300 rounded-xl hover:border-gray-400 transition-colors text-left flex items-center justify-between shadow-sm ${isMobile ? 'p-2.5' : 'p-3 sm:p-4'}`}
-      >
-        <span className={`font-medium text-gray-900 truncate pr-2 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm md:text-base'}`}>
-          {selectedProduct ? (selectedProduct.displayName || selectedProduct.title) : `选择充电宝 ${position + 1}`}
-        </span>
-        <ChevronDown className={`text-gray-400 transition-transform flex-shrink-0 ${isMobile ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5'} ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <>
-          <div 
-            className="fixed inset-0 z-30"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-40 max-h-80 overflow-hidden flex flex-col">
-            <div className="p-2 border-b border-gray-100">
-              <input
-                ref={searchInputRef}
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="搜索型号、品牌..."
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400 focus:ring-0"
-              />
-            </div>
-            <div className="p-2 overflow-y-auto">
-              <button
-                onClick={() => {
-                  onSelect(null);
-                  setIsOpen(false);
-                }}
-                className="w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors text-gray-500 text-sm"
-              >
-                不选择
-              </button>
-              {filteredProducts.length === 0 && (
-                <div className="px-3 py-4 text-center text-sm text-gray-400">
-                  未找到匹配的充电宝
-                </div>
-              )}
-              {filteredProducts.map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => {
-                    onSelect(product);
-                    setIsOpen(false);
-                  }}
-                  className="w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3"
-                >
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    {product.imageUrl ? (
-                      <NotionImage
-                        src={product.imageUrl}
-                        alt={product.title}
-                        width={32}
-                        height={32}
-                        className="object-contain"
-                      />
-                    ) : (
-                      <Battery className="w-5 h-5 text-gray-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate text-sm">
-                      {product.displayName || product.title}
-                    </div>
-                    {(product.brand || product.model) && (
-                      <div className="text-xs text-gray-500 truncate">
-                        {product.brand && product.model ? `${product.brand} ${product.model}` : (product.model || product.brand)}
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+    <button
+      onClick={onOpenSearch}
+      className={`w-full bg-white border border-gray-300 rounded-xl hover:border-gray-400 transition-all duration-200 text-left flex items-center justify-between shadow-sm hover:shadow-md ${isMobile ? 'p-2.5' : 'p-3 sm:p-4'} group`}
+    >
+      <span className={`font-medium text-gray-900 truncate pr-2 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm md:text-base'}`}>
+        {selectedProduct ? (selectedProduct.displayName || selectedProduct.title) : `选择充电宝 ${position + 1}`}
+      </span>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {!selectedProduct && (
+          <Search className={`text-gray-400 group-hover:text-gray-600 transition-colors ${isMobile ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5'}`} />
+        )}
+        <ChevronDown className={`text-gray-400 transition-transform flex-shrink-0 ${isMobile ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5'}`} />
+      </div>
+    </button>
   );
 }
 
