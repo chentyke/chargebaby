@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { HelpCircle } from 'lucide-react';
 
 interface TooltipProps {
@@ -12,100 +12,175 @@ export function Tooltip({ content, className = '' }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [showContent, setShowContent] = useState(false);
+  const [measuredSize, setMeasuredSize] = useState({ width: 0, height: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
+  // 检测移动设备
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const resizeObserver = new ResizeObserver(checkMobile);
+    resizeObserver.observe(document.body);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, []);
 
-  // 计算工具提示位置
-  const calculatePosition = () => {
-    if (!buttonRef.current) {
-      return;
+  // 测量tooltip实际尺寸
+  const measureTooltipSize = useCallback(() => {
+    if (!measureRef.current) {
+      return { width: 280, height: 60 }; // 默认尺寸
     }
 
-    const rect = buttonRef.current.getBoundingClientRect();
-    const measuredWidth = tooltipRef.current?.offsetWidth;
-    const measuredHeight = tooltipRef.current?.offsetHeight;
-    const tooltipWidth = measuredWidth ?? 320; // 默认宽度：max-w-80
-    const tooltipHeight = measuredHeight ?? 100; // 默认高度估值
+    const rect = measureRef.current.getBoundingClientRect();
+    return {
+      width: Math.max(240, Math.min(320, rect.width)),
+      height: Math.max(50, rect.height)
+    };
+  }, []);
+
+  // 计算工具提示位置 - 使用测量的实际尺寸
+  const calculatePosition = useCallback(() => {
+    if (!buttonRef.current) {
+      return { top: 0, left: 0 };
+    }
+
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const { width: tooltipWidth, height: tooltipHeight } = measuredSize.width > 0 ? measuredSize : measureTooltipSize();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const sidePadding = 16;
-    const spacing = 8;
+    const spacing = 12; // 确保不遮挡按钮的间距
 
-    // 默认放在按钮上方
-    let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-    let top = rect.top - tooltipHeight - spacing;
+    // 默认放在按钮上方，水平居中对齐按钮
+    let left = buttonRect.left + buttonRect.width / 2 - tooltipWidth / 2;
+    let top = buttonRect.top - tooltipHeight - spacing;
 
-    // 先尝试保持左右在视口内
+    // 确保左右不超出视口
     if (left < sidePadding) {
       left = sidePadding;
-    }
-    if (left + tooltipWidth > viewportWidth - sidePadding) {
+    } else if (left + tooltipWidth > viewportWidth - sidePadding) {
       left = viewportWidth - tooltipWidth - sidePadding;
     }
 
     const aboveTop = top;
-    const belowTop = rect.bottom + spacing;
+    const belowTop = buttonRect.bottom + spacing;
 
-    // 如果上方空间不足，先尝试放到下方
+    // 智能选择位置：优先上方，空间不足时放下方
     if (top < sidePadding) {
-      top = belowTop;
-    }
-
-    // 如果下方空间也不足，则尝试再次放到上方
-    if (top + tooltipHeight > viewportHeight - sidePadding) {
-      if (top === belowTop && aboveTop >= sidePadding) {
-        top = aboveTop;
+      if (belowTop + tooltipHeight <= viewportHeight - sidePadding) {
+        top = belowTop; // 下方有足够空间
       } else {
-        // 最后兜底：让 Tooltip 留在视口内
-        top = Math.max(
-          sidePadding,
-          Math.min(aboveTop, viewportHeight - tooltipHeight - sidePadding)
-        );
+        // 上下都不足，选择空间更大的位置
+        const spaceAbove = buttonRect.top - sidePadding;
+        const spaceBelow = viewportHeight - buttonRect.bottom - sidePadding;
+        top = spaceAbove >= spaceBelow ? aboveTop : belowTop;
       }
     }
 
-    setPosition({ top, left });
-  };
+    // 最后确保不超出视口
+    top = Math.max(sidePadding, Math.min(top, viewportHeight - tooltipHeight - sidePadding));
 
-  const handleShow = () => {
-    if (isVisible) {
-      calculatePosition();
-    } else {
-      setIsVisible(true);
+    return { top, left };
+  }, [measuredSize, measureTooltipSize]);
+
+  // 更新位置
+  const updatePosition = useCallback(() => {
+    const newPosition = calculatePosition();
+    setPosition(newPosition);
+  }, [calculatePosition]);
+
+  // 处理显示
+  const handleShow = useCallback(() => {
+    // 清除之前的定时器
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-  };
 
-  const handleHide = () => {
+    // 显示容器但内容不可见，用于测量尺寸
+    setIsVisible(true);
+    setShowContent(false);
+
+    // 短暂延迟后测量尺寸并重新定位
+    timeoutRef.current = setTimeout(() => {
+      const newSize = measureTooltipSize();
+      setMeasuredSize(newSize);
+
+      // 测量完成后立即更新位置
+      const newPosition = calculatePosition();
+      setPosition(newPosition);
+
+      // 然后显示内容
+      setTimeout(() => {
+        setShowContent(true);
+      }, 16); // 等待一帧确保位置更新
+    }, 16);
+  }, [calculatePosition, measureTooltipSize]);
+
+  // 处理隐藏
+  const handleHide = useCallback(() => {
+    // 清除定时器
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    // 立即隐藏
+    setShowContent(false);
     setIsVisible(false);
-  };
+  }, []);
 
+  // 设置监听器
   useEffect(() => {
     if (isMobile || !isVisible) {
       return;
     }
 
-    const updatePosition = () => calculatePosition();
+    // 清理之前的监听器
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
 
-    const rafId = requestAnimationFrame(updatePosition);
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-
-    return () => {
+    let rafId: number;
+    const handleViewportChange = () => {
       cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
+      rafId = requestAnimationFrame(updatePosition);
     };
-  }, [isMobile, isVisible]);
+
+    window.addEventListener('scroll', handleViewportChange, { passive: true, capture: true });
+    window.addEventListener('resize', handleViewportChange, { passive: true });
+
+    // 设置清理函数
+    cleanupRef.current = () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', handleViewportChange, { capture: true });
+      window.removeEventListener('resize', handleViewportChange);
+    };
+
+    return cleanupRef.current;
+  }, [isMobile, isVisible, updatePosition]);
+
+  // 组件卸载时的清理
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+    };
+  }, []);
 
   // 移动端使用模态框，桌面端使用悬浮提示
   if (isMobile) {
@@ -169,33 +244,52 @@ export function Tooltip({ content, className = '' }: TooltipProps) {
           type="button"
           onMouseEnter={handleShow}
           onMouseLeave={handleHide}
-          onClick={handleShow}
           className="ml-1 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
           aria-label="查看说明"
+          aria-describedby={isVisible && showContent ? 'tooltip-description' : undefined}
         >
           <HelpCircle className="w-4 h-4" />
         </button>
       </div>
-      
+
       {isVisible && (
-        <div 
-          className="fixed z-[9999] pointer-events-none"
-          style={{ 
-            top: `${position.top}px`, 
-            left: `${position.left}px` 
-          }}
-          onMouseEnter={handleShow}
-          onMouseLeave={handleHide}
-        >
+        <>
+          {/* 隐藏的测量元素 - 用于获取实际尺寸 */}
           <div
-            ref={tooltipRef}
-            className="bg-gray-900 text-white text-sm rounded-lg py-3 px-4 shadow-xl border border-gray-700 min-w-64 max-w-80 pointer-events-auto"
+            ref={measureRef}
+            className="fixed z-[9998] pointer-events-none opacity-0"
+            style={{ top: '-9999px', left: '-9999px' }}
           >
-            <p className="leading-relaxed text-left tooltip-content">
-              {content}
-            </p>
+            <div className="bg-gray-900 text-white text-sm rounded-lg py-3 px-4 shadow-xl border border-gray-700 min-w-64 max-w-80">
+              <p className="leading-relaxed text-left tooltip-content">
+                {content}
+              </p>
+            </div>
           </div>
-        </div>
+
+          {/* 实际显示的tooltip */}
+          <div
+            className="fixed z-[9999]"
+            style={{
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+              opacity: showContent ? 1 : 0,
+              transition: 'opacity 0.15s ease-in-out',
+              pointerEvents: 'none'
+            }}
+          >
+            <div
+              ref={tooltipRef}
+              className="bg-gray-900 text-white text-sm rounded-lg py-3 px-4 shadow-xl border border-gray-700 min-w-64 max-w-80"
+              role="tooltip"
+              id="tooltip-description"
+            >
+              <p className="leading-relaxed text-left tooltip-content">
+                {content}
+              </p>
+            </div>
+          </div>
+        </>
       )}
     </>
   );
